@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codeguardian"
+version = "0.2.0"
+description = "Multi-Agent collaborative code review and security scanning system powered by MiMo"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "CodeGuardian Team"}
+]
+keywords = ["code-review", "multi-agent", "langgraph", "ai", "security", "mimo", "xiaomi"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "langgraph>=0.2.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "openai>=1.30.0",
+    "tree-sitter>=0.22.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "click>=8.1.0",
+    "tenacity>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+codeguardian = "codeguardian.main:cli"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

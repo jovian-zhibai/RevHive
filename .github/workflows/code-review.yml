@@ -1,0 +1,36 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Run CodeGuardian Review
+        env:
+          LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
+          LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
+          LLM_MODEL: mimo-v2.5-pro
+        run: |
+          codeguardian review --diff HEAD~1 --format markdown --output review_report.md
+      - name: Post Review Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('review_report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
