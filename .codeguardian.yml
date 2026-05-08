@@ -1,0 +1,30 @@
+# CodeGuardian Configuration
+
+model: mimo-v2.5-pro
+
+agents:
+  style:
+    enabled: true
+    rules:
+      - max_line_length: 120
+      - require_docstring: true
+  security:
+    enabled: true
+    severity_threshold: medium
+  performance:
+    enabled: true
+  logic:
+    enabled: true
+  repo:
+    enabled: true
+  refactor:
+    enabled: true
+
+ignore:
+  - "*.min.js"
+  - "*.min.css"
+  - "vendor/**"
+  - "node_modules/**"
+  - "migrations/**"
+  - "__pycache__/**"
+  - ".git/**"

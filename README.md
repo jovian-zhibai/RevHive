@@ -1,0 +1,190 @@
+# CodeGuardian
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![LangGraph](https://img.shields.io/badge/framework-LangGraph-orange)](https://langchain-ai.github.io/langgraph/)
+[![MiMo](https://img.shields.io/badge/powered_by-MiMo-red)](https://platform.xiaomimimo.com)
+
+**AI-Powered Multi-Agent Code Review & Security Scanning System**
+
+CodeGuardian deploys 10 specialized AI agents working in parallel to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues — before they reach production.
+
+## Why CodeGuardian?
+
+| Pain Point | CodeGuardian Solution |
+|---|---|
+| Manual CR takes 1-2 hours/day | 6 agents review in parallel in under 30 seconds |
+| Human reviewers miss subtle bugs | Each agent is a domain expert (security, perf, logic...) |
+| "LGTM" culture devalues review | Every PR gets a thorough, objective audit |
+| No team-wide quality visibility | Trend analysis tracks code health over time |
+
+## Architecture
+
+```
+┌─────────────┐
+│  Coordinator │ ← Synthesizes findings, resolves conflicts
+└──────┬──────┘
+       │ collects results from 6 parallel agents
+┌──────┼──────┬────────┬────────┐
+▼      ▼      ▼        ▼        ▼
+Style  Security  Perf   Logic   Repo   Refactor
+```
+
+### All 10 Agents
+
+| Agent | Role |
+|---|---|
+| **StyleAgent** | Naming conventions, formatting, documentation |
+| **SecurityAgent** | SQL injection, XSS, secrets, weak crypto, auth flaws |
+| **PerformanceAgent** | N+1 queries, memory leaks, algorithmic complexity |
+| **LogicAgent** | Edge cases, error handling, race conditions, type safety |
+| **RepoAgent** | Architecture review, cross-file dependencies, tech debt |
+| **RefactorAgent** | Design patterns, code transformation, incremental migration |
+| **FixAgent** | Generates complete corrected code with root cause analysis |
+| **TestAgent** | Unit tests, edge case tests, security regression tests |
+| **DocAgent** | API docs, architecture docs, usage examples |
+| **Coordinator** | Deduplicates, prioritizes, resolves conflicts, generates report |
+
+## Quick Start
+
+```bash
+# 1. Install
+git clone https://github.com/YOUR_USERNAME/codeguardian.git
+cd codeguardian
+pip install -e ".[dev]"
+
+# 2. Try demo mode (no API key needed!)
+python examples/sample_review.py
+
+# 3. Run with MiMo (get your free token at https://platform.xiaomimimo.com)
+export LLM_API_KEY=your-mimo-api-key
+export LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1
+export LLM_MODEL=mimo-v2.5-pro
+codeguardian review --file src/main.py
+
+# 4. Review a git diff
+codeguardian review --diff HEAD~1
+```
+
+## Demo Mode
+
+CodeGuardian ships with a fully functional **demo mode** that runs the complete multi-agent pipeline with mock responses. No API key, no network, no cost — perfect for evaluation.
+
+```bash
+python examples/sample_review.py
+```
+
+This produces a realistic review report identical in structure to a live MiMo-backed run, including:
+- 15+ simulated findings across all 6 review agents
+- Severity-ordered report (CRITICAL / HIGH / MEDIUM / LOW)
+- Markdown and JSON output formats
+
+## Supported LLM Backends
+
+| Provider | Model | Setup |
+|---|---|---|
+| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1` |
+| OpenAI | `gpt-4o` | `LLM_BASE_URL=https://api.openai.com/v1` |
+| DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
+
+MiMo is the **default and recommended backend**. CodeGuardian is optimized for MiMo's token economics and model capabilities.
+
+## Configuration
+
+Create `.codeguardian.yml` in your project root:
+
+```yaml
+model: mimo-v2.5-pro
+
+agents:
+  style:
+    enabled: true
+    rules:
+      - max_line_length: 120
+      - require_docstring: true
+  security:
+    enabled: true
+    severity_threshold: medium
+  performance:
+    enabled: true
+  logic:
+    enabled: true
+  repo:
+    enabled: true
+  refactor:
+    enabled: false   # disable if not needed
+
+ignore:
+  - "*.min.js"
+  - "vendor/**"
+  - "migrations/**"
+```
+
+## CI/CD Integration
+
+```yaml
+# .github/workflows/code-review.yml
+name: AI Code Review
+on: [pull_request]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e .
+      - name: Run Review
+        env:
+          LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
+          LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
+          LLM_MODEL: mimo-v2.5-pro
+        run: codeguardian review --diff HEAD~1 --format markdown --output report.md
+      - name: Post Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = require('fs').readFileSync('report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+```
+
+## Token Consumption
+
+CodeGuardian is designed for high-throughput token consumption — making it an ideal workload for MiMo's free tier or high-capacity plans:
+
+| Mode | Tokens / Event | Use Case |
+|---|---|---|
+| Single file 6-agent review | ~25,000 | Per-PR or on-demand |
+| Auto-fix generation | ~50,000 | Post-review fix |
+| Test suite generation | ~40,000 | Coverage gap fill |
+| Multi-turn deep review | ~120,000 | Critical security findings |
+| Repo-level full scan | ~1,500,000 | Code health audit |
+| Team daily batch | ~10,000,000 | 5+ repos continuous monitoring |
+
+## Project Structure
+
+```
+src/codeguardian/
+  agents/          # 10 specialized review agents
+  graph/           # LangGraph workflow orchestration
+  utils/           # tree-sitter code parser
+  team/            # Batch processing engine
+  demo.py           # Demo mode (no API key required)
+  main.py           # CLI entry point
+tests/              # Comprehensive test suite
+examples/           # Ready-to-run examples
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome!
+
+## License
+
+MIT — see [LICENSE](LICENSE).
