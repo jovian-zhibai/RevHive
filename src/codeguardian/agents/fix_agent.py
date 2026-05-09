@@ -23,7 +23,16 @@ class FixAgent(BaseReviewAgent):
 6. **Additional Recommendations** — Related improvements not strictly necessary but beneficial
 
 You MUST output the complete fixed file. Partial patches or snippets are not acceptable.
-If multiple issues exist in one file, fix ALL of them in a single pass."""
+If multiple issues exist in one file, fix ALL of them in a single pass.
+
+IMPORTANT: Before outputting any code, first list your review findings in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number]
+- Description: [What's wrong or missing]
+- Suggestion: [How to fix]
+
+Then output your complete fixed code below the findings."""
 
     def get_review_focus(self) -> str:
         return "complete code fix generation, root cause analysis, regression risk assessment"

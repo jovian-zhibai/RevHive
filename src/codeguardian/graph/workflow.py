@@ -20,6 +20,9 @@ from codeguardian.agents import (
     LogicAgent,
     RepoAgent,
     RefactorAgent,
+    FixAgent,
+    TestAgent,
+    DocAgent,
     CoordinatorAgent,
 )
 from codeguardian.agents.base import AgentResult
@@ -38,6 +41,9 @@ class ReviewState:
     logic_result: Optional[AgentResult] = None
     repo_result: Optional[AgentResult] = None
     refactor_result: Optional[AgentResult] = None
+    fix_result: Optional[AgentResult] = None
+    test_result: Optional[AgentResult] = None
+    doc_result: Optional[AgentResult] = None
     final_result: Optional[AgentResult] = None
 
 
@@ -57,6 +63,9 @@ class CodeReviewWorkflow:
         self.logic_agent = LogicAgent(**common_kwargs)
         self.repo_agent = RepoAgent(**common_kwargs)
         self.refactor_agent = RefactorAgent(**common_kwargs)
+        self.fix_agent = FixAgent(**common_kwargs)
+        self.test_agent = TestAgent(**common_kwargs)
+        self.doc_agent = DocAgent(**common_kwargs)
         self.coordinator = CoordinatorAgent(**common_kwargs)
 
         self.graph = self._build_graph()
@@ -71,6 +80,9 @@ class CodeReviewWorkflow:
         workflow.add_node("logic_review", self._run_logic)
         workflow.add_node("repo_review", self._run_repo)
         workflow.add_node("refactor_review", self._run_refactor)
+        workflow.add_node("fix_review", self._run_fix)
+        workflow.add_node("test_review", self._run_test)
+        workflow.add_node("doc_review", self._run_doc)
         workflow.add_node("coordinate", self._run_coordinate)
 
         review_nodes = [
@@ -80,6 +92,9 @@ class CodeReviewWorkflow:
             "logic_review",
             "repo_review",
             "refactor_review",
+            "fix_review",
+            "test_review",
+            "doc_review",
         ]
 
         for node in review_nodes:
@@ -116,6 +131,18 @@ class CodeReviewWorkflow:
         result = await self._safe_review(self.refactor_agent, state)
         return {"refactor_result": result}
 
+    async def _run_fix(self, state: ReviewState) -> dict:
+        result = await self._safe_review(self.fix_agent, state)
+        return {"fix_result": result}
+
+    async def _run_test(self, state: ReviewState) -> dict:
+        result = await self._safe_review(self.test_agent, state)
+        return {"test_result": result}
+
+    async def _run_doc(self, state: ReviewState) -> dict:
+        result = await self._safe_review(self.doc_agent, state)
+        return {"doc_result": result}
+
     async def _safe_review(self, agent, state: ReviewState) -> AgentResult:
         """Run a single agent review, returning a failure result on exception
         rather than crashing the entire workflow."""
@@ -137,6 +164,9 @@ class CodeReviewWorkflow:
                 state.logic_result,
                 state.repo_result,
                 state.refactor_result,
+                state.fix_result,
+                state.test_result,
+                state.doc_result,
             ]
             if r is not None
         ]
