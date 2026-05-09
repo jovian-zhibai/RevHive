@@ -9,7 +9,7 @@ class CoordinatorAgent(BaseReviewAgent):
 
     def __init__(self, **kwargs):
         super().__init__(
-            name="Coordinator",
+            name="CoordinatorAgent",
             description="Orchestrates review agents and synthesizes findings into a final report",
             **kwargs,
         )
