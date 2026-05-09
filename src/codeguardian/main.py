@@ -1,9 +1,13 @@
 """CLI entry point for CodeGuardian."""
 
+# TODO: use rich for terminal output (tables, syntax highlighting, progress bars)
 import asyncio
+import logging
 
 import click
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from codeguardian.graph.workflow import CodeReviewWorkflow, ReviewReport
 
