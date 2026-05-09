@@ -7,7 +7,7 @@
 
 **AI-Powered Multi-Agent Code Review & Security Scanning System**
 
-CodeGuardian deploys 10 specialized AI agents working in parallel to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues — before they reach production.
+CodeGuardian deploys 10 specialized AI agents — 9 reviewing in parallel, 1 synthesizing results — to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues before they reach production.
 
 ## Why CodeGuardian?
 

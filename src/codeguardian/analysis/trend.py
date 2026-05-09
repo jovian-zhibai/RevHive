@@ -3,6 +3,7 @@
 Scans every commit in a date range, running full review on each version.
 Extremely token-intensive: N commits × full review per commit."""
 
+import logging
 import os
 import subprocess
 from dataclasses import dataclass
@@ -46,10 +47,12 @@ class TrendAnalyzer:
         trend = []
 
         for commit_hash, commit_date in commits:
-            subprocess.run(
+            result = subprocess.run(
                 ["git", "checkout", commit_hash],
                 capture_output=True, cwd=self.repo_path
             )
+            if result.returncode != 0:
+                continue
 
             files = self._get_changed_files(commit_hash)[:files_per_commit]
             total_findings = 0
@@ -77,7 +80,12 @@ class TrendAnalyzer:
                 token_usage=total_tokens,
             ))
 
-        subprocess.run(["git", "checkout", "HEAD"], capture_output=True, cwd=self.repo_path)
+        result = subprocess.run(
+            ["git", "checkout", "HEAD"], capture_output=True, cwd=self.repo_path
+        )
+        if result.returncode != 0:
+            logger = logging.getLogger(__name__)
+            logger.warning("Failed to restore HEAD in %s", self.repo_path)
 
         return trend
 

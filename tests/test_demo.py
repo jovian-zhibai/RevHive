@@ -15,7 +15,7 @@ def test_demo_workflow_runs():
     demo = DemoReviewWorkflow()
     result = demo.run(code="def foo(): pass", file_path="test.py")
 
-    assert result.agent_name == "Coordinator"
+    assert result.agent_name == "CoordinatorAgent"
     assert len(result.findings) > 0
     # All agents in the mock data should have produced findings
     agents_seen = {f.agent for f in result.findings}

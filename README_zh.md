@@ -2,7 +2,7 @@
 
 **基于 Multi-Agent 协作的 AI 代码审查与安全扫描系统**
 
-CodeGuardian 部署 10 个专业 AI Agent 并行工作，在代码进入生产环境之前捕获安全漏洞、性能瓶颈、逻辑 Bug 和风格问题。
+CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇总 — 在代码进入生产环境之前捕获安全漏洞、性能瓶颈、逻辑 Bug 和风格问题。
 
 ## 为什么选择 CodeGuardian？
 
