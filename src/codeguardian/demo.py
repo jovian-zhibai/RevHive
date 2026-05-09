@@ -235,6 +235,8 @@ class DemoReviewWorkflow:
 
     Usage::
 
+        from codeguardian.graph.workflow import ReviewReport
+
         demo = DemoReviewWorkflow()
         result = demo.run(SAMPLE_CODE, file_path="app.py")
         report = ReviewReport(result)

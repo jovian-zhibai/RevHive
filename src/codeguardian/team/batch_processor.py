@@ -6,7 +6,7 @@ This is the primary driver for high-volume token consumption."""
 import asyncio
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -62,13 +62,9 @@ class TeamBatchProcessor:
     def __init__(self, config: TeamConfig, model: Optional[str] = None):
         self.config = config
         self.workflow = CodeReviewWorkflow(model=model)
-        self._token_counter = 0
-        self._daily_reset = datetime.now()
 
     async def run_daily_cycle(self) -> dict:
         """Execute a full daily review cycle across all repos."""
-        self._reset_daily_counter_if_needed()
-
         results = {
             "date": datetime.now().isoformat(),
             "team": self.config.team_name,
@@ -195,7 +191,3 @@ class TeamBatchProcessor:
             "node_modules", ".git", "__pycache__", "vendor", ".venv", "dist", "build"
         ])]
 
-    def _reset_daily_counter_if_needed(self):
-        if datetime.now() - self._daily_reset > timedelta(days=1):
-            self._token_counter = 0
-            self._daily_reset = datetime.now()
