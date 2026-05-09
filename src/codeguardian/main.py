@@ -5,11 +5,11 @@ import asyncio
 import click
 from pathlib import Path
 
-from codeguardian.graph.workflow import CodeReviewWorkflow
+from codeguardian.graph.workflow import CodeReviewWorkflow, ReviewReport
 
 
 @click.group()
-@click.version_option(version="0.1.0")
+@click.version_option(version="0.2.0")
 def cli():
     """CodeGuardian - AI-powered multi-agent code review system."""
     pass
@@ -34,10 +34,11 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
         click.echo("Please specify --file or --diff")
         return
 
+    report_obj = ReviewReport(result)
     if fmt == "json":
-        report = result.to_json()
+        report = report_obj.to_json()
     else:
-        report = result.to_markdown()
+        report = report_obj.to_markdown()
 
     if output:
         Path(output).write_text(report, encoding="utf-8")
