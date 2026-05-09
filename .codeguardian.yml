@@ -19,6 +19,12 @@ agents:
     enabled: true
   refactor:
     enabled: true
+  fix:
+    enabled: true
+  test:
+    enabled: true
+  doc:
+    enabled: false
 
 ignore:
   - "*.min.js"

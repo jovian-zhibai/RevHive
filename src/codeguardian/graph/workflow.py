@@ -163,7 +163,7 @@ class CodeReviewWorkflow:
     async def run_on_repo(self, repo_path: str, file_patterns: list[str] = None) -> list[AgentResult]:
         """Run review on an entire repository. High token consumption scenario.
 
-        Scans all matching files, runs 6 agents per file, and produces
+        Scans all matching files, runs 9 agents per file, and produces
         a consolidated repository-level report.
         """
         if file_patterns is None:
@@ -185,7 +185,7 @@ class CodeReviewWorkflow:
         """CI/CD integration mode — runs full review on every PR.
 
         Designed for automated pipeline: git hook / GitHub Action / GitLab CI.
-        Runs all 6 agents + coordinator + repo-level scan.
+        Runs all 9 agents + coordinator + repo-level scan.
         """
         diff_result = await self.run_from_diff(diff_ref)
 

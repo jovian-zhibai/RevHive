@@ -5,7 +5,7 @@ We welcome contributions! CodeGuardian is an AI-powered multi-agent code review 
 ## Getting Started
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/codeguardian.git
+git clone https://github.com/SoulJian03/CodeGuardian.git
 cd codeguardian
 pip install -e ".[dev]"
 python examples/sample_review.py  # Demo mode (no API key needed)
@@ -27,6 +27,7 @@ src/codeguardian/
   graph/        # LangGraph workflow orchestration
   utils/        # Parsing utilities
   team/         # Batch processing engine
+  analysis/     # Historical trend analysis
   demo.py       # Demo mode (no API key required)
 ```
 
