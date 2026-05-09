@@ -47,7 +47,7 @@ class TeamBatchProcessor:
     ┌──────────────────────────────────────────────────────────┐
     │ Scenario                   │ Tokens/event  │ Events/day  │
     ├──────────────────────────────────────────────────────────┤
-    │ Single file 6-agent review│   25,000      │ ×80 files   │
+    │ Single file 9-agent review│   35,000      │ ×80 files   │
     │ Auto-fix generation       │   50,000      │ ×40 files   │
     │ Test suite generation     │   40,000      │ ×30 files   │
     │ Doc generation            │   20,000      │ ×30 files   │

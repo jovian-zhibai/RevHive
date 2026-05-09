@@ -13,7 +13,7 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
 
 | Pain Point | CodeGuardian Solution |
 |---|---|
-| Manual CR takes 1-2 hours/day | 6 agents review in parallel in under 30 seconds |
+| Manual CR takes 1-2 hours/day | 9 agents review in parallel in under 30 seconds |
 | Human reviewers miss subtle bugs | Each agent is a domain expert (security, perf, logic...) |
 | "LGTM" culture devalues review | Every PR gets a thorough, objective audit |
 | No team-wide quality visibility | Trend analysis tracks code health over time |
@@ -24,10 +24,9 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
 ┌─────────────┐
 │  Coordinator │ ← Synthesizes findings, resolves conflicts
 └──────┬──────┘
-       │ collects results from 6 parallel agents
-┌──────┼──────┬────────┬────────┐
-▼      ▼      ▼        ▼        ▼
-Style  Security  Perf   Logic   Repo   Refactor
+       │ collects results from 9 parallel agents
+       ▼
+  Style  Security  Perf  Logic  Repo  Refactor  Fix  Test  Doc
 ```
 
 ### All 10 Agents
@@ -49,7 +48,7 @@ Style  Security  Perf   Logic   Repo   Refactor
 
 ```bash
 # 1. Install
-git clone https://github.com/YOUR_USERNAME/codeguardian.git
+git clone https://github.com/SoulJian03/CodeGuardian.git
 cd codeguardian
 pip install -e ".[dev]"
 
@@ -75,7 +74,7 @@ python examples/sample_review.py
 ```
 
 This produces a realistic review report identical in structure to a live MiMo-backed run, including:
-- 15+ simulated findings across all 6 review agents
+- 15+ simulated findings across all 9 review agents
 - Severity-ordered report (CRITICAL / HIGH / MEDIUM / LOW)
 - Markdown and JSON output formats
 
@@ -113,6 +112,12 @@ agents:
     enabled: true
   refactor:
     enabled: false   # disable if not needed
+  fix:
+    enabled: true
+  test:
+    enabled: true
+  doc:
+    enabled: false
 
 ignore:
   - "*.min.js"
@@ -160,7 +165,7 @@ CodeGuardian is designed for high-throughput token consumption — making it an 
 
 | Mode | Tokens / Event | Use Case |
 |---|---|---|
-| Single file 6-agent review | ~25,000 | Per-PR or on-demand |
+| Single file 9-agent review | ~35,000 | Per-PR or on-demand |
 | Auto-fix generation | ~50,000 | Post-review fix |
 | Test suite generation | ~40,000 | Coverage gap fill |
 | Multi-turn deep review | ~120,000 | Critical security findings |
@@ -175,6 +180,7 @@ src/codeguardian/
   graph/           # LangGraph workflow orchestration
   utils/           # tree-sitter code parser
   team/            # Batch processing engine
+  analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
 tests/              # Comprehensive test suite
