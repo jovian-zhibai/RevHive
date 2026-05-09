@@ -6,7 +6,7 @@ We welcome contributions! CodeGuardian is an AI-powered multi-agent code review 
 
 ```bash
 git clone https://github.com/SoulJian03/CodeGuardian.git
-cd codeguardian
+cd CodeGuardian
 pip install -e ".[dev]"
 python examples/sample_review.py  # Demo mode (no API key needed)
 ```
@@ -42,7 +42,7 @@ src/codeguardian/
 ## Running Against MiMo
 
 ```bash
-export LLM_API_KEY=your-mimo-key
+export LLM_API_KEY=your-mimo-api-key
 export LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1
 export LLM_MODEL=mimo-v2.5-pro
 codeguardian review --file src/main.py
