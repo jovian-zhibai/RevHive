@@ -29,6 +29,8 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
   Style  Security  Perf  Logic  Repo  Refactor  Fix  Test  Doc
 ```
 
+**ConversationReviewer** runs on-demand multi-turn deep review of individual findings — challenging assumptions, exploring alternative fixes, and testing edge cases through 5 rounds of dialogue. Used for critical/high severity findings in team batch mode.
+
 ### All 10 Agents
 
 | Agent | Role |
@@ -42,7 +44,6 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
 | **FixAgent** | Generates complete corrected code with root cause analysis |
 | **TestAgent** | Unit tests, edge case tests, security regression tests |
 | **DocAgent** | API docs, architecture docs, usage examples |
-| **ConversationReviewer** | Multi-turn deep review, challenges assumptions, explores alternatives |
 | **Coordinator** | Deduplicates, prioritizes, resolves conflicts, generates report |
 
 ## Quick Start
