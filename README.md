@@ -42,6 +42,7 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
 | **FixAgent** | Generates complete corrected code with root cause analysis |
 | **TestAgent** | Unit tests, edge case tests, security regression tests |
 | **DocAgent** | API docs, architecture docs, usage examples |
+| **ConversationReviewer** | Multi-turn deep review, challenges assumptions, explores alternatives |
 | **Coordinator** | Deduplicates, prioritizes, resolves conflicts, generates report |
 
 ## Quick Start
@@ -49,7 +50,7 @@ CodeGuardian deploys 10 specialized AI agents working in parallel to catch secur
 ```bash
 # 1. Install
 git clone https://github.com/SoulJian03/CodeGuardian.git
-cd codeguardian
+cd CodeGuardian
 pip install -e ".[dev]"
 
 # 2. Try demo mode (no API key needed!)
@@ -74,7 +75,7 @@ python examples/sample_review.py
 ```
 
 This produces a realistic review report identical in structure to a live MiMo-backed run, including:
-- 15+ simulated findings across all 9 review agents
+- 20+ simulated findings across all 9 review agents
 - Severity-ordered report (CRITICAL / HIGH / MEDIUM / LOW)
 - Markdown and JSON output formats
 
@@ -111,7 +112,7 @@ agents:
   repo:
     enabled: true
   refactor:
-    enabled: false   # disable if not needed
+    enabled: true
   fix:
     enabled: true
   test:
@@ -130,27 +131,33 @@ ignore:
 ```yaml
 # .github/workflows/code-review.yml
 name: AI Code Review
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize]
 jobs:
   review:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 2 }
+        with:
+          fetch-depth: 2
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with:
+          python-version: "3.12"
       - run: pip install -e .
-      - name: Run Review
+      - name: Run CodeGuardian Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
           LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
           LLM_MODEL: mimo-v2.5-pro
-        run: codeguardian review --diff HEAD~1 --format markdown --output report.md
-      - name: Post Comment
+        run: |
+          codeguardian review --diff HEAD~1 --format markdown --output review_report.md
+      - name: Post Review Comment
         uses: actions/github-script@v7
         with:
           script: |
-            const report = require('fs').readFileSync('report.md', 'utf8');
+            const fs = require('fs');
+            const report = fs.readFileSync('review_report.md', 'utf8');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
