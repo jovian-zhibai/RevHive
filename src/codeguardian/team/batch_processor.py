@@ -4,6 +4,7 @@ Runs continuous code review across multiple repositories for an entire team.
 This is the primary driver for high-volume token consumption."""
 
 import asyncio
+import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -11,6 +12,8 @@ from pathlib import Path
 from typing import Optional
 
 from codeguardian.graph.workflow import CodeReviewWorkflow
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -103,22 +106,25 @@ class TeamBatchProcessor:
                 all_findings.extend(mode_data.get("critical_findings", []))
 
             if all_findings:
-                from codeguardian.agents.conversation_reviewer import ConversationReviewer
-                reviewer = ConversationReviewer(
-                    model=self.workflow.style_agent.llm.model_name,
-                    api_key=os.getenv("LLM_API_KEY"),
-                    base_url=os.getenv("LLM_BASE_URL"),
-                )
-                deep_result = await reviewer.deep_review(
-                    code="",
-                    initial_findings=all_findings[:10],
-                    file_path=repo.name,
-                )
-                result["modes"]["deep_review"] = {
-                    "findings_analyzed": len(deep_result.findings),
-                    "tokens_used": deep_result.token_usage,
-                }
-                result["tokens_used"] += deep_result.token_usage
+                try:
+                    from codeguardian.agents.conversation_reviewer import ConversationReviewer
+                    reviewer = ConversationReviewer(
+                        model=self.workflow.style_agent.llm.model_name,
+                        api_key=os.getenv("LLM_API_KEY"),
+                        base_url=os.getenv("LLM_BASE_URL"),
+                    )
+                    deep_result = await reviewer.deep_review(
+                        code="",
+                        initial_findings=all_findings[:10],
+                        file_path=repo.name,
+                    )
+                    result["modes"]["deep_review"] = {
+                        "findings_analyzed": len(deep_result.findings),
+                        "tokens_used": deep_result.token_usage,
+                    }
+                    result["tokens_used"] += deep_result.token_usage
+                except Exception as exc:
+                    logger.error("BatchProcessor: deep review failed for %s: %s", repo.name, exc)
 
         return result
 
@@ -146,40 +152,45 @@ class TeamBatchProcessor:
         except Exception:
             return {"tokens_used": 0, "critical_findings": []}
 
-        if mode == "review":
-            result = await self.workflow.run(code=code, file_path=file_path)
-            critical = [f for f in result.findings if f.severity.value in ("high", "critical")]
-            return {"tokens_used": result.token_usage, "critical_findings": critical}
+        try:
+            if mode == "review":
+                result = await self.workflow.run(code=code, file_path=file_path)
+                critical = [f for f in result.findings if f.severity.value in ("high", "critical")]
+                return {"tokens_used": result.token_usage, "critical_findings": critical}
 
-        elif mode == "fix":
-            from codeguardian.agents.fix_agent import FixAgent
-            agent = FixAgent(
-                model=self.workflow.style_agent.llm.model_name,
-                api_key=os.getenv("LLM_API_KEY"),
-                base_url=os.getenv("LLM_BASE_URL"),
-            )
-            result = await agent.review(code, file_path)
-            return {"tokens_used": result.token_usage}
+            elif mode == "fix":
+                from codeguardian.agents.fix_agent import FixAgent
+                agent = FixAgent(
+                    model=self.workflow.style_agent.llm.model_name,
+                    api_key=os.getenv("LLM_API_KEY"),
+                    base_url=os.getenv("LLM_BASE_URL"),
+                )
+                result = await agent.review(code, file_path)
+                return {"tokens_used": result.token_usage}
 
-        elif mode == "test":
-            from codeguardian.agents.test_agent import TestAgent
-            agent = TestAgent(
-                model=self.workflow.style_agent.llm.model_name,
-                api_key=os.getenv("LLM_API_KEY"),
-                base_url=os.getenv("LLM_BASE_URL"),
-            )
-            result = await agent.review(code, file_path)
-            return {"tokens_used": result.token_usage}
+            elif mode == "test":
+                from codeguardian.agents.test_agent import TestAgent
+                agent = TestAgent(
+                    model=self.workflow.style_agent.llm.model_name,
+                    api_key=os.getenv("LLM_API_KEY"),
+                    base_url=os.getenv("LLM_BASE_URL"),
+                )
+                result = await agent.review(code, file_path)
+                return {"tokens_used": result.token_usage}
 
-        elif mode == "doc":
-            from codeguardian.agents.doc_agent import DocAgent
-            agent = DocAgent(
-                model=self.workflow.style_agent.llm.model_name,
-                api_key=os.getenv("LLM_API_KEY"),
-                base_url=os.getenv("LLM_BASE_URL"),
-            )
-            result = await agent.review(code, file_path)
-            return {"tokens_used": result.token_usage}
+            elif mode == "doc":
+                from codeguardian.agents.doc_agent import DocAgent
+                agent = DocAgent(
+                    model=self.workflow.style_agent.llm.model_name,
+                    api_key=os.getenv("LLM_API_KEY"),
+                    base_url=os.getenv("LLM_BASE_URL"),
+                )
+                result = await agent.review(code, file_path)
+                return {"tokens_used": result.token_usage}
+
+        except Exception as exc:
+            logger.error("BatchProcessor: LLM call failed for %s (%s mode): %s", file_path, mode, exc)
+            return {"tokens_used": 0, "critical_findings": []}
 
         return {"tokens_used": 0}
 

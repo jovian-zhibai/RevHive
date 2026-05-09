@@ -105,8 +105,11 @@ def test_report_json():
 def test_workflow_graph_structure():
     """Verify the LangGraph workflow can be built without errors."""
     from codeguardian.graph.workflow import CodeReviewWorkflow
+    from codeguardian.config import GuardianConfig
 
-    workflow = CodeReviewWorkflow(model="mimo-v2.5-pro")
+    # Use empty config (all agents enabled) to verify full graph.
+    cfg = GuardianConfig()
+    workflow = CodeReviewWorkflow(model="mimo-v2.5-pro", config=cfg)
     graph = workflow.graph
 
     # The graph should be compiled
