@@ -3,13 +3,13 @@
 # TODO: use rich for terminal output (tables, syntax highlighting, progress bars)
 import asyncio
 import logging
-
-import click
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+import click
 
 from codeguardian.graph.workflow import CodeReviewWorkflow, ReviewReport
+
+logger = logging.getLogger(__name__)
 
 
 @click.group()
