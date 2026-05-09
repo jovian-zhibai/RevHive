@@ -45,7 +45,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         summary = self._generate_summary(deduplicated, results)
 
         return AgentResult(
-            agent_name="Coordinator",
+            agent_name="CoordinatorAgent",
             findings=deduplicated,
             summary=summary,
             token_usage=sum(r.token_usage for r in results),

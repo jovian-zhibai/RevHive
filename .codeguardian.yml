@@ -34,3 +34,4 @@ ignore:
   - "migrations/**"
   - "__pycache__/**"
   - ".git/**"
+  - ".venv/**"

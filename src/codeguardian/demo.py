@@ -269,7 +269,7 @@ class DemoReviewWorkflow:
         coordinator_summary = _build_coordinator_summary(all_findings)
 
         return AgentResult(
-            agent_name="Coordinator",
+            agent_name="CoordinatorAgent",
             findings=all_findings,
             summary=coordinator_summary,
             token_usage=total_tokens if self.config.simulate_token_usage else 0,

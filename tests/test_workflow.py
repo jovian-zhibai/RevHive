@@ -177,5 +177,5 @@ async def test_coordinator_with_mock_llm():
         ),
     ]
     result = await coordinator.synthesize(results)
-    assert result.agent_name == "Coordinator"
+    assert result.agent_name == "CoordinatorAgent"
     assert len(result.findings) == 1

@@ -213,7 +213,7 @@ def test_coordinator_synthesize():
     import asyncio
     result = asyncio.run(coordinator.synthesize(results))
 
-    assert result.agent_name == "Coordinator"
+    assert result.agent_name == "CoordinatorAgent"
     assert len(result.findings) == 2  # duplicates removed
     assert result.token_usage == 1800  # 1000 + 500 + 300
     assert "SQL Injection" in result.findings[0].title  # HIGH comes first
@@ -223,7 +223,7 @@ def test_coordinator_empty_input():
     coordinator = CoordinatorAgent(model="mimo-v2.5-pro")
     import asyncio
     result = asyncio.run(coordinator.synthesize([]))
-    assert result.agent_name == "Coordinator"
+    assert result.agent_name == "CoordinatorAgent"
     assert result.findings == []
     assert result.token_usage == 0
 

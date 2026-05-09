@@ -106,6 +106,8 @@ class TeamBatchProcessor:
                 from codeguardian.agents.conversation_reviewer import ConversationReviewer
                 reviewer = ConversationReviewer(
                     model=self.workflow.style_agent.llm.model_name,
+                    api_key=os.getenv("LLM_API_KEY"),
+                    base_url=os.getenv("LLM_BASE_URL"),
                 )
                 deep_result = await reviewer.deep_review(
                     code="",
