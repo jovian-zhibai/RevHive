@@ -65,6 +65,7 @@ class TeamBatchProcessor:
     def __init__(self, config: TeamConfig, model: Optional[str] = None):
         self.config = config
         self.workflow = CodeReviewWorkflow(model=model)
+        self._model = model or self.workflow.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
 
     async def run_daily_cycle(self) -> dict:
         """Execute a full daily review cycle across all repos."""
@@ -109,7 +110,7 @@ class TeamBatchProcessor:
                 try:
                     from codeguardian.agents.conversation_reviewer import ConversationReviewer
                     reviewer = ConversationReviewer(
-                        model=self.workflow.style_agent.llm.model_name,
+                        model=self._model,
                         api_key=os.getenv("LLM_API_KEY"),
                         base_url=os.getenv("LLM_BASE_URL"),
                     )
@@ -161,7 +162,7 @@ class TeamBatchProcessor:
             elif mode == "fix":
                 from codeguardian.agents.fix_agent import FixAgent
                 agent = FixAgent(
-                    model=self.workflow.style_agent.llm.model_name,
+                    model=self._model,
                     api_key=os.getenv("LLM_API_KEY"),
                     base_url=os.getenv("LLM_BASE_URL"),
                 )
@@ -171,7 +172,7 @@ class TeamBatchProcessor:
             elif mode == "test":
                 from codeguardian.agents.test_agent import TestAgent
                 agent = TestAgent(
-                    model=self.workflow.style_agent.llm.model_name,
+                    model=self._model,
                     api_key=os.getenv("LLM_API_KEY"),
                     base_url=os.getenv("LLM_BASE_URL"),
                 )
@@ -181,7 +182,7 @@ class TeamBatchProcessor:
             elif mode == "doc":
                 from codeguardian.agents.doc_agent import DocAgent
                 agent = DocAgent(
-                    model=self.workflow.style_agent.llm.model_name,
+                    model=self._model,
                     api_key=os.getenv("LLM_API_KEY"),
                     base_url=os.getenv("LLM_BASE_URL"),
                 )
