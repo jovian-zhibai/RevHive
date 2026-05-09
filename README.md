@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![LangGraph](https://img.shields.io/badge/framework-LangGraph-orange)](https://langchain-ai.github.io/langgraph/)
 [![MiMo](https://img.shields.io/badge/powered_by-MiMo-red)](https://platform.xiaomimimo.com)
+[![Agents](https://img.shields.io/badge/agents-10-blue)]()
 
 **AI-Powered Multi-Agent Code Review & Security Scanning System**
 
