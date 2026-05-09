@@ -118,8 +118,13 @@ agents:
 
 ignore:
   - "*.min.js"
+  - "*.min.css"
   - "vendor/**"
+  - "node_modules/**"
   - "migrations/**"
+  - "__pycache__/**"
+  - ".git/**"
+  - ".venv/**"
 ```
 
 ## CI/CD 集成
