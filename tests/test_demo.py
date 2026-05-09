@@ -19,7 +19,7 @@ def test_demo_workflow_runs():
     assert len(result.findings) > 0
     # All agents in the mock data should have produced findings
     agents_seen = {f.agent for f in result.findings}
-    assert len(agents_seen) >= 6  # style, security, perf, logic, repo, refactor
+    assert len(agents_seen) == 9
 
 
 def test_demo_workflow_deterministic():
@@ -121,6 +121,9 @@ def test_full_demo_to_markdown_snapshot():
         "LogicAgent",
         "RepoAgent",
         "RefactorAgent",
+        "FixAgent",
+        "TestAgent",
+        "DocAgent",
     ]
     for agent in expected_agents:
         assert agent in md, f"{agent} should appear in the report"

@@ -147,6 +147,54 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
             "suggestion": "Replace with a payment strategy dict: `strategies[payment_type].pay(amount)`.",
         },
     ],
+    "FixAgent": [
+        {
+            "severity": Severity.HIGH,
+            "title": "Null pointer dereference in user lookup path",
+            "description": "get_user_by_id() may return None, but caller dereferences .email without null check — causes 500 error on missing users.",
+            "line_number": 18,
+            "suggestion": "Add guard: user = get_user_by_id(uid); if not user: raise HTTPException(404).",
+        },
+        {
+            "severity": Severity.MEDIUM,
+            "title": "Race condition in inventory update",
+            "description": "Read-modify-write on stock quantity is not atomic — concurrent orders can oversell inventory.",
+            "line_number": 55,
+            "suggestion": "Use SELECT ... FOR UPDATE or UPDATE ... WHERE stock >= quantity RETURNING to make the check-and-decrement atomic.",
+        },
+    ],
+    "TestAgent": [
+        {
+            "severity": Severity.MEDIUM,
+            "title": "Missing test coverage for error paths",
+            "description": "Only happy-path tests exist. No tests for invalid JSON input, database timeout, or upstream API 503 fallback.",
+            "line_number": None,
+            "suggestion": "Add pytest.mark.parametrize tests covering malformed input, connection errors, and timeout scenarios.",
+        },
+        {
+            "severity": Severity.LOW,
+            "title": "No security regression test for XSS fix",
+            "description": "The XSS sanitizer was patched last month but has no regression test — a refactor could re-introduce the vulnerability silently.",
+            "line_number": None,
+            "suggestion": "Add test_xss_sanitizer_blocks_script_tags with known payload vectors to prevent regression.",
+        },
+    ],
+    "DocAgent": [
+        {
+            "severity": Severity.LOW,
+            "title": "Public API missing docstrings and usage examples",
+            "description": "3 of 5 public functions in the module lack docstrings. The authenticate() function has no documented error responses.",
+            "line_number": 8,
+            "suggestion": "Add Google-style docstrings with Args, Returns, Raises sections. Include a usage example in the module docstring.",
+        },
+        {
+            "severity": Severity.LOW,
+            "title": "Configuration options not documented",
+            "description": "Environment variables and config keys used at startup are not listed in README or a CONFIG.md reference.",
+            "line_number": None,
+            "suggestion": "Document all env vars (12 total) in a table: name, default, description, required.",
+        },
+    ],
 }
 
 # Severity-ordered summary per agent (used to simulate token-less coordinator)
@@ -157,6 +205,9 @@ _AGENT_SUMMARIES = {
     "LogicAgent": "Found 3 logic issues. The unhandled JSON exception is a crash-risk and should be fixed first.",
     "RepoAgent": "Found 2 architecture concerns. Cross-module duplication is a maintainability risk as the codebase grows.",
     "RefactorAgent": "Found 2 refactoring opportunities. The long function would benefit from extraction but is not urgent.",
+    "FixAgent": "Found 2 fixable issues — 1 HIGH severity null dereference requires immediate guard. Race condition in inventory needs atomic UPDATE.",
+    "TestAgent": "Found 2 test coverage gaps. Error path testing is missing entirely; XSS fix lacks regression coverage.",
+    "DocAgent": "Found 2 documentation gaps. Most public functions lack docstrings, and configuration is undocumented.",
 }
 
 

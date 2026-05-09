@@ -32,7 +32,16 @@ class DocAgent(BaseReviewAgent):
 
 4. **Changelog Suggestions** — What changed and why, formatted as conventional commits
 
-Output complete, ready-to-use documentation in reStructuredText format."""
+Output complete, ready-to-use documentation in reStructuredText format.
+
+IMPORTANT: Before outputting any documentation, first list your review findings in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number]
+- Description: [What's wrong or missing]
+- Suggestion: [How to fix]
+
+Then output your complete documentation below the findings."""
 
     def get_review_focus(self) -> str:
         return "API documentation, architecture notes, usage examples, changelog generation"

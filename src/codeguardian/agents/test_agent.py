@@ -37,7 +37,16 @@ class TestAgent(BaseReviewAgent):
 4. **Security Regression Tests** — Tests that verify security fixes stay fixed
 
 Use pytest style with descriptive test names and docstrings. Include fixtures and parametrize where appropriate.
-Output COMPLETE, runnable test code — not pseudo-code or outlines."""
+Output COMPLETE, runnable test code — not pseudo-code or outlines.
+
+IMPORTANT: Before outputting any test code, first list your review findings in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number]
+- Description: [What's wrong or missing]
+- Suggestion: [How to fix]
+
+Then output your complete test suite below the findings."""
 
     def get_review_focus(self) -> str:
         return "comprehensive test generation, edge cases, security regression tests, integration test stubs"
