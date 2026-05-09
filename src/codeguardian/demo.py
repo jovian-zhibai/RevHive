@@ -197,19 +197,6 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     ],
 }
 
-# Severity-ordered summary per agent (used to simulate token-less coordinator)
-_AGENT_SUMMARIES = {
-    "StyleAgent": "Found 3 minor style issues. Code is generally clean and well-organized.",
-    "SecurityAgent": "Found 4 security issues — 1 CRITICAL (RCE) and 2 HIGH severity require immediate attention. Shell injection and SQL injection are top priorities.",
-    "PerformanceAgent": "Found 2 performance issues. The N+1 query pattern is the most impactful, potentially causing slow page loads under load.",
-    "LogicAgent": "Found 3 logic issues. The unhandled JSON exception is a crash-risk and should be fixed first.",
-    "RepoAgent": "Found 2 architecture concerns. Cross-module duplication is a maintainability risk as the codebase grows.",
-    "RefactorAgent": "Found 2 refactoring opportunities. The long function would benefit from extraction but is not urgent.",
-    "FixAgent": "Found 2 fixable issues — 1 HIGH severity null dereference requires immediate guard. Race condition in inventory needs atomic UPDATE.",
-    "TestAgent": "Found 2 test coverage gaps. Error path testing is missing entirely; XSS fix lacks regression coverage.",
-    "DocAgent": "Found 2 documentation gaps. Most public functions lack docstrings, and configuration is undocumented.",
-}
-
 
 @dataclass
 class DemoConfig:

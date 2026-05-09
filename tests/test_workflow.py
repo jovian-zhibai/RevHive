@@ -113,7 +113,7 @@ def test_workflow_graph_structure():
     assert graph is not None
     # Should have all review nodes + coordinator
     nodes = graph.get_graph().nodes
-    assert len(nodes) >= 7  # 6 reviewers + coordinator + __start__ + __end__
+    assert len(nodes) >= 12  # 9 reviewers + coordinator + __start__ + __end__
 
 
 # ---------------------------------------------------------------------------

@@ -69,7 +69,7 @@ def test_severity_enum():
         (FixAgent, "FixAgent"),
         (TestAgent, "TestAgent"),
         (DocAgent, "DocAgent"),
-        (CoordinatorAgent, "Coordinator"),
+        (CoordinatorAgent, "CoordinatorAgent"),
     ],
 )
 def test_agent_instantiation(agent_cls, expected_name):
