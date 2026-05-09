@@ -52,7 +52,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         )
 
     def _deduplicate_findings(self, findings: list[ReviewFinding]) -> list[ReviewFinding]:
-        """Remove duplicate or near-duplicate findings."""
+        """Remove duplicate findings by normalising and deduplicating on title."""
         seen_titles = set()
         unique = []
         for f in findings:
@@ -63,7 +63,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         return unique
 
     def _generate_summary(self, findings: list[ReviewFinding], agent_results: list[AgentResult]) -> str:
-        """Generate an overall summary of the review."""
+        """Build a human-readable summary with severity breakdown and critical callouts."""
         severity_counts = {}
         for f in findings:
             severity_counts[f.severity.value] = severity_counts.get(f.severity.value, 0) + 1

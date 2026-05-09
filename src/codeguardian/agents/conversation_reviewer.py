@@ -89,24 +89,38 @@ class ConversationReviewer:
                 HumanMessage(content=self._initial_question(truncated_code, finding, file_path)),
             ]
 
-            for round_num in range(self.MAX_ROUNDS):
-                response = await self.llm.ainvoke(conversation)
-                total_tokens += response.response_metadata.get("token_usage", {}).get("total_tokens", 0)
+            try:
+                for round_num in range(self.MAX_ROUNDS):
+                    response = await self.llm.ainvoke(conversation)
+                    total_tokens += response.response_metadata.get("token_usage", {}).get("total_tokens", 0)
 
-                conversation.append(AIMessage(content=response.content))
+                    conversation.append(AIMessage(content=response.content))
 
-                if round_num < self.MAX_ROUNDS - 1:
-                    follow_up = self._generate_follow_up(response.content, round_num, finding)
-                    conversation.append(HumanMessage(content=follow_up))
+                    if round_num < self.MAX_ROUNDS - 1:
+                        follow_up = self._generate_follow_up(response.content, round_num, finding)
+                        conversation.append(HumanMessage(content=follow_up))
 
-            final_response = await self.llm.ainvoke(conversation + [
-                HumanMessage(content=(
-                    "Based on our entire discussion, provide a final consolidated finding with: "
-                    "1) Confirmed severity, 2) Root cause, 3) Recommended fix with complete code, "
-                    "4) Test cases to verify the fix, 5) Any remaining concerns."
-                ))
-            ])
-            total_tokens += final_response.response_metadata.get("token_usage", {}).get("total_tokens", 0)
+                final_response = await self.llm.ainvoke(conversation + [
+                    HumanMessage(content=(
+                        "Based on our entire discussion, provide a final consolidated finding with: "
+                        "1) Confirmed severity, 2) Root cause, 3) Recommended fix with complete code, "
+                        "4) Test cases to verify the fix, 5) Any remaining concerns."
+                    ))
+                ])
+                total_tokens += final_response.response_metadata.get("token_usage", {}).get("total_tokens", 0)
+            except Exception as exc:
+                logger.error("ConversationReviewer: LLM call failed for %s finding '%s': %s",
+                             file_path, finding.title, exc)
+                deep_finding = ReviewFinding(
+                    agent="ConversationReviewer",
+                    severity=finding.severity,
+                    title=f"[Deep Review] {finding.title}",
+                    description=f"Deep review failed: {exc}",
+                    line_number=finding.line_number,
+                    suggestion=finding.suggestion,
+                )
+                all_deep_findings.append(deep_finding)
+                continue
 
             deep_finding = ReviewFinding(
                 agent="ConversationReviewer",

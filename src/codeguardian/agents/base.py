@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class Severity(Enum):
+    """Ordered severity levels for review findings."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -108,6 +110,7 @@ class BaseReviewAgent(ABC):
         )
 
     def _build_human_prompt(self, code: str, file_path: str) -> str:
+        """Build the user-facing prompt with code context and expected output format."""
         return f"""Please review the following code file `{file_path}`:
 
 ```
@@ -156,6 +159,7 @@ End with a brief summary of your review."""
         return findings
 
     def _dict_to_finding(self, d: dict) -> ReviewFinding:
+        """Convert a parsed dict into a :class:`ReviewFinding`."""
         return ReviewFinding(
             agent=d.get("agent", self.name),
             severity=d.get("severity", Severity.LOW),

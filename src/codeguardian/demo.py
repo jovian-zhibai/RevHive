@@ -282,6 +282,7 @@ class DemoReviewWorkflow:
 
 
 def _deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
+    """Deduplicate findings by title and sort by severity (critical first)."""
     seen: set[str] = set()
     unique: list[ReviewFinding] = []
     severity_order = {
@@ -300,6 +301,7 @@ def _deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
 
 
 def _build_coordinator_summary(findings: list[ReviewFinding]) -> str:
+    """Generate a Markdown summary with severity breakdown and critical callouts."""
     counts: dict[str, int] = {}
     for f in findings:
         counts[f.severity.value] = counts.get(f.severity.value, 0) + 1

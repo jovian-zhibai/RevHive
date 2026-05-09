@@ -26,6 +26,7 @@ from codeguardian.agents import (
     CoordinatorAgent,
 )
 from codeguardian.agents.base import AgentResult
+from codeguardian.config import GuardianConfig, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -50,52 +51,53 @@ class ReviewState:
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
 
-    def __init__(self, model: Optional[str] = None):
+    # Mapping from YAML agent names to (agent class, state attribute).
+    _AGENT_REGISTRY: dict[str, tuple[type, str]] = {
+        "style":       (StyleAgent,       "style_result"),
+        "security":    (SecurityAgent,    "security_result"),
+        "performance": (PerformanceAgent, "performance_result"),
+        "logic":       (LogicAgent,       "logic_result"),
+        "repo":        (RepoAgent,        "repo_result"),
+        "refactor":    (RefactorAgent,    "refactor_result"),
+        "fix":         (FixAgent,         "fix_result"),
+        "test":        (TestAgent,        "test_result"),
+        "doc":         (DocAgent,         "doc_result"),
+    }
+
+    def __init__(self, model: Optional[str] = None, config: Optional[GuardianConfig] = None):
+        self.config = config or load_config()
         api_key = os.getenv("LLM_API_KEY")
         base_url = os.getenv("LLM_BASE_URL", "https://platform.xiaomimimo.com/api/v1")
-        model = model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
+        model = model or self.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
 
         common_kwargs = {"model": model, "api_key": api_key, "base_url": base_url}
 
-        self.style_agent = StyleAgent(**common_kwargs)
-        self.security_agent = SecurityAgent(**common_kwargs)
-        self.performance_agent = PerformanceAgent(**common_kwargs)
-        self.logic_agent = LogicAgent(**common_kwargs)
-        self.repo_agent = RepoAgent(**common_kwargs)
-        self.refactor_agent = RefactorAgent(**common_kwargs)
-        self.fix_agent = FixAgent(**common_kwargs)
-        self.test_agent = TestAgent(**common_kwargs)
-        self.doc_agent = DocAgent(**common_kwargs)
-        self.coordinator = CoordinatorAgent(**common_kwargs)
+        # Only instantiate agents that are enabled in the config.
+        self.agents: dict[str, object] = {}
+        for name, (cls, _state_attr) in self._AGENT_REGISTRY.items():
+            if self.config.is_agent_enabled(name):
+                self.agents[name] = cls(**common_kwargs)
+                setattr(self, f"{name}_agent", self.agents[name])
 
+        self.coordinator = CoordinatorAgent(**common_kwargs)
         self.graph = self._build_graph()
 
     def _build_graph(self) -> StateGraph:
-        """Build the LangGraph workflow."""
+        """Build the LangGraph workflow with only enabled agents."""
         workflow = StateGraph(ReviewState)
 
-        workflow.add_node("style_review", self._run_style)
-        workflow.add_node("security_review", self._run_security)
-        workflow.add_node("performance_review", self._run_performance)
-        workflow.add_node("logic_review", self._run_logic)
-        workflow.add_node("repo_review", self._run_repo)
-        workflow.add_node("refactor_review", self._run_refactor)
-        workflow.add_node("fix_review", self._run_fix)
-        workflow.add_node("test_review", self._run_test)
-        workflow.add_node("doc_review", self._run_doc)
-        workflow.add_node("coordinate", self._run_coordinate)
+        # Map agent name -> runner method.  Each runner returns a dict
+        # keyed by the ReviewState attribute for that agent.
+        _runners: dict[str, callable] = {}
+        for name in self.agents:
+            _runners[name] = self._make_runner(name)
 
-        review_nodes = [
-            "style_review",
-            "security_review",
-            "performance_review",
-            "logic_review",
-            "repo_review",
-            "refactor_review",
-            "fix_review",
-            "test_review",
-            "doc_review",
-        ]
+        for name, runner in _runners.items():
+            workflow.add_node(f"{name}_review", runner)
+
+        review_nodes = [f"{name}_review" for name in _runners]
+
+        workflow.add_node("coordinate", self._run_coordinate)
 
         for node in review_nodes:
             workflow.add_edge(START, node)
@@ -107,41 +109,23 @@ class CodeReviewWorkflow:
 
         return workflow.compile()
 
-    async def _run_style(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.style_agent, state)
-        return {"style_result": result}
+    def _make_runner(self, agent_name: str):
+        """Return an async runner that reviews with the named agent."""
+        agent = self.agents[agent_name]
+        _, state_attr = self._AGENT_REGISTRY[agent_name]
 
-    async def _run_security(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.security_agent, state)
-        return {"security_result": result}
+        async def _run(state: ReviewState) -> dict:
+            result = await self._safe_review(agent, state)
+            # Apply severity threshold filtering if configured.
+            threshold = self.config.get_severity_threshold(agent_name)
+            if threshold is not None and result.findings:
+                from codeguardian.agents.base import Severity as _Sev
+                _order = {s: i for i, s in enumerate(_Sev)}
+                min_level = _order[threshold]
+                result.findings = [f for f in result.findings if _order.get(f.severity, 99) >= min_level]
+            return {state_attr: result}
 
-    async def _run_performance(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.performance_agent, state)
-        return {"performance_result": result}
-
-    async def _run_logic(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.logic_agent, state)
-        return {"logic_result": result}
-
-    async def _run_repo(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.repo_agent, state)
-        return {"repo_result": result}
-
-    async def _run_refactor(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.refactor_agent, state)
-        return {"refactor_result": result}
-
-    async def _run_fix(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.fix_agent, state)
-        return {"fix_result": result}
-
-    async def _run_test(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.test_agent, state)
-        return {"test_result": result}
-
-    async def _run_doc(self, state: ReviewState) -> dict:
-        result = await self._safe_review(self.doc_agent, state)
-        return {"doc_result": result}
+        return _run
 
     async def _safe_review(self, agent, state: ReviewState) -> AgentResult:
         """Run a single agent review, returning a failure result on exception
@@ -156,20 +140,13 @@ class CodeReviewWorkflow:
             )
 
     async def _run_coordinate(self, state: ReviewState) -> dict:
-        results = [
-            r for r in [
-                state.style_result,
-                state.security_result,
-                state.performance_result,
-                state.logic_result,
-                state.repo_result,
-                state.refactor_result,
-                state.fix_result,
-                state.test_result,
-                state.doc_result,
-            ]
-            if r is not None
-        ]
+        """Collect results from all enabled agents and synthesize."""
+        results = []
+        for _name, (_cls, state_attr) in self._AGENT_REGISTRY.items():
+            if self.config.is_agent_enabled(_name):
+                r = getattr(state, state_attr, None)
+                if r is not None:
+                    results.append(r)
         final = await self.coordinator.synthesize(results)
         return {"final_result": final}
 
@@ -202,6 +179,9 @@ class CodeReviewWorkflow:
         files = []
         for pattern in file_patterns:
             files.extend(glob.glob(str(Path(repo_path) / pattern), recursive=True))
+
+        # Apply ignore patterns from config.
+        files = [f for f in files if not self.config.should_ignore(f)]
 
         results = []
         for f in files[:50]:
@@ -242,6 +222,7 @@ class ReviewReport:
     result: AgentResult
 
     def to_markdown(self) -> str:
+        """Render the review result as a Markdown report."""
         lines = [
             "# CodeGuardian Review Report\n",
             "## 📊 Overview\n",
@@ -268,6 +249,7 @@ class ReviewReport:
         return "\n".join(lines)
 
     def to_json(self) -> str:
+        """Render the review result as a JSON string."""
         data = {
             "summary": self.result.summary,
             "total_findings": len(self.result.findings),
