@@ -92,6 +92,18 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 
 MiMo is the **default and recommended backend**. CodeGuardian is optimized for MiMo's token economics and model capabilities.
 
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
+| `LLM_BASE_URL` | No | `https://platform.xiaomimimo.com/api/v1` | LLM API endpoint |
+| `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name |
+| `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
+| `GITHUB_APP_ID` | Server only | — | GitHub App ID for installation token auth |
+| `GITHUB_PRIVATE_KEY` | Server only | — | PEM private key content (preferred for Railway/deploy) |
+| `GITHUB_PRIVATE_KEY_PATH` | Server only | `codeguardian-bot.private-key.pem` | Path to PEM file (local dev fallback) |
+
 ## Configuration
 
 Create `.codeguardian.yml` in your project root:
@@ -102,12 +114,9 @@ model: mimo-v2.5-pro
 agents:
   style:
     enabled: true
-    rules:
-      - max_line_length: 120
-      - require_docstring: true
   security:
     enabled: true
-    severity_threshold: medium
+    severity_threshold: medium   # only report medium and above
   performance:
     enabled: true
   logic:
@@ -121,9 +130,9 @@ agents:
   test:
     enabled: true
   doc:
-    enabled: false
+    enabled: false               # disable documentation agent
 
-ignore:
+ignore:                          # glob patterns — ** matches any depth
   - "*.min.js"
   - "*.min.css"
   - "vendor/**"
@@ -150,7 +159,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -195,13 +204,14 @@ CodeGuardian is designed for high-throughput token consumption — making it an 
 src/codeguardian/
   agents/          # 10 specialized review agents
   graph/           # LangGraph workflow orchestration
-  utils/           # tree-sitter code parser
+  config.py         # .codeguardian.yml loader
   team/            # Batch processing engine
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # Comprehensive test suite
+tests/              # 45+ tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
+server/             # GitHub webhook server (gitignored separately)
 ```
 
 ## Contributing
