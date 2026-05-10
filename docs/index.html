@@ -168,9 +168,12 @@
         </div>
       </div>
 
-      <!-- Coordinator row -->
-      <div class="mt-4 flex justify-center">
-        <div class="agent-card fade-in fade-in-d5 bg-surface-2 border border-accent/30 rounded-xl p-5 max-w-sm w-full text-center">
+      <!-- Connector line -->
+      <div class="w-px h-8 bg-accent/30 mx-auto"></div>
+
+      <!-- Coordinator base -->
+      <div class="fade-in fade-in-d5">
+        <div class="agent-card bg-gradient-to-r from-accent/5 to-emerald-400/5 border border-transparent bg-clip-padding rounded-xl p-6 text-center" style="border-image: linear-gradient(to right, #10B981, #34d399) 1;">
           <div class="text-2xl mb-2">🎯</div>
           <div class="text-white font-semibold mb-1">Coordinator</div>
           <div class="text-gray-400 text-sm">Deduplicate, prioritize, and synthesize the final report</div>
@@ -184,44 +187,49 @@
     <div class="max-w-5xl mx-auto">
       <h2 class="fade-in text-3xl md:text-4xl font-bold text-white text-center mb-4">Works With Your LLM</h2>
       <p class="fade-in fade-in-d1 text-gray-400 text-center mb-10 max-w-xl mx-auto">Not locked into one provider. Bring your own API key.</p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
-        <div class="agent-card fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🟢</div>
-          <div class="text-white font-semibold text-sm mb-0.5">MiMo</div>
-          <div class="text-gray-500 text-xs">Default, free tier available</div>
+      <!-- Top row: 3 recommended providers -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-4">
+        <div class="agent-card fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="text-2xl mb-2">🟢</div>
+          <div class="text-white font-semibold mb-1">MiMo</div>
+          <div class="text-gray-400 text-xs mb-2">Default, free tier available</div>
+          <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent">Default</span>
         </div>
-        <div class="agent-card fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🔵</div>
-          <div class="text-white font-semibold text-sm mb-0.5">OpenAI</div>
-          <div class="text-gray-500 text-xs">GPT-4o &amp; GPT-4o-mini</div>
+        <div class="agent-card fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="text-2xl mb-2">🔵</div>
+          <div class="text-white font-semibold mb-1">OpenAI</div>
+          <div class="text-gray-400 text-xs mb-2">GPT-4o &amp; GPT-4o-mini</div>
+          <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">Popular</span>
         </div>
-        <div class="agent-card fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🟣</div>
-          <div class="text-white font-semibold text-sm mb-0.5">DeepSeek</div>
-          <div class="text-gray-500 text-xs">Cost-effective alternative</div>
-        </div>
-        <div class="agent-card fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🟠</div>
-          <div class="text-white font-semibold text-sm mb-0.5">Qwen</div>
-          <div class="text-gray-500 text-xs">Alibaba Cloud, OpenAI-compatible</div>
-        </div>
-        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🔵</div>
-          <div class="text-white font-semibold text-sm mb-0.5">GLM</div>
-          <div class="text-gray-500 text-xs">Zhipu AI, OpenAI-compatible</div>
-        </div>
-        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🌙</div>
-          <div class="text-white font-semibold text-sm mb-0.5">Moonshot</div>
-          <div class="text-gray-500 text-xs">Long context, OpenAI-compatible</div>
-        </div>
-        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-4 text-center">
-          <div class="text-xl mb-1">🤖</div>
-          <div class="text-white font-semibold text-sm mb-0.5">Anthropic</div>
-          <div class="text-gray-500 text-xs">Claude models, native support</div>
+        <div class="agent-card fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="text-2xl mb-2">🤖</div>
+          <div class="text-white font-semibold mb-1">Anthropic</div>
+          <div class="text-gray-400 text-xs mb-2">Claude models, native support</div>
+          <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">Native</span>
         </div>
       </div>
-      <p class="fade-in fade-in-d4 text-gray-500 text-center text-xs mt-6">Preset names supported: <code class="text-gray-400">mimo</code>, <code class="text-gray-400">openai</code>, <code class="text-gray-400">deepseek</code>, <code class="text-gray-400">qwen</code>, <code class="text-gray-400">glm</code>, <code class="text-gray-400">moonshot</code>, <code class="text-gray-400">claude</code>. Set via <code class="text-gray-400">LLM_MODEL</code> or <code class="text-gray-400">LLM_BASE_URL</code>.</p>
+
+      <!-- Bottom row: 4 compatible providers -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+        <div class="agent-card fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-lg p-3 text-center">
+          <div class="text-lg mb-0.5">🟣</div>
+          <div class="text-white font-medium text-xs">DeepSeek</div>
+        </div>
+        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-3 text-center">
+          <div class="text-lg mb-0.5">🟠</div>
+          <div class="text-white font-medium text-xs">Qwen</div>
+        </div>
+        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-3 text-center">
+          <div class="text-lg mb-0.5">🔵</div>
+          <div class="text-white font-medium text-xs">GLM</div>
+        </div>
+        <div class="agent-card fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-lg p-3 text-center">
+          <div class="text-lg mb-0.5">🌙</div>
+          <div class="text-white font-medium text-xs">Moonshot</div>
+        </div>
+      </div>
+
+      <p class="fade-in fade-in-d4 text-gray-500 text-center text-xs mt-6">Preset names: <code class="text-gray-400">mimo</code>, <code class="text-gray-400">openai</code>, <code class="text-gray-400">deepseek</code>, <code class="text-gray-400">qwen</code>, <code class="text-gray-400">glm</code>, <code class="text-gray-400">moonshot</code>, <code class="text-gray-400">claude</code></p>
     </div>
   </section>
 
