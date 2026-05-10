@@ -72,17 +72,24 @@
         9 specialized agents review in parallel. 1 coordinator synthesizes.<br class="hidden md:block">Zero issues escape.
       </p>
       <div class="fade-in fade-in-d2 mt-10">
-        <a href="https://github.com/apps/codeguardian-bot/installations/new" class="breathe inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3.5 rounded-lg transition-colors text-lg">
-          Install GitHub App
+        <a href="#quickstart" class="breathe inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3.5 rounded-lg transition-colors text-lg">
+          Try in 30 Seconds
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
         </a>
       </div>
-      <p class="fade-in fade-in-d3 mt-4 text-sm text-gray-500">Free &amp; open source &middot; Built by SoulJian03 &middot; LLM-powered</p>
+      <div class="fade-in fade-in-d2 mt-3">
+        <a href="https://github.com/apps/codeguardian-bot/installations/new" class="text-sm text-gray-400 hover:text-accent transition-colors">or install GitHub App →</a>
+      </div>
+      <p class="fade-in fade-in-d3 mt-4 text-sm text-gray-500">Install in one command. Review with one line. No GitHub App required.</p>
+      <p class="fade-in fade-in-d3 mt-2 text-xs text-gray-600">Free &amp; open source &middot; Built by SoulJian03 &middot; LLM-powered</p>
     </div>
   </section>
 
   <!-- Demo Terminal -->
   <section class="pb-20 px-6">
+    <div class="fade-in fade-in-d2 max-w-4xl mx-auto text-center">
+      <span class="inline-block text-xs px-3 py-1 rounded-full bg-accent/10 text-accent mb-4">Demo Mode — No API Key Required</span>
+    </div>
     <div class="fade-in fade-in-d2 max-w-4xl mx-auto">
       <div class="rounded-xl border border-white/10 bg-surface-2 overflow-hidden shadow-2xl">
         <!-- Terminal chrome -->
@@ -111,6 +118,37 @@
           <div class="text-gray-600 mt-4 text-xs">&hellip; 14 more findings</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section id="quickstart" class="py-20 px-6 border-t border-white/5">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="fade-in text-3xl md:text-4xl font-bold text-white text-center mb-12">Start in 30 Seconds</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="w-10 h-10 rounded-full bg-accent/10 text-accent font-bold text-lg flex items-center justify-center mx-auto mb-4">1</div>
+          <div class="text-white font-semibold mb-3">Install</div>
+          <div class="bg-surface-3 rounded-lg px-4 py-3 text-left">
+            <code class="text-sm text-accent font-mono">pip install -e .</code>
+          </div>
+        </div>
+        <div class="fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="w-10 h-10 rounded-full bg-accent/10 text-accent font-bold text-lg flex items-center justify-center mx-auto mb-4">2</div>
+          <div class="text-white font-semibold mb-3">Set Key</div>
+          <div class="bg-surface-3 rounded-lg px-4 py-3 text-left">
+            <code class="text-sm text-accent font-mono">export LLM_API_KEY=your-key</code>
+          </div>
+        </div>
+        <div class="fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
+          <div class="w-10 h-10 rounded-full bg-accent/10 text-accent font-bold text-lg flex items-center justify-center mx-auto mb-4">3</div>
+          <div class="text-white font-semibold mb-3">Review</div>
+          <div class="bg-surface-3 rounded-lg px-4 py-3 text-left">
+            <code class="text-sm text-accent font-mono">codeguardian review --diff HEAD~1</code>
+          </div>
+        </div>
+      </div>
+      <p class="fade-in fade-in-d3 text-gray-500 text-center text-sm mt-6">No GitHub App needed. CodeGuardian works entirely from the command line.</p>
     </div>
   </section>
 
@@ -316,10 +354,13 @@
   <section class="py-20 px-6 border-t border-white/5">
     <div class="fade-in max-w-2xl mx-auto text-center">
       <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to ship safer code?</h2>
-      <a href="https://github.com/apps/codeguardian-bot/installations/new" class="breathe inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3.5 rounded-lg transition-colors text-lg">
-        Install GitHub App
+      <a href="#quickstart" class="breathe inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3.5 rounded-lg transition-colors text-lg">
+        Try in 30 Seconds
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
       </a>
+      <div class="mt-4">
+        <a href="https://github.com/apps/codeguardian-bot/installations/new" class="text-sm text-gray-400 hover:text-accent transition-colors">or install GitHub App →</a>
+      </div>
     </div>
   </section>
 
