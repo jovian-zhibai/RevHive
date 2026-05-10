@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.2.0")
+@click.version_option(version="0.3.0")
 def cli():
     """CodeGuardian - AI-powered multi-agent code review system."""
     pass
