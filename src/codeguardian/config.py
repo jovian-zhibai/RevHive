@@ -8,9 +8,10 @@ which files to skip, and the minimum severity to report.
 
 from __future__ import annotations
 
+import fnmatch
 import logging
 from dataclasses import dataclass, field
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Optional
 
 import yaml
@@ -67,12 +68,25 @@ class GuardianConfig:
     def should_ignore(self, file_path: str) -> bool:
         """Return *True* if *file_path* matches any ignore pattern.
 
-        Uses :class:`pathlib.PurePath.match` so that ``vendor/**`` correctly
-        matches ``vendor/foo/bar.py`` (unlike ``fnmatch`` which does not
-        treat ``/`` specially).
+        Patterns containing ``**`` are handled manually: ``**`` matches any
+        number of directory levels.  All other patterns use
+        :func:`fnmatch.fnmatch`.
         """
-        p = PurePath(file_path)
-        return any(p.match(pat) for pat in self.ignore)
+        for pat in self.ignore:
+            if "**" in pat:
+                prefix = pat.split("**")[0].rstrip("/").rstrip("*")
+                suffix = pat.split("**")[-1].lstrip("/")
+                if prefix:
+                    if file_path == prefix or file_path.startswith(prefix + "/"):
+                        return True
+                if suffix:
+                    if file_path.endswith(suffix):
+                        return True
+                if not prefix and not suffix:
+                    return True
+            elif fnmatch.fnmatch(file_path, pat):
+                return True
+        return False
 
 
 def load_config(path: Optional[str | Path] = None) -> GuardianConfig:

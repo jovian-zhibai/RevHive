@@ -239,7 +239,7 @@ class ReviewReport:
             for f in findings:
                 emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(f.severity.value, "⚪")
                 lines.append(f"### {emoji} [{f.severity.value.upper()}] {f.title}")
-                if f.line_number:
+                if f.line_number is not None:
                     lines.append(f"**Line:** {f.line_number}")
                 lines.append(f"\n{f.description}")
                 if f.suggestion:
