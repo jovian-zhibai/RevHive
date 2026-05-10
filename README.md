@@ -89,6 +89,12 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 | **MiMo (Xiaomi)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
 | OpenAI | `gpt-4o` | `LLM_BASE_URL=https://api.openai.com/v1` |
 | DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
+| Qwen (Alibaba) | `qwen-plus` | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| GLM (Zhipu) | `glm-4` | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
+| Moonshot | `moonshot-v1-8k` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| **Anthropic** | `claude-sonnet-4-20250514` | Set `ANTHROPIC_API_KEY`, model starts with `claude` |
+
+**Quick preset:** Set `LLM_MODEL` to a preset name (e.g., `openai`, `deepseek`, `qwen`) and CodeGuardian auto-configures the base URL. Explicit `LLM_BASE_URL` takes priority.
 
 MiMo is the **default and recommended backend**. CodeGuardian is optimized for MiMo's token economics and model capabilities.
 

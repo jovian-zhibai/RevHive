@@ -89,6 +89,12 @@ python examples/sample_review.py
 | **MiMo (小米)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
 | OpenAI | `gpt-4o` | `LLM_BASE_URL=https://api.openai.com/v1` |
 | DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
+| Qwen (通义) | `qwen-plus` | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| GLM (智谱) | `glm-4` | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
+| Moonshot | `moonshot-v1-8k` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| **Anthropic** | `claude-sonnet-4-20250514` | 设置 `ANTHROPIC_API_KEY`，model 以 `claude` 开头 |
+
+**快速预设：** 将 `LLM_MODEL` 设为预设名（如 `openai`、`deepseek`、`qwen`），CodeGuardian 自动配置 base URL。显式设置 `LLM_BASE_URL` 优先级更高。
 
 MiMo 是**默认且推荐的后端**。CodeGuardian 针对 MiMo 的 Token 经济性和模型能力进行了优化。
 
