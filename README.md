@@ -211,3 +211,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome!
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
