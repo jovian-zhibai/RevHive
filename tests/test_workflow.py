@@ -104,11 +104,13 @@ def test_report_json():
 
 def test_workflow_graph_structure():
     """Verify the LangGraph workflow can be built without errors."""
+    import os
     from codeguardian.graph.workflow import CodeReviewWorkflow
     from codeguardian.config import GuardianConfig
 
     # Use empty config (all agents enabled) to verify full graph.
     cfg = GuardianConfig()
+    os.environ.setdefault("LLM_API_KEY", "test-key")
     workflow = CodeReviewWorkflow(model="mimo-v2.5-pro", config=cfg)
     graph = workflow.graph
 
@@ -149,7 +151,7 @@ async def test_single_agent_review_with_mock():
     """Test that a single agent can run with a mocked LLM."""
     from codeguardian.agents.security_agent import SecurityAgent
 
-    agent = SecurityAgent(model="mock")
+    agent = SecurityAgent(model="mock", api_key="test-key")
     agent.llm = _MockLLM()
 
     result = await agent.review("x = 1", "test.py")
@@ -164,7 +166,7 @@ async def test_coordinator_with_mock_llm():
     """Test coordinator synthesize (doesn't call LLM itself)."""
     from codeguardian.agents.coordinator import CoordinatorAgent
 
-    coordinator = CoordinatorAgent(model="mock")
+    coordinator = CoordinatorAgent(model="mock", api_key="test-key")
     results = [
         AgentResult(
             agent_name="A",
