@@ -1,6 +1,7 @@
 """Base agent class for all review agents."""
 
 import logging
+import os
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -123,7 +124,6 @@ class BaseReviewAgent(ABC):
         try:
             response = await self.llm.ainvoke(messages)
         except Exception as exc:
-            import os
             safe_msg = str(exc)
             api_key = os.getenv("LLM_API_KEY", "")
             if api_key:
