@@ -70,7 +70,7 @@ class CodeReviewWorkflow:
         base_url = os.getenv("LLM_BASE_URL", "https://platform.xiaomimimo.com/api/v1")
         model = model or self.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
 
-        common_kwargs = {"model": model, "api_key": api_key, "base_url": base_url}
+        common_kwargs = {"model": model, "api_key": api_key, "base_url": base_url, "request_timeout": 120}
 
         # Only instantiate agents that are enabled in the config.
         self.agents: dict[str, object] = {}
