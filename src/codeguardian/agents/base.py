@@ -140,7 +140,10 @@ End with a brief summary of your review."""
                     findings.append(self._dict_to_finding(current))
                 current = {"agent": self.name}
                 sev = line.split(":", 1)[1].strip().strip("[]")
-                current["severity"] = Severity(sev.lower())
+                try:
+                    current["severity"] = Severity(sev.lower())
+                except ValueError:
+                    current["severity"] = Severity.LOW
             elif line.startswith("- Title:"):
                 current["title"] = line.split(":", 1)[1].strip()
             elif line.startswith("- Line:"):
