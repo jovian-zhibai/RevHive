@@ -92,6 +92,18 @@ python examples/sample_review.py
 
 MiMo 是**默认且推荐的后端**。CodeGuardian 针对 MiMo 的 Token 经济性和模型能力进行了优化。
 
+## 环境变量
+
+| 变量 | 必填 | 默认值 | 说明 |
+|---|---|---|---|
+| `LLM_API_KEY` | **是** | — | LLM 服务商的 API Key |
+| `LLM_BASE_URL` | 否 | `https://platform.xiaomimimo.com/api/v1` | LLM API 端点 |
+| `LLM_MODEL` | 否 | `mimo-v2.5-pro` | 模型名称 |
+| `GITHUB_WEBHOOK_SECRET` | 仅 Server | — | Webhook 签名验证的 HMAC 密钥 |
+| `GITHUB_APP_ID` | 仅 Server | — | GitHub App ID，用于获取 installation token |
+| `GITHUB_PRIVATE_KEY` | 仅 Server | — | PEM 私钥内容（Railway 部署推荐） |
+| `GITHUB_PRIVATE_KEY_PATH` | 仅 Server | `codeguardian-bot.private-key.pem` | PEM 文件路径（本地开发备用） |
+
 ## 配置
 
 在项目根目录创建 `.codeguardian.yml`：
@@ -102,12 +114,9 @@ model: mimo-v2.5-pro
 agents:
   style:
     enabled: true
-    rules:
-      - max_line_length: 120
-      - require_docstring: true
   security:
     enabled: true
-    severity_threshold: medium
+    severity_threshold: medium   # 只报告 medium 及以上
   performance:
     enabled: true
   logic:
@@ -121,9 +130,9 @@ agents:
   test:
     enabled: true
   doc:
-    enabled: false
+    enabled: false               # 禁用文档 Agent
 
-ignore:
+ignore:                          # glob 模式 — ** 匹配任意层级子目录
   - "*.min.js"
   - "*.min.css"
   - "vendor/**"
@@ -150,7 +159,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -195,13 +204,14 @@ CodeGuardian 专为高吞吐 Token 消耗设计——是 MiMo 免费额度或高
 src/codeguardian/
   agents/          # 10 个专业审查 Agent
   graph/           # LangGraph 工作流编排
-  utils/           # tree-sitter 代码解析器
+  config.py         # .codeguardian.yml 配置加载器
   team/            # 批量处理引擎
   analysis/        # 历史趋势分析
   demo.py           # Demo 模式（无需 API Key）
   main.py           # CLI 入口
-tests/              # 完整测试套件
+tests/              # 45+ 测试覆盖 agents、workflow、demo
 examples/           # 开箱即用的示例
+server/             # GitHub Webhook 服务器（单独 gitignore）
 ```
 
 ## 贡献
