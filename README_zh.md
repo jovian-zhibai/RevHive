@@ -61,7 +61,7 @@ python examples/sample_review.py
 
 # 3. 使用 MiMo 运行（在 https://platform.xiaomimimo.com 申请免费 Token）
 export LLM_API_KEY=your-mimo-api-key
-export LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1
+export LLM_BASE_URL=https://api.xiaomimimo.com/v1
 export LLM_MODEL=mimo-v2.5-pro
 codeguardian review --file src/main.py
 
@@ -86,7 +86,7 @@ python examples/sample_review.py
 
 | 服务商 | 模型 | 配置 |
 |---|---|---|
-| **MiMo (小米)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1` |
+| **MiMo (小米)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
 | OpenAI | `gpt-4o` | `LLM_BASE_URL=https://api.openai.com/v1` |
 | DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
 
@@ -97,7 +97,7 @@ MiMo 是**默认且推荐的后端**。CodeGuardian 针对 MiMo 的 Token 经济
 | 变量 | 必填 | 默认值 | 说明 |
 |---|---|---|---|
 | `LLM_API_KEY` | **是** | — | LLM 服务商的 API Key |
-| `LLM_BASE_URL` | 否 | `https://platform.xiaomimimo.com/api/v1` | LLM API 端点 |
+| `LLM_BASE_URL` | 否 | `https://api.xiaomimimo.com/v1` | LLM API 端点 |
 | `LLM_MODEL` | 否 | `mimo-v2.5-pro` | 模型名称 |
 | `GITHUB_WEBHOOK_SECRET` | 仅 Server | — | Webhook 签名验证的 HMAC 密钥 |
 | `GITHUB_APP_ID` | 仅 Server | — | GitHub App ID，用于获取 installation token |
@@ -167,7 +167,7 @@ jobs:
       - name: Run CodeGuardian Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
-          LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
+          LLM_BASE_URL: https://api.xiaomimimo.com/v1
           LLM_MODEL: mimo-v2.5-pro
         run: |
           codeguardian review --diff HEAD~1 --format markdown --output review_report.md
@@ -204,14 +204,13 @@ CodeGuardian 专为高吞吐 Token 消耗设计——是 MiMo 免费额度或高
 src/codeguardian/
   agents/          # 10 个专业审查 Agent
   graph/           # LangGraph 工作流编排
-  config.py         # .codeguardian.yml 配置加载器
+  utils/           # 工具模块
   team/            # 批量处理引擎
   analysis/        # 历史趋势分析
   demo.py           # Demo 模式（无需 API Key）
   main.py           # CLI 入口
 tests/              # 45+ 测试覆盖 agents、workflow、demo
 examples/           # 开箱即用的示例
-server/             # GitHub Webhook 服务器（单独 gitignore）
 ```
 
 ## 贡献
