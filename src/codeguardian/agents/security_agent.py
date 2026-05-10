@@ -22,7 +22,16 @@ class SecurityAgent(BaseReviewAgent):
 5. **Dependency Risks** — Known vulnerable packages, outdated dependencies
 6. **Input Validation** — Missing sanitization, type coercion issues, path traversal
 
-Treat every finding seriously. Provide the exact vulnerability type and a secure alternative implementation."""
+Treat every finding seriously. Provide the exact vulnerability type and a secure alternative implementation.
+
+For each finding, output in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number if applicable]
+- Description: [What's wrong]
+- Suggestion: [How to fix]
+
+End with a brief summary of your review."""
 
     def get_review_focus(self) -> str:
         return "security vulnerabilities, injection risks, hardcoded secrets, auth issues, data exposure, input validation"

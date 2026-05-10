@@ -22,7 +22,16 @@ class PerformanceAgent(BaseReviewAgent):
 5. **I/O Inefficiency** — Redundant file reads, missing batching, synchronous I/O in hot paths
 6. **Caching Opportunities** — Repeated computations that could be cached, missing memoization
 
-Always quantify the impact when possible and provide a concrete optimized alternative."""
+Always quantify the impact when possible and provide a concrete optimized alternative.
+
+For each finding, output in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number if applicable]
+- Description: [What's wrong]
+- Suggestion: [How to fix]
+
+End with a brief summary of your review."""
 
     def get_review_focus(self) -> str:
         return "performance bottlenecks, N+1 queries, memory issues, algorithmic complexity, concurrency, caching"

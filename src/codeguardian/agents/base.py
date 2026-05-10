@@ -1,6 +1,7 @@
 """Base agent class for all review agents."""
 
 import logging
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -133,36 +134,89 @@ Output format for each finding:
 
 End with a brief summary of your review."""
 
+    # Regex patterns for finding block detection
+    _SEV_RE = re.compile(r"^- Severity:\s*(.+)", re.IGNORECASE | re.MULTILINE)
+    _SEV_ALT_RE = re.compile(r"\[?(LOW|MEDIUM|HIGH|CRITICAL)\]?", re.IGNORECASE)
+    _TITLE_RE = re.compile(r"^- Title:\s*(.+)", re.IGNORECASE)
+    _LINE_RE = re.compile(r"^- Line:\s*(.+)", re.IGNORECASE)
+    _DESC_RE = re.compile(r"^- Description:\s*(.+)", re.IGNORECASE)
+    _SUGG_RE = re.compile(r"^- Suggestion:\s*(.+)", re.IGNORECASE)
+    _FIELD_RE = re.compile(r"^-\s*(Severity|Title|Line|Description|Suggestion):\s*", re.IGNORECASE)
+
     def _parse_findings(self, response: str) -> list[ReviewFinding]:
-        """Parse LLM response into structured findings."""
-        findings = []
-        current = {}
+        """Parse LLM response into structured findings.
+
+        Handles the primary bullet-point format::
+
+            - Severity: HIGH
+            - Title: SQL Injection
+            - Line: 12
+            - Description: User input interpolated into SQL query.
+            - Suggestion: Use parameterized queries.
+
+        Multi-line ``Description`` and ``Suggestion`` values are accumulated
+        until the next ``- Field:`` marker.  If the response contains no
+        parseable findings at all, the entire text is returned as a single
+        finding so that review output is never silently lost.
+        """
+        findings: list[ReviewFinding] = []
+        current: dict = {}
 
         for line in response.split("\n"):
-            line = line.strip()
-            if line.startswith("- Severity:"):
+            stripped = line.strip()
+
+            # New finding starts at "- Severity:"
+            if stripped.lower().startswith("- severity:"):
                 if current:
                     findings.append(self._dict_to_finding(current))
                 current = {"agent": self.name}
-                sev = line.split(":", 1)[1].strip().strip("[]")
+                sev = stripped.split(":", 1)[1].strip().strip("[]")
                 try:
                     current["severity"] = Severity(sev.lower())
                 except ValueError:
                     current["severity"] = Severity.LOW
-            elif line.startswith("- Title:"):
-                current["title"] = line.split(":", 1)[1].strip()
-            elif line.startswith("- Line:"):
-                try:
-                    current["line_number"] = int("".join(filter(str.isdigit, line.split(":", 1)[1])))
-                except (ValueError, IndexError):
-                    pass
-            elif line.startswith("- Description:"):
-                current["description"] = line.split(":", 1)[1].strip()
-            elif line.startswith("- Suggestion:"):
-                current["suggestion"] = line.split(":", 1)[1].strip()
+                continue
+
+            if not current:
+                continue
+
+            # Other fields
+            if stripped.lower().startswith("- title:"):
+                current["title"] = stripped.split(":", 1)[1].strip()
+            elif stripped.lower().startswith("- line:"):
+                raw = stripped.split(":", 1)[1].strip()
+                digits = "".join(filter(str.isdigit, raw))
+                if digits:
+                    try:
+                        current["line_number"] = int(digits)
+                    except ValueError:
+                        pass
+            elif stripped.lower().startswith("- description:"):
+                current["description"] = stripped.split(":", 1)[1].strip()
+            elif stripped.lower().startswith("- suggestion:"):
+                current["suggestion"] = stripped.split(":", 1)[1].strip()
+
+            # Multi-line continuation: if the line does NOT start with a new
+            # "- Field:" marker, append it to the current active field.
+            elif not self._FIELD_RE.match(stripped) and stripped:
+                # Determine which field was last set and append
+                if "suggestion" in current and not stripped.startswith("-"):
+                    current["suggestion"] += " " + stripped
+                elif "description" in current and not stripped.startswith("-"):
+                    current["description"] += " " + stripped
 
         if current:
             findings.append(self._dict_to_finding(current))
+
+        # Fallback: if no structured findings were parsed, wrap the whole
+        # response as a single finding so output is never silently lost.
+        if not findings and response.strip():
+            findings.append(ReviewFinding(
+                agent=self.name,
+                severity=Severity.LOW,
+                title=response.strip()[:80],
+                description=response.strip(),
+            ))
 
         return findings
 
@@ -178,16 +232,48 @@ End with a brief summary of your review."""
         )
 
     def _extract_summary(self, response: str) -> str:
-        """Extract the summary section from the response."""
+        """Extract or generate a summary from the LLM response.
+
+        Strategy:
+        1. Search from the end of the text for a line containing "summary"
+           (case-insensitive) followed by ``:`` — capture everything after it.
+        2. Also try Markdown-style headers (``## Summary``, ``### Summary``).
+        3. If nothing found, auto-generate from the parsed findings count.
+        """
         lines = response.split("\n")
-        capture = False
-        summary_lines = []
-        for line in lines:
-            if "summary" in line.lower() and ":" in line:
-                capture = True
-                continue
-            if capture:
-                if line.strip().startswith("-") and "Severity" in line:
-                    break
-                summary_lines.append(line)
-        return "\n".join(summary_lines).strip() if summary_lines else "Review completed."
+
+        # Strategy 1: search from the end for "summary:" or "## summary"
+        for i in range(len(lines) - 1, -1, -1):
+            lower = lines[i].lower().strip()
+            if ("summary" in lower or "总结" in lower) and (":" in lines[i] or lower.startswith("#")):
+                # Grab the text after the colon/header marker
+                colon_pos = lines[i].find(":")
+                header_match = re.match(r"^#{1,4}\s*", lines[i])
+                if colon_pos >= 0:
+                    first_line = lines[i][colon_pos + 1:].strip()
+                elif header_match:
+                    first_line = lines[i][header_match.end():].strip()
+                else:
+                    first_line = ""
+
+                summary_parts = [first_line] if first_line else []
+                for j in range(i + 1, len(lines)):
+                    nxt = lines[j].strip()
+                    # Stop if we hit another finding block or end-of-content marker
+                    if nxt.lower().startswith("- severity:") or nxt.startswith("---"):
+                        break
+                    if nxt:
+                        summary_parts.append(nxt)
+                if summary_parts:
+                    return " ".join(summary_parts).strip()
+
+        # Strategy 2: auto-generate from findings
+        findings = self._parse_findings(response)
+        if findings:
+            counts: dict[str, int] = {}
+            for f in findings:
+                counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
+            parts = [f"{v} {k}" for k, v in sorted(counts.items(), key=lambda x: ["critical", "high", "medium", "low"].index(x[0]))]
+            return f"Review completed with {len(findings)} findings ({', '.join(parts)})."
+
+        return "Review completed."
