@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -20,7 +20,7 @@ jobs:
       - name: Run CodeGuardian Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
-          LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
+          LLM_BASE_URL: https://api.xiaomimimo.com/v1
           LLM_MODEL: mimo-v2.5-pro
         run: |
           codeguardian review --diff HEAD~1 --format markdown --output review_report.md

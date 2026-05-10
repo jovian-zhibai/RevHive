@@ -44,7 +44,7 @@ class GuardianConfig:
     """Top-level configuration object loaded from ``.codeguardian.yml``."""
 
     MODEL_PRESETS: dict[str, dict[str, str]] = field(default_factory=lambda: {
-        "mimo": {"base_url": "https://token-plan-cn.xiaomimimo.com/v1", "model": "mimo-v2.5-pro"},
+        "mimo": {"base_url": "https://api.xiaomimimo.com/v1", "model": "mimo-v2.5-pro"},
         "openai": {"base_url": "https://api.openai.com/v1", "model": "gpt-4o"},
         "deepseek": {"base_url": "https://api.deepseek.com/v1", "model": "deepseek-chat"},
         "qwen": {"base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"},
@@ -91,24 +91,40 @@ class GuardianConfig:
     def should_ignore(self, file_path: str) -> bool:
         """Return *True* if *file_path* matches any ignore pattern.
 
-        Patterns containing ``**`` are handled manually: ``**`` matches any
-        number of directory levels.  All other patterns use
-        :func:`fnmatch.fnmatch`.
+        For patterns containing ``**``, the prefix (before ``**``) is matched
+        with :func:`fnmatch.fnmatch` against each ancestor directory, and the
+        suffix (after ``**``) is matched against the file path or name.  Plain
+        patterns are matched directly against the full path.
         """
         for pat in self.ignore:
-            if "**" in pat:
-                prefix = pat.split("**")[0].rstrip("/").rstrip("*")
-                suffix = pat.split("**")[-1].lstrip("/")
-                if prefix:
-                    if file_path == prefix or file_path.startswith(prefix + "/"):
-                        return True
-                if suffix:
-                    if file_path.endswith(suffix):
-                        return True
-                if not prefix and not suffix:
+            if "**" not in pat:
+                if fnmatch.fnmatch(file_path, pat):
                     return True
-            elif fnmatch.fnmatch(file_path, pat):
+                continue
+
+            prefix = pat.split("**")[0]
+            suffix = pat.split("**")[-1].lstrip("/")
+
+            # Match prefix against file_path and all its parent directories
+            prefix_match = False
+            if prefix:
+                check = file_path
+                while check:
+                    if fnmatch.fnmatch(check, prefix.rstrip("/")):
+                        prefix_match = True
+                        break
+                    check = check.rsplit("/", 1)[0] if "/" in check else ""
+            else:
+                prefix_match = True
+
+            if not prefix_match:
+                continue
+
+            if not suffix:
                 return True
+            if fnmatch.fnmatch(file_path, suffix) or fnmatch.fnmatch(file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path, suffix):
+                return True
+
         return False
 
 

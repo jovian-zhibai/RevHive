@@ -259,10 +259,10 @@ def test_mimo_base_url_accepted():
     """Verify agents accept a MiMo-compatible base_url."""
     agent = SecurityAgent(
         model="mimo-v2.5-pro",
-        base_url="https://platform.xiaomimimo.com/api/v1",
+        base_url="https://api.xiaomimimo.com/v1",
         api_key="test-key",
     )
-    assert str(agent.llm.openai_api_base) == "https://platform.xiaomimimo.com/api/v1"
+    assert str(agent.llm.openai_api_base) == "https://api.xiaomimimo.com/v1"
     assert agent.llm.model_name == "mimo-v2.5-pro"
 
 

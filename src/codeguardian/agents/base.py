@@ -123,10 +123,15 @@ class BaseReviewAgent(ABC):
         try:
             response = await self.llm.ainvoke(messages)
         except Exception as exc:
-            logger.error("%s: LLM call failed for %s: %s", self.name, file_path, exc)
+            import os
+            safe_msg = str(exc)
+            api_key = os.getenv("LLM_API_KEY", "")
+            if api_key:
+                safe_msg = safe_msg.replace(api_key, "***")
+            logger.error("%s: LLM call failed for %s: %s", self.name, file_path, safe_msg)
             return AgentResult(
                 agent_name=self.name,
-                summary=f"Review failed: {exc}",
+                summary=f"Review failed: {safe_msg}",
             )
 
         findings = self._parse_findings(response.content)

@@ -43,7 +43,7 @@ src/codeguardian/
 
 ```bash
 export LLM_API_KEY=your-mimo-api-key
-export LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1
+export LLM_BASE_URL=https://api.xiaomimimo.com/v1
 export LLM_MODEL=mimo-v2.5-pro
 codeguardian review --file src/main.py
 ```
