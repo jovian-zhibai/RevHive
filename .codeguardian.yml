@@ -5,9 +5,6 @@ model: mimo-v2.5-pro
 agents:
   style:
     enabled: true
-    rules:
-      - max_line_length: 120
-      - require_docstring: true
   security:
     enabled: true
     severity_threshold: medium

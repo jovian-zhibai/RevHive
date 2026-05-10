@@ -73,7 +73,7 @@ def test_severity_enum():
     ],
 )
 def test_agent_instantiation(agent_cls, expected_name):
-    agent = agent_cls(model="mimo-v2.5-pro")
+    agent = agent_cls(model="mimo-v2.5-pro", api_key="test-key")
     assert agent.name == expected_name
     assert isinstance(agent, BaseReviewAgent)
 
@@ -84,27 +84,27 @@ def test_agent_instantiation(agent_cls, expected_name):
 
 
 def test_style_agent_prompt():
-    agent = StyleAgent(model="mimo-v2.5-pro")
+    agent = StyleAgent(model="mimo-v2.5-pro", api_key="test-key")
     prompt = agent.get_system_prompt()
     assert "code style" in prompt.lower()
     assert "naming" in prompt.lower()
 
 
 def test_security_agent_prompt():
-    agent = SecurityAgent(model="mimo-v2.5-pro")
+    agent = SecurityAgent(model="mimo-v2.5-pro", api_key="test-key")
     prompt = agent.get_system_prompt()
     assert "injection" in prompt.lower()
     assert "authentication" in prompt.lower()
 
 
 def test_performance_agent_prompt():
-    agent = PerformanceAgent(model="mimo-v2.5-pro")
+    agent = PerformanceAgent(model="mimo-v2.5-pro", api_key="test-key")
     prompt = agent.get_system_prompt()
     assert "performance" in prompt.lower() or "n+1" in prompt.lower()
 
 
 def test_logic_agent_prompt():
-    agent = LogicAgent(model="mimo-v2.5-pro")
+    agent = LogicAgent(model="mimo-v2.5-pro", api_key="test-key")
     prompt = agent.get_system_prompt()
     assert "edge case" in prompt.lower() or "error handling" in prompt.lower()
 
@@ -112,15 +112,15 @@ def test_logic_agent_prompt():
 def test_all_agents_have_unique_focus():
     """Ensure every agent declares a distinct review focus."""
     agents = [
-        StyleAgent(model="mimo-v2.5-pro"),
-        SecurityAgent(model="mimo-v2.5-pro"),
-        PerformanceAgent(model="mimo-v2.5-pro"),
-        LogicAgent(model="mimo-v2.5-pro"),
-        RepoAgent(model="mimo-v2.5-pro"),
-        RefactorAgent(model="mimo-v2.5-pro"),
-        FixAgent(model="mimo-v2.5-pro"),
-        TestAgent(model="mimo-v2.5-pro"),
-        DocAgent(model="mimo-v2.5-pro"),
+        StyleAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        SecurityAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        PerformanceAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        LogicAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        RepoAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        RefactorAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        FixAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        TestAgent(model="mimo-v2.5-pro", api_key="test-key"),
+        DocAgent(model="mimo-v2.5-pro", api_key="test-key"),
     ]
     foci = [a.get_review_focus() for a in agents]
     assert len(foci) == len(set(foci))  # no duplicates
@@ -146,7 +146,7 @@ SAMPLE_RESPONSE = """- Severity: HIGH
 
 
 def test_parse_findings():
-    agent = StyleAgent(model="mimo-v2.5-pro")
+    agent = StyleAgent(model="mimo-v2.5-pro", api_key="test-key")
     findings = agent._parse_findings(SAMPLE_RESPONSE)
     assert len(findings) == 2
     assert findings[0].severity == Severity.HIGH
@@ -156,7 +156,7 @@ def test_parse_findings():
 
 
 def test_parse_findings_empty():
-    agent = SecurityAgent(model="mimo-v2.5-pro")
+    agent = SecurityAgent(model="mimo-v2.5-pro", api_key="test-key")
     findings = agent._parse_findings("No issues found.")
     assert findings == []
 
@@ -167,7 +167,7 @@ def test_parse_findings_empty():
 
 
 def test_coordinator_synthesize():
-    coordinator = CoordinatorAgent(model="mimo-v2.5-pro")
+    coordinator = CoordinatorAgent(model="mimo-v2.5-pro", api_key="test-key")
     results = [
         AgentResult(
             agent_name="SecurityAgent",
@@ -220,7 +220,7 @@ def test_coordinator_synthesize():
 
 
 def test_coordinator_empty_input():
-    coordinator = CoordinatorAgent(model="mimo-v2.5-pro")
+    coordinator = CoordinatorAgent(model="mimo-v2.5-pro", api_key="test-key")
     import asyncio
     result = asyncio.run(coordinator.synthesize([]))
     assert result.agent_name == "CoordinatorAgent"
@@ -234,7 +234,7 @@ def test_coordinator_empty_input():
 
 
 def test_build_human_prompt():
-    agent = StyleAgent(model="mimo-v2.5-pro")
+    agent = StyleAgent(model="mimo-v2.5-pro", api_key="test-key")
     prompt = agent._build_human_prompt("def foo(): pass", "test.py")
     assert "test.py" in prompt
     assert "def foo(): pass" in prompt
@@ -268,7 +268,6 @@ def test_deepseek_base_url_accepted():
 
 
 def test_agent_placeholder_api_key():
-    """When no api_key provided, a placeholder is used so constructor doesn't fail."""
-    agent = StyleAgent(model="mimo-v2.5-pro")
-    assert agent.name == "StyleAgent"
-    assert agent.llm.model_name == "mimo-v2.5-pro"
+    """When no api_key provided, a ValueError is raised."""
+    with pytest.raises(ValueError, match="API key is required"):
+        StyleAgent(model="mimo-v2.5-pro")

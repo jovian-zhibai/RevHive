@@ -40,7 +40,12 @@ class ConversationReviewer:
         kwargs = {}
         if model:
             kwargs["model"] = model
-        kwargs["api_key"] = api_key or "codeguardian-placeholder"
+        if not api_key:
+            raise ValueError(
+                "API key is required. Set the LLM_API_KEY environment variable "
+                "or pass api_key to ConversationReviewer."
+            )
+        kwargs["api_key"] = api_key
         if base_url:
             kwargs["base_url"] = base_url
         kwargs["max_retries"] = 3

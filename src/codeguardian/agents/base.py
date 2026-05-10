@@ -66,7 +66,12 @@ class BaseReviewAgent(ABC):
 
         # Pass credentials to ChatOpenAI explicitly so it doesn't fail
         # when env vars are absent (e.g., CI or demo mode).
-        kwargs["api_key"] = api_key or "codeguardian-placeholder"
+        if not api_key:
+            raise ValueError(
+                "API key is required. Set the LLM_API_KEY environment variable "
+                "or pass api_key to the agent constructor."
+            )
+        kwargs["api_key"] = api_key
         if base_url:
             kwargs["base_url"] = base_url
 

@@ -8,10 +8,9 @@ which files to skip, and the minimum severity to report.
 
 from __future__ import annotations
 
-import fnmatch
 import logging
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Optional
 
 import yaml
@@ -21,20 +20,6 @@ from codeguardian.agents.base import Severity
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CONFIG_FILENAME = ".codeguardian.yml"
-
-# Maps short agent names used in the YAML config to the attribute names
-# on ``CodeReviewWorkflow`` and ``ReviewState``.
-_AGENT_NAME_MAP: dict[str, str] = {
-    "style": "style",
-    "security": "security",
-    "performance": "performance",
-    "logic": "logic",
-    "repo": "repo",
-    "refactor": "refactor",
-    "fix": "fix",
-    "test": "test",
-    "doc": "doc",
-}
 
 # Severity ordering for threshold comparison.
 _SEVERITY_ORDER: dict[str, int] = {
@@ -80,8 +65,14 @@ class GuardianConfig:
             return None
 
     def should_ignore(self, file_path: str) -> bool:
-        """Return *True* if *file_path* matches any ignore pattern."""
-        return any(fnmatch.fnmatch(file_path, pat) for pat in self.ignore)
+        """Return *True* if *file_path* matches any ignore pattern.
+
+        Uses :class:`pathlib.PurePath.match` so that ``vendor/**`` correctly
+        matches ``vendor/foo/bar.py`` (unlike ``fnmatch`` which does not
+        treat ``/`` specially).
+        """
+        p = PurePath(file_path)
+        return any(p.match(pat) for pat in self.ignore)
 
 
 def load_config(path: Optional[str | Path] = None) -> GuardianConfig:

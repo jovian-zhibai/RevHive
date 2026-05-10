@@ -66,6 +66,7 @@ class TeamBatchProcessor:
         self.config = config
         self.workflow = CodeReviewWorkflow(model=model)
         self._model = model or self.workflow.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
+        self._semaphore = asyncio.Semaphore(3)
 
     async def run_daily_cycle(self) -> dict:
         """Execute a full daily review cycle across all repos."""
@@ -135,7 +136,7 @@ class TeamBatchProcessor:
 
         for i in range(0, len(files), 10):
             batch = files[i:i+10]
-            tasks = [self._process_single_file(f, mode) for f in batch]
+            tasks = [self._throttled_process(f, mode) for f in batch]
             batch_results = await asyncio.gather(*tasks, return_exceptions=True)
 
             for r in batch_results:
@@ -145,6 +146,11 @@ class TeamBatchProcessor:
                     result["critical_findings"].extend(r.get("critical_findings", []))
 
         return result
+
+    async def _throttled_process(self, file_path: str, mode: str) -> dict:
+        """Acquire the concurrency semaphore before processing a file."""
+        async with self._semaphore:
+            return await self._process_single_file(file_path, mode)
 
     async def _process_single_file(self, file_path: str, mode: str) -> dict:
         """Process a single file in a specific mode."""
