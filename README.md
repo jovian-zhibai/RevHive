@@ -61,7 +61,7 @@ python examples/sample_review.py
 
 # 3. Run with MiMo (get your free token at https://platform.xiaomimimo.com)
 export LLM_API_KEY=your-mimo-api-key
-export LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1
+export LLM_BASE_URL=https://api.xiaomimimo.com/v1
 export LLM_MODEL=mimo-v2.5-pro
 codeguardian review --file src/main.py
 
@@ -86,7 +86,7 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 
 | Provider | Model | Setup |
 |---|---|---|
-| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://platform.xiaomimimo.com/api/v1` |
+| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
 | OpenAI | `gpt-4o` | `LLM_BASE_URL=https://api.openai.com/v1` |
 | DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
 
@@ -97,7 +97,7 @@ MiMo is the **default and recommended backend**. CodeGuardian is optimized for M
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
-| `LLM_BASE_URL` | No | `https://platform.xiaomimimo.com/api/v1` | LLM API endpoint |
+| `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
 | `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name |
 | `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
 | `GITHUB_APP_ID` | Server only | — | GitHub App ID for installation token auth |
@@ -155,6 +155,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
@@ -167,7 +168,7 @@ jobs:
       - name: Run CodeGuardian Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
-          LLM_BASE_URL: https://platform.xiaomimimo.com/api/v1
+          LLM_BASE_URL: https://api.xiaomimimo.com/v1
           LLM_MODEL: mimo-v2.5-pro
         run: |
           codeguardian review --diff HEAD~1 --format markdown --output review_report.md
@@ -204,14 +205,13 @@ CodeGuardian is designed for high-throughput token consumption — making it an 
 src/codeguardian/
   agents/          # 10 specialized review agents
   graph/           # LangGraph workflow orchestration
-  config.py         # .codeguardian.yml loader
+  utils/           # Utility modules
   team/            # Batch processing engine
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
 tests/              # 45+ tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
-server/             # GitHub webhook server (gitignored separately)
 ```
 
 ## Contributing
