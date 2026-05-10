@@ -22,7 +22,16 @@ class RepoAgent(BaseReviewAgent):
 5. **Migration Risks** — Database schema drift, configuration inconsistencies across environments
 6. **Technical Debt Hotspots** — Clusters of TODO/FIXME, deprecated API usage, test coverage gaps
 
-Analyze the codebase holistically. Each finding should reference specific files and explain the systemic impact."""
+Analyze the codebase holistically. Each finding should reference specific files and explain the systemic impact.
+
+For each finding, output in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number if applicable]
+- Description: [What's wrong]
+- Suggestion: [How to fix]
+
+End with a brief summary of your review."""
 
     def get_review_focus(self) -> str:
         return "architecture, cross-file dependencies, API contracts, technical debt, migration risks"

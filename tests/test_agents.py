@@ -158,6 +158,15 @@ def test_parse_findings():
 def test_parse_findings_empty():
     agent = SecurityAgent(model="mimo-v2.5-pro", api_key="test-key")
     findings = agent._parse_findings("No issues found.")
+    # Fallback: non-empty text is wrapped as a single finding so output is never lost
+    assert len(findings) == 1
+    assert findings[0].severity == Severity.LOW
+    assert "No issues found" in findings[0].title
+
+
+def test_parse_findings_truly_empty():
+    agent = SecurityAgent(model="mimo-v2.5-pro", api_key="test-key")
+    findings = agent._parse_findings("")
     assert findings == []
 
 

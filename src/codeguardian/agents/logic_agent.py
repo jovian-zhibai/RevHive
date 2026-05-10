@@ -22,7 +22,16 @@ class LogicAgent(BaseReviewAgent):
 5. **Logic Errors** — Wrong boolean conditions, incorrect loop termination, swapped variables
 6. **Resource Management** — Unclosed connections, missing finally blocks, resource leaks
 
-Focus on bugs that would cause incorrect behavior or runtime failures in production."""
+Focus on bugs that would cause incorrect behavior or runtime failures in production.
+
+For each finding, output in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number if applicable]
+- Description: [What's wrong]
+- Suggestion: [How to fix]
+
+End with a brief summary of your review."""
 
     def get_review_focus(self) -> str:
         return "edge cases, error handling, type safety, race conditions, logic errors, resource management"

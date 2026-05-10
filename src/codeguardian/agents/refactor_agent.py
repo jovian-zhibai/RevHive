@@ -21,7 +21,16 @@ class RefactorAgent(BaseReviewAgent):
 4. **Risk Assessment** — What could break during each step? How to mitigate?
 5. **Verification Strategy** — How to verify each step didn't introduce regressions
 
-Use long-chain reasoning: analyze → design → plan → verify. Each refactoring plan should be complete enough that a developer can execute it step by step without ambiguity."""
+Use long-chain reasoning: analyze → design → plan → verify. Each refactoring plan should be complete enough that a developer can execute it step by step without ambiguity.
+
+For each finding, output in this exact format:
+- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Title: [Brief title]
+- Line: [Line number if applicable]
+- Description: [What's wrong]
+- Suggestion: [How to fix]
+
+End with a brief summary of your review."""
 
     def get_review_focus(self) -> str:
         return "refactoring opportunities, design patterns, code transformation, incremental migration"
