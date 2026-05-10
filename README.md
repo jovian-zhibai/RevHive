@@ -59,15 +59,15 @@ pip install -e ".[dev]"
 # 2. Try demo mode (no API key needed!)
 python examples/sample_review.py
 
-# 3. Run with MiMo (get your free token at https://platform.xiaomimimo.com)
-export LLM_API_KEY=your-mimo-api-key
-export LLM_BASE_URL=https://api.xiaomimimo.com/v1
-export LLM_MODEL=mimo-v2.5-pro
-codeguardian review --file src/main.py
+# 3. Set your LLM API key
+export LLM_API_KEY=your-api-key
 
-# 4. Review a git diff
+# 4. Review code immediately
+codeguardian review --file src/main.py
 codeguardian review --diff HEAD~1
 ```
+
+No GitHub App required for CLI usage. See [GitHub App Integration](#github-app-integration) for automatic PR reviews.
 
 ## Demo Mode
 
@@ -149,7 +149,9 @@ ignore:                          # glob patterns — ** matches any depth
   - ".venv/**"
 ```
 
-## CI/CD Integration
+## GitHub App Integration
+
+For automatic PR reviews, install the CodeGuardian GitHub App and configure the webhook server. For command-line usage, no GitHub App is needed.
 
 ```yaml
 # .github/workflows/code-review.yml
