@@ -54,7 +54,8 @@ dev = [
 codeguardian = "codeguardian.main:cli"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["codeguardian*", "server*"]
 
 [tool.ruff]
 line-length = 120
