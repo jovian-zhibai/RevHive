@@ -11,6 +11,12 @@ from typing import Optional
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
+try:
+    from langchain_anthropic import ChatAnthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+
 from codeguardian.agents.base import AgentResult, ReviewFinding
 
 logger = logging.getLogger(__name__)
@@ -36,7 +42,15 @@ class ConversationReviewer:
     LARGE_FILE_THRESHOLD = 4000 # characters — scale timeout above this
 
     def __init__(self, model: Optional[str] = None, api_key: Optional[str] = None,
-                 base_url: Optional[str] = None):
+                 base_url: Optional[str] = None, provider: Optional[str] = None):
+        # Resolve model presets.
+        from codeguardian.config import GuardianConfig
+        _preset = GuardianConfig().resolve_preset(model)
+        if _preset:
+            base_url = base_url or _preset.get("base_url")
+            model = _preset.get("model", model)
+            provider = provider or _preset.get("provider")
+
         kwargs = {}
         if model:
             kwargs["model"] = model
@@ -46,12 +60,20 @@ class ConversationReviewer:
                 "or pass api_key to ConversationReviewer."
             )
         kwargs["api_key"] = api_key
-        if base_url:
-            kwargs["base_url"] = base_url
         kwargs["max_retries"] = 3
         kwargs["request_timeout"] = self.DEFAULT_TIMEOUT
 
-        self.llm = ChatOpenAI(temperature=0.3, **kwargs)
+        if provider == "anthropic":
+            if not HAS_ANTHROPIC:
+                raise ImportError(
+                    "langchain-anthropic is required for Anthropic models. "
+                    "Install it with: pip install langchain-anthropic"
+                )
+            self.llm = ChatAnthropic(temperature=0.3, **kwargs)
+        else:
+            if base_url:
+                kwargs["base_url"] = base_url
+            self.llm = ChatOpenAI(temperature=0.3, **kwargs)
 
     def _dynamic_timeout(self, code: str, num_findings: int) -> int:
         """Scale timeout based on code size and finding count."""

@@ -43,11 +43,34 @@ class AgentConfig:
 class GuardianConfig:
     """Top-level configuration object loaded from ``.codeguardian.yml``."""
 
+    MODEL_PRESETS: dict[str, dict[str, str]] = field(default_factory=lambda: {
+        "mimo": {"base_url": "https://token-plan-cn.xiaomimimo.com/v1", "model": "mimo-v2.5-pro"},
+        "openai": {"base_url": "https://api.openai.com/v1", "model": "gpt-4o"},
+        "deepseek": {"base_url": "https://api.deepseek.com/v1", "model": "deepseek-chat"},
+        "qwen": {"base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"},
+        "glm": {"base_url": "https://open.bigmodel.cn/api/paas/v4", "model": "glm-4"},
+        "moonshot": {"base_url": "https://api.moonshot.cn/v1", "model": "moonshot-v1-8k"},
+        "anthropic": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
+        "claude": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
+    })
+
     model: Optional[str] = None
     agents: dict[str, AgentConfig] = field(default_factory=dict)
     ignore: list[str] = field(default_factory=list)
 
     # ---- helpers ----
+
+    def resolve_preset(self, model_name: Optional[str]) -> dict[str, str]:
+        """Resolve a model name against MODEL_PRESETS.
+
+        If *model_name* matches a preset key, return the preset dict
+        (with ``base_url``, ``model``, and optionally ``provider``).
+        Otherwise return an empty dict — the caller falls through to
+        env-var / default logic.
+        """
+        if model_name and model_name in self.MODEL_PRESETS:
+            return dict(self.MODEL_PRESETS[model_name])
+        return {}
 
     def is_agent_enabled(self, agent_name: str) -> bool:
         """Return *True* if the given agent is enabled in the config."""
