@@ -69,22 +69,20 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 
 ## 快速开始
 
+**方式一：CLI（30 秒上手）**
+
 ```bash
-# 1. 安装
 pip install codeguardian-ai
-
-# 2. 体验 Demo（无需 API Key！）
-codeguardian demo
-
-# 3. 设置 LLM API Key
+codeguardian demo                        # 无需 API Key
 export LLM_API_KEY=your-api-key
-
-# 4. 立即审查代码
-codeguardian review --file src/main.py
-codeguardian review --diff HEAD~1
+codeguardian review --file src/main.py   # 真实审查
 ```
 
-CLI 使用不需要 GitHub App。自动 PR 审查请参考 [GitHub App 集成](#github-app-集成)。
+**方式二：GitHub App（自动 PR 审查）**
+
+[安装 GitHub App](https://github.com/apps/codeguardian-bot/installations/new) → 每个 PR 自动审查，无需 CLI。
+
+详见 [GitHub App 集成](#github-app-集成)。
 
 ## Demo 模式
 

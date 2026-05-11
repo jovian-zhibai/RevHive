@@ -69,22 +69,20 @@ Example output:
 
 ## Quick Start
 
+**Option A: CLI (30 seconds)**
+
 ```bash
-# 1. Install
 pip install codeguardian-ai
-
-# 2. Try demo (no API key needed!)
-codeguardian demo
-
-# 3. Set your LLM API key
+codeguardian demo                        # no API key needed
 export LLM_API_KEY=your-api-key
-
-# 4. Review code immediately
-codeguardian review --file src/main.py
-codeguardian review --diff HEAD~1
+codeguardian review --file src/main.py   # real review
 ```
 
-No GitHub App required for CLI usage. See [GitHub App Integration](#github-app-integration) for automatic PR reviews.
+**Option B: GitHub App (automatic PR reviews)**
+
+[Install the GitHub App](https://github.com/apps/codeguardian-bot/installations/new) → every PR gets reviewed automatically, no CLI needed.
+
+See [GitHub App Integration](#github-app-integration) for setup details.
 
 ## Demo Mode
 
