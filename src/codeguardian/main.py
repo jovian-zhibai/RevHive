@@ -73,6 +73,96 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
         click.echo(report)
 
 
+def _render_demo_rich(result) -> None:
+    """Render demo review as a rich terminal panel."""
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+    from rich import box
+
+    from codeguardian.agents.base import Severity
+
+    console = Console()
+    score = result.risk_score or 0
+    findings = result.findings
+
+    # Risk score line
+    if score <= 20:
+        emoji, level, bar_color = "✅", "LOW", "green"
+    elif score <= 50:
+        emoji, level, bar_color = "⚠️", "MEDIUM", "yellow"
+    elif score <= 80:
+        emoji, level, bar_color = "🔴", "HIGH", "orange3"
+    else:
+        emoji, level, bar_color = "🚨", "CRITICAL", "red"
+
+    filled = int(score / 100 * 40)
+    bar = "█" * filled + "░" * (40 - filled)
+
+    risk_text = Text()
+    risk_text.append(f"{emoji} Risk Score: {score}/100 {level}\n", style=f"bold {bar_color}")
+    risk_text.append(f"{bar} {score}%\n", style=bar_color)
+
+    # Severity counts
+    counts: dict[str, int] = {}
+    for f in findings:
+        counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
+
+    sev_icons = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
+    sev_line = Text()
+    for sev in ("critical", "high", "medium", "low"):
+        if sev in counts:
+            sev_line.append(f"{sev_icons[sev]} {sev.upper()} ×{counts[sev]}   ")
+    sev_line.append("\n")
+
+    # Build body
+    body = Text()
+    body.append_text(risk_text)
+    body.append("\n")
+    body.append_text(sev_line)
+    body.append("\n")
+
+    # Critical / High findings table
+    critical_high = [f for f in findings if f.severity in (Severity.CRITICAL, Severity.HIGH)]
+    if critical_high:
+        body.append("── Critical/High Findings ──────────────────────\n", style="dim")
+        for f in critical_high:
+            icon = "🔴" if f.severity == Severity.CRITICAL else "🟠"
+            body.append(f"{icon} {f.title}\n", style="bold")
+            loc = f.agent
+            if f.line_number:
+                loc += f" · Line {f.line_number}"
+            body.append(f"  {loc}\n", style="dim")
+            desc = f.description[:100] + ("..." if len(f.description) > 100 else "")
+            body.append(f"  {desc}\n")
+        body.append("\n")
+
+    # Medium — titles only
+    medium = [f for f in findings if f.severity == Severity.MEDIUM]
+    if medium:
+        body.append("── Medium Findings ────────────────────────────\n", style="dim")
+        for f in medium:
+            body.append(f"🟡 {f.title}\n")
+        body.append("\n")
+
+    # Low — count only
+    low_count = counts.get("low", 0)
+    if low_count:
+        body.append(f"🟢 Low: {low_count} finding{'s' if low_count != 1 else ''} (not shown)\n\n")
+
+    # Footer
+    agent_count = len({f.agent for f in findings})
+    tokens = result.token_usage or 0
+    body.append(f"{agent_count} agents · {len(findings)} findings", style="dim")
+    if tokens:
+        body.append(f" · ~{tokens:,} tokens", style="dim")
+    body.append("\n")
+    body.append("⚡ Demo mode — no API key required", style="dim cyan")
+
+    panel = Panel(body, title="[bold]🛡️ CodeGuardian Review Report[/bold]", box=box.ROUNDED)
+    console.print(panel)
+
+
 @cli.command()
 @click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
@@ -83,18 +173,22 @@ def demo(fmt: str, output: str):
 
     demo_wf = DemoReviewWorkflow()
     result = demo_wf.run()
-    report_obj = ReviewReport(result)
 
-    if fmt == "json":
-        report = report_obj.to_json()
-    else:
-        report = report_obj.to_markdown()
+    if fmt == "json" or output:
+        report_obj = ReviewReport(result)
+        report = report_obj.to_json() if fmt == "json" else report_obj.to_markdown()
+        if output:
+            Path(output).write_text(report, encoding="utf-8")
+            click.echo(f"Report saved to {output}")
+        else:
+            click.echo(report)
+        return
 
-    if output:
-        Path(output).write_text(report, encoding="utf-8")
-        click.echo(f"Report saved to {output}")
-    else:
-        click.echo(report)
+    # Rich terminal output
+    try:
+        _render_demo_rich(result)
+    except ImportError:
+        click.echo(ReviewReport(result).to_markdown())
 
 
 if __name__ == "__main__":
