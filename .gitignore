@@ -14,3 +14,5 @@ server/
 *.log
 review_report.md
 .coverage
+.workbuddy/
+docs/STRATEGY.md
