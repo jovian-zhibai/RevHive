@@ -28,8 +28,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install --upgrade pip
       - run: pip install -e ".[dev]" pip-audit bandit
       - name: Dependency vulnerability scan
-        run: pip-audit --skip-pip
+        run: pip-audit --skip-editable
       - name: Static security analysis
         run: bandit -r src/
