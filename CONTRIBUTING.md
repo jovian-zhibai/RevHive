@@ -1,6 +1,6 @@
 # Contributing to CodeGuardian
 
-We welcome contributions! CodeGuardian is an AI-powered multi-agent code review system compatible with MiMo, OpenAI, and DeepSeek.
+We welcome contributions! CodeGuardian is an AI-powered multi-agent code review system.
 
 ## Getting Started
 
@@ -37,13 +37,33 @@ src/codeguardian/
 2. Extend `BaseReviewAgent`
 3. Implement `get_system_prompt()` and `get_review_focus()`
 4. Register in `agents/__init__.py`
-5. Add to the workflow in `graph/workflow.py`
+5. Add to the `_AGENT_CLASSES` registry in `graph/workflow.py`
 
-## Running Against MiMo
+## Security Reporting
 
-```bash
-export LLM_API_KEY=your-mimo-api-key
-export LLM_BASE_URL=https://api.xiaomimimo.com/v1
-export LLM_MODEL=mimo-v2.5-pro
-codeguardian review --file src/main.py
-```
+If you discover a security vulnerability, please report it via a [GitHub Issue](https://github.com/SoulJian03/CodeGuardian/issues) with the `security` label. Do not disclose vulnerabilities publicly until a fix is available.
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
+| `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
+| `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name or preset (`mimo`, `openai`, `deepseek`, `qwen`, `glm`, `moonshot`, `claude`) |
+| `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
+| `GITHUB_APP_ID` | Server only | — | GitHub App ID |
+| `GITHUB_PRIVATE_KEY` | Server only | — | PEM private key content |
+
+## Supported LLM Backends
+
+| Provider | Model | Preset Name |
+|---|---|---|
+| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | `mimo` |
+| OpenAI | `gpt-4o` | `openai` |
+| DeepSeek | `deepseek-chat` | `deepseek` |
+| Qwen (Alibaba) | `qwen-plus` | `qwen` |
+| GLM (Zhipu) | `glm-4` | `glm` |
+| Moonshot | `moonshot-v1-8k` | `moonshot` |
+| **Anthropic** | `claude-sonnet-4-20250514` | `claude` |
+
+Install optional provider dependencies: `pip install -e ".[anthropic]"`

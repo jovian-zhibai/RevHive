@@ -2,6 +2,7 @@
 
 
 from codeguardian.agents.base import BaseReviewAgent, AgentResult, ReviewFinding, Severity
+from codeguardian.utils.dedup import deduplicate_and_sort
 
 
 class CoordinatorAgent(BaseReviewAgent):
@@ -32,15 +33,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         for result in results:
             all_findings.extend(result.findings)
 
-        deduplicated = self._deduplicate_findings(all_findings)
-
-        severity_order = {
-            Severity.CRITICAL: 0,
-            Severity.HIGH: 1,
-            Severity.MEDIUM: 2,
-            Severity.LOW: 3,
-        }
-        deduplicated.sort(key=lambda f: severity_order.get(f.severity, 99))
+        deduplicated = deduplicate_and_sort(all_findings)
 
         risk_score = self._calculate_risk_score(deduplicated)
         summary = self._generate_summary(deduplicated, results, risk_score)
@@ -106,17 +99,6 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
                 parts.append(f"{counts[sev]} {sev.capitalize()}")
         breakdown = " · ".join(parts)
         return f"{emoji} Risk Score: {level} ({score}/100)\n\n{breakdown}"
-
-    def _deduplicate_findings(self, findings: list[ReviewFinding]) -> list[ReviewFinding]:
-        """Remove duplicate findings by normalising and deduplicating on title."""
-        seen_titles = set()
-        unique = []
-        for f in findings:
-            normalized = f.title.lower().strip()
-            if normalized not in seen_titles:
-                seen_titles.add(normalized)
-                unique.append(f)
-        return unique
 
     def _generate_summary(
         self,

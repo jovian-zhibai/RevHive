@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from codeguardian.agents.base import AgentResult, ReviewFinding, Severity
 from codeguardian.agents.coordinator import CoordinatorAgent
+from codeguardian.utils.dedup import deduplicate_and_sort
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +267,7 @@ class DemoReviewWorkflow:
                 total_tokens += self.config.base_tokens_per_agent + self._rng.randint(0, 500)
 
         # Coordinator pass
-        all_findings = _deduplicate_and_sort(all_findings)
+        all_findings = deduplicate_and_sort(all_findings)
         risk_score = CoordinatorAgent._calculate_risk_score(all_findings)
         coordinator_summary = _build_coordinator_summary(all_findings, risk_score)
 
@@ -282,25 +283,6 @@ class DemoReviewWorkflow:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-
-def _deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
-    """Deduplicate findings by title and sort by severity (critical first)."""
-    seen: set[str] = set()
-    unique: list[ReviewFinding] = []
-    severity_order = {
-        Severity.CRITICAL: 0,
-        Severity.HIGH: 1,
-        Severity.MEDIUM: 2,
-        Severity.LOW: 3,
-    }
-    for f in findings:
-        key = f.title.lower().strip()
-        if key not in seen:
-            seen.add(key)
-            unique.append(f)
-    unique.sort(key=lambda f: severity_order.get(f.severity, 99))
-    return unique
 
 
 def _build_coordinator_summary(findings: list[ReviewFinding], risk_score: int = 0) -> str:

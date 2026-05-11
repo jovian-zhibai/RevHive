@@ -25,15 +25,33 @@ from codeguardian.agents import (
     DocAgent,
     CoordinatorAgent,
 )
-from codeguardian.agents.base import AgentResult
+from codeguardian.agents.base import AgentResult, SEVERITY_ORDER
 from codeguardian.config import GuardianConfig, load_config
 
 logger = logging.getLogger(__name__)
 
+# Agent class registry — maps YAML agent names to their class.
+# To add a new agent: (1) add entry here, (2) add a state field below.
+_AGENT_CLASSES: dict[str, type] = {
+    "style":       StyleAgent,
+    "security":    SecurityAgent,
+    "performance": PerformanceAgent,
+    "logic":       LogicAgent,
+    "repo":        RepoAgent,
+    "refactor":    RefactorAgent,
+    "fix":         FixAgent,
+    "test":        TestAgent,
+    "doc":         DocAgent,
+}
+
 
 @dataclass
 class ReviewState:
-    """State shared across the review workflow."""
+    """State shared across the review workflow.
+
+    Each agent writes to its own field so that LangGraph's shallow-merge
+    semantics work correctly with concurrent runners.
+    """
     code: str = ""
     file_path: str = ""
     style_result: Optional[AgentResult] = None
@@ -48,21 +66,12 @@ class ReviewState:
     final_result: Optional[AgentResult] = None
 
 
+# Reverse-lookup: agent name → ReviewState field name.
+_STATE_ATTR_MAP: dict[str, str] = {name: f"{name}_result" for name in _AGENT_CLASSES}
+
+
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
-
-    # Mapping from YAML agent names to (agent class, state attribute).
-    _AGENT_REGISTRY: dict[str, tuple[type, str]] = {
-        "style":       (StyleAgent,       "style_result"),
-        "security":    (SecurityAgent,    "security_result"),
-        "performance": (PerformanceAgent, "performance_result"),
-        "logic":       (LogicAgent,       "logic_result"),
-        "repo":        (RepoAgent,        "repo_result"),
-        "refactor":    (RefactorAgent,    "refactor_result"),
-        "fix":         (FixAgent,         "fix_result"),
-        "test":        (TestAgent,        "test_result"),
-        "doc":         (DocAgent,         "doc_result"),
-    }
 
     def __init__(self, model: Optional[str] = None, config: Optional[GuardianConfig] = None):
         self.config = config or load_config()
@@ -74,10 +83,9 @@ class CodeReviewWorkflow:
 
         # Only instantiate agents that are enabled in the config.
         self.agents: dict[str, object] = {}
-        for name, (cls, _state_attr) in self._AGENT_REGISTRY.items():
+        for name, cls in _AGENT_CLASSES.items():
             if self.config.is_agent_enabled(name):
                 self.agents[name] = cls(**common_kwargs)
-                setattr(self, f"{name}_agent", self.agents[name])
 
         self.coordinator = CoordinatorAgent(**common_kwargs)
         self.graph = self._build_graph()
@@ -86,43 +94,31 @@ class CodeReviewWorkflow:
         """Build the LangGraph workflow with only enabled agents."""
         workflow = StateGraph(ReviewState)
 
-        # Map agent name -> runner method.  Each runner returns a dict
-        # keyed by the ReviewState attribute for that agent.
-        _runners: dict[str, callable] = {}
         for name in self.agents:
-            _runners[name] = self._make_runner(name)
+            workflow.add_node(f"{name}_review", self._make_runner(name))
 
-        for name, runner in _runners.items():
-            workflow.add_node(f"{name}_review", runner)
-
-        review_nodes = [f"{name}_review" for name in _runners]
-
+        review_nodes = [f"{name}_review" for name in self.agents]
         workflow.add_node("coordinate", self._run_coordinate)
 
         for node in review_nodes:
             workflow.add_edge(START, node)
-
-        for node in review_nodes:
             workflow.add_edge(node, "coordinate")
 
         workflow.add_edge("coordinate", END)
-
         return workflow.compile()
 
     def _make_runner(self, agent_name: str):
         """Return an async runner that reviews with the named agent."""
         agent = self.agents[agent_name]
-        _, state_attr = self._AGENT_REGISTRY[agent_name]
+        state_attr = _STATE_ATTR_MAP[agent_name]
 
         async def _run(state: ReviewState) -> dict:
             result = await self._safe_review(agent, state)
             # Apply severity threshold filtering if configured.
             threshold = self.config.get_severity_threshold(agent_name)
             if threshold is not None and result.findings:
-                from codeguardian.agents.base import Severity as _Sev
-                _order = {s: i for i, s in enumerate(_Sev)}
-                min_level = _order[threshold]
-                result.findings = [f for f in result.findings if _order.get(f.severity, 99) >= min_level]
+                min_level = SEVERITY_ORDER.get(threshold.value, 99)
+                result.findings = [f for f in result.findings if SEVERITY_ORDER.get(f.severity.value, 99) >= min_level]
             return {state_attr: result}
 
         return _run
@@ -142,9 +138,9 @@ class CodeReviewWorkflow:
     async def _run_coordinate(self, state: ReviewState) -> dict:
         """Collect results from all enabled agents and synthesize."""
         results = []
-        for _name, (_cls, state_attr) in self._AGENT_REGISTRY.items():
-            if self.config.is_agent_enabled(_name):
-                r = getattr(state, state_attr, None)
+        for name in _AGENT_CLASSES:
+            if self.config.is_agent_enabled(name):
+                r = getattr(state, _STATE_ATTR_MAP[name], None)
                 if r is not None:
                     results.append(r)
         final = await self.coordinator.synthesize(results)

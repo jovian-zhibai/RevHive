@@ -21,23 +21,21 @@ def cli():
     pass
 
 
+def _run_with_timeout(coro, timeout: int = 300):
+    """Run an async coroutine with a timeout (default 5 minutes)."""
+    try:
+        return asyncio.run(asyncio.wait_for(coro, timeout=timeout))
+    except asyncio.TimeoutError:
+        click.echo("Error: Review timed out after 5 minutes.", err=True)
+        sys.exit(1)
+
+
 @cli.command()
 @click.option("--file", "-f", type=click.Path(exists=True), help="Path to file for review")
 @click.option("--diff", "-d", "diff_ref", help="Git diff reference (e.g., HEAD~1)")
 @click.option("--model", "-m", default=None, help="LLM model to use")
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 @click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
-def _run_with_timeout(coro, timeout: int = 300):
-    """Run an async coroutine with a timeout (default 5 minutes)."""
-    async def _wrapper():
-        return await asyncio.wait_for(coro, timeout=timeout)
-    try:
-        return asyncio.run(_wrapper())
-    except asyncio.TimeoutError:
-        click.echo("Error: Review timed out after 5 minutes.", err=True)
-        sys.exit(1)
-
-
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
     """Run code review on a file or git diff."""
     cfg = load_config()
