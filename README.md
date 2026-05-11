@@ -117,6 +117,25 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 
 MiMo is the **default and recommended backend**. CodeGuardian is optimized for MiMo's token economics and model capabilities.
 
+## Supported Languages
+
+CodeGuardian's LLM-powered agents can review code in any language. Currently optimized for:
+
+| Language | Extensions | Security Patterns | Performance Patterns |
+|----------|-----------|-------------------|---------------------|
+| Python | .py | ✅ Full | ✅ Full |
+| JavaScript/TypeScript | .js .jsx .mjs .ts .tsx | ✅ Full | ✅ Full |
+| Go | .go | ✅ Full | ✅ Full |
+| Rust | .rs | ✅ Full | ✅ Full |
+| Java | .java | ✅ Full | ✅ Full |
+| C/C++ | .c .cpp .h .hpp | ✅ Core | ⚠️ Basic |
+| Ruby | .rb | ✅ Core | ⚠️ Basic |
+| PHP | .php | ✅ Full | ⚠️ Basic |
+| Swift | .swift | ✅ Core | ⚠️ Basic |
+| Kotlin | .kt | ✅ Core | ⚠️ Basic |
+
+Other languages are supported via LLM understanding but may have fewer specialized patterns.
+
 ## Environment Variables
 
 | Variable | Required | Default | Description |

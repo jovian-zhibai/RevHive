@@ -22,6 +22,12 @@ class PerformanceAgent(BaseReviewAgent):
 5. **I/O Inefficiency** — Redundant file reads, missing batching, synchronous I/O in hot paths
 6. **Caching Opportunities** — Repeated computations that could be cached, missing memoization
 
+Adapt your analysis to the programming language of the file being reviewed. Pay attention to language-specific patterns:
+- **JavaScript/TypeScript**: memory leaks (event listeners, closures holding references), N+1 API calls (Promise.all missing), blocking main thread
+- **Go**: goroutine leaks (missing done channels), unbuffered channels causing blocking, excessive heap allocations
+- **Java**: excessive object creation in loops, synchronized bottlenecks, connection pool exhaustion
+- **Rust**: unnecessary .clone() calls, blocking operations inside async context (.await on sync I/O)
+
 Always quantify the impact when possible and provide a concrete optimized alternative.
 
 For each finding, output in this exact format:

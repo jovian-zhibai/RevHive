@@ -21,7 +21,12 @@ class RepoConfig:
     """Configuration for a monitored repository."""
     path: str
     name: str
-    file_patterns: list[str] = field(default_factory=lambda: ["**/*.py", "**/*.js", "**/*.ts", "**/*.go"])
+    file_patterns: list[str] = field(default_factory=lambda: [
+        "**/*.py", "**/*.js", "**/*.jsx", "**/*.mjs",
+        "**/*.ts", "**/*.tsx", "**/*.go", "**/*.rs",
+        "**/*.java", "**/*.c", "**/*.cpp", "**/*.h",
+        "**/*.hpp", "**/*.rb", "**/*.php", "**/*.swift", "**/*.kt",
+    ])
     review_interval_minutes: int = 60
     max_files_per_scan: int = 100
     enabled_modes: list[str] = field(default_factory=lambda: [

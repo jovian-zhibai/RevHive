@@ -117,6 +117,25 @@ python examples/sample_review.py
 
 MiMo 是**默认且推荐的后端**。CodeGuardian 针对 MiMo 的 Token 经济性和模型能力进行了优化。
 
+## 支持的语言
+
+CodeGuardian 的 LLM 驱动 Agent 可以审查任何语言的代码。目前已针对以下语言优化：
+
+| 语言 | 扩展名 | 安全模式 | 性能模式 |
+|------|--------|---------|---------|
+| Python | .py | ✅ 完整 | ✅ 完整 |
+| JavaScript/TypeScript | .js .jsx .mjs .ts .tsx | ✅ 完整 | ✅ 完整 |
+| Go | .go | ✅ 完整 | ✅ 完整 |
+| Rust | .rs | ✅ 完整 | ✅ 完整 |
+| Java | .java | ✅ 完整 | ✅ 完整 |
+| C/C++ | .c .cpp .h .hpp | ✅ 核心 | ⚠️ 基础 |
+| Ruby | .rb | ✅ 核心 | ⚠️ 基础 |
+| PHP | .php | ✅ 完整 | ⚠️ 基础 |
+| Swift | .swift | ✅ 核心 | ⚠️ 基础 |
+| Kotlin | .kt | ✅ 核心 | ⚠️ 基础 |
+
+其他语言通过 LLM 理解支持，但可能缺少专门的检测模式。
+
 ## 环境变量
 
 | 变量 | 必填 | 默认值 | 说明 |
