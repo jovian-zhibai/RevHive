@@ -1,7 +1,7 @@
 # CodeGuardian
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSL--1.1-blue)](LICENSE)
 [![LangGraph](https://img.shields.io/badge/framework-LangGraph-orange)](https://langchain-ai.github.io/langgraph/)
 [![MiMo](https://img.shields.io/badge/powered_by-MiMo-red)](https://platform.xiaomimimo.com)
 [![Agents](https://img.shields.io/badge/agents-10-blue)]()
@@ -278,5 +278,5 @@ bandit -r src/ -c pyproject.toml
 
 ## License
 
-MIT — 详见 [LICENSE](LICENSE)。
+BSL 1.1 — 详见 [LICENSE](LICENSE)。2030-05-12 自动转为 Apache 2.0。
 
