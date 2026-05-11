@@ -32,4 +32,4 @@ jobs:
       - name: Dependency vulnerability scan
         run: pip-audit
       - name: Static security analysis
-        run: bandit -r src/ -c pyproject.toml
+        run: bandit -r src/

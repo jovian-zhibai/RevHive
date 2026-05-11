@@ -110,7 +110,7 @@ python examples/sample_review.py
 | DeepSeek | `deepseek-chat` | `LLM_BASE_URL=https://api.deepseek.com/v1` |
 | Qwen (通义) | `qwen-plus` | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (智谱) | `glm-4` | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
-| Moonshot | `moonshot-v1-8k` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| Kimi | `kimi` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
 | **Anthropic** | `claude-sonnet-4-20250514` | `pip install -e ".[anthropic]"`，设置 `ANTHROPIC_API_KEY` |
 
 **快速预设：** 将 `LLM_MODEL` 设为预设名（如 `openai`、`deepseek`、`qwen`），CodeGuardian 自动配置 base URL。显式设置 `LLM_BASE_URL` 优先级更高。
