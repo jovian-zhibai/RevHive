@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codeguardian"
+name = "codeguardian-ai"
 version = "0.3.0"
 description = "Multi-Agent collaborative code review and security scanning system powered by MiMo"
 readme = "README.md"
