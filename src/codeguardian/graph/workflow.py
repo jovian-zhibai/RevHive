@@ -174,7 +174,12 @@ class CodeReviewWorkflow:
         a consolidated repository-level report.
         """
         if file_patterns is None:
-            file_patterns = ["**/*.py", "**/*.js", "**/*.ts"]
+            file_patterns = [
+                "**/*.py", "**/*.js", "**/*.jsx", "**/*.mjs",
+                "**/*.ts", "**/*.tsx", "**/*.go", "**/*.rs",
+                "**/*.java", "**/*.c", "**/*.cpp", "**/*.h",
+                "**/*.hpp", "**/*.rb", "**/*.php", "**/*.swift", "**/*.kt",
+            ]
 
         files = []
         for pattern in file_patterns:
