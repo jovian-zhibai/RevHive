@@ -27,13 +27,6 @@ _DEFAULT_CONFIG_FILENAME = ".codeguardian.yml"
 _config_cache: GuardianConfig | None = None
 _config_cache_path: str | None = None
 
-# Severity ordering for threshold comparison.
-_SEVERITY_ORDER: dict[str, int] = {
-    "low": 0,
-    "medium": 1,
-    "high": 2,
-    "critical": 3,
-}
 
 
 @dataclass
@@ -54,7 +47,7 @@ class GuardianConfig:
         "deepseek": {"base_url": "https://api.deepseek.com/v1", "model": "deepseek-chat"},
         "qwen": {"base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"},
         "glm": {"base_url": "https://open.bigmodel.cn/api/paas/v4", "model": "glm-4"},
-        "moonshot": {"base_url": "https://api.moonshot.cn/v1", "model": "moonshot-v1-8k"},
+        "kimi": {"base_url": "https://api.moonshot.cn/v1", "model": "kimi"},
         "anthropic": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
         "claude": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
     })

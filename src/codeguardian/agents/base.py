@@ -254,7 +254,7 @@ End with a brief summary of your review."""
                 if colon_pos >= 0:
                     first_line = lines[i][colon_pos + 1:].strip()
                 elif header_match:
-                    first_line = lines[i][header_match.end():].strip()
+                    first_line = re.sub(r"^#{1,4}\s*\w+\s*", "", lines[i]).strip()
                 else:
                     first_line = ""
 
@@ -276,7 +276,7 @@ End with a brief summary of your review."""
             counts: dict[str, int] = {}
             for f in findings:
                 counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
-            parts = [f"{v} {k}" for k, v in sorted(counts.items(), key=lambda x: ["critical", "high", "medium", "low"].index(x[0]))]
+            parts = [f"{v} {k}" for k, v in sorted(counts.items(), key=lambda x: SEVERITY_ORDER.get(x[0], 99))]
             return f"Review completed with {len(findings)} findings ({', '.join(parts)})."
 
         return "Review completed."

@@ -66,9 +66,11 @@ codeguardian = "codeguardian.main:cli"
 where = ["src", "."]
 include = ["codeguardian*"]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::langchain_core._api.deprecation.LangChainPendingDeprecationWarning",
+]
+
 [tool.ruff]
 line-length = 120
 target-version = "py310"
-
-[tool.bandit]
-exclude_dirs = ["tests"]
