@@ -111,7 +111,7 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 | Qwen (Alibaba) | `qwen-plus` | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (Zhipu) | `glm-4` | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
 | Moonshot | `moonshot-v1-8k` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
-| **Anthropic** | `claude-sonnet-4-20250514` | Set `ANTHROPIC_API_KEY`, model starts with `claude` |
+| **Anthropic** | `claude-sonnet-4-20250514` | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
 
 **Quick preset:** Set `LLM_MODEL` to a preset name (e.g., `openai`, `deepseek`, `qwen`) and CodeGuardian auto-configures the base URL. Explicit `LLM_BASE_URL` takes priority.
 
@@ -258,6 +258,22 @@ src/codeguardian/
   main.py           # CLI entry point
 tests/              # 45+ tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
+```
+
+## Security
+
+CodeGuardian takes its own security seriously:
+
+- **Dependency scanning** — `pip-audit` runs in CI on every push and PR to catch known CVEs in dependencies.
+- **Static analysis** — `bandit` scans the source code for common security issues (hardcoded secrets, unsafe deserialization, injection risks).
+- **Docker hardening** — the container runs as a non-root user (`appuser`). Sensitive files (`.env`, `*.pem`, `.git/`) are excluded via `.dockerignore`.
+
+To run security checks locally:
+
+```bash
+pip install pip-audit bandit
+pip-audit
+bandit -r src/ -c pyproject.toml
 ```
 
 ## Contributing
