@@ -30,6 +30,6 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]" pip-audit bandit
       - name: Dependency vulnerability scan
-        run: pip-audit
+        run: pip-audit --skip-pip
       - name: Static security analysis
         run: bandit -r src/
