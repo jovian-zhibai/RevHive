@@ -71,12 +71,10 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 
 ```bash
 # 1. 安装
-git clone https://github.com/SoulJian03/CodeGuardian.git
-cd CodeGuardian
-pip install -e ".[dev]"
+pip install codeguardian-ai
 
-# 2. 体验 Demo 模式（无需 API Key！）
-python examples/sample_review.py
+# 2. 体验 Demo（无需 API Key！）
+codeguardian demo
 
 # 3. 设置 LLM API Key
 export LLM_API_KEY=your-api-key
