@@ -136,13 +136,6 @@ Output format for each finding:
 
 End with a brief summary of your review."""
 
-    # Regex patterns for finding block detection
-    _SEV_RE = re.compile(r"^- Severity:\s*(.+)", re.IGNORECASE | re.MULTILINE)
-    _SEV_ALT_RE = re.compile(r"\[?(LOW|MEDIUM|HIGH|CRITICAL)\]?", re.IGNORECASE)
-    _TITLE_RE = re.compile(r"^- Title:\s*(.+)", re.IGNORECASE)
-    _LINE_RE = re.compile(r"^- Line:\s*(.+)", re.IGNORECASE)
-    _DESC_RE = re.compile(r"^- Description:\s*(.+)", re.IGNORECASE)
-    _SUGG_RE = re.compile(r"^- Suggestion:\s*(.+)", re.IGNORECASE)
     _FIELD_RE = re.compile(r"^-\s*(Severity|Title|Line|Description|Suggestion):\s*", re.IGNORECASE)
 
     def _parse_findings(self, response: str) -> list[ReviewFinding]:

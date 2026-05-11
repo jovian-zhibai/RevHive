@@ -118,7 +118,7 @@ class CodeReviewWorkflow:
             threshold = self.config.get_severity_threshold(agent_name)
             if threshold is not None and result.findings:
                 min_level = SEVERITY_ORDER.get(threshold.value, 99)
-                result.findings = [f for f in result.findings if SEVERITY_ORDER.get(f.severity.value, 99) >= min_level]
+                result.findings = [f for f in result.findings if SEVERITY_ORDER.get(f.severity.value, 99) <= min_level]
             return {state_attr: result}
 
         return _run
@@ -161,15 +161,18 @@ class CodeReviewWorkflow:
 
     async def run_from_diff(self, diff_ref: str) -> AgentResult:
         """Run review on a git diff."""
-        import subprocess
+        import asyncio as _asyncio
         self._validate_diff_ref(diff_ref)
-        result = subprocess.run(
-            ["git", "diff", diff_ref],
-            capture_output=True, text=True, cwd=os.getcwd()
+        proc = await _asyncio.create_subprocess_exec(
+            "git", "diff", diff_ref,
+            stdout=_asyncio.subprocess.PIPE,
+            stderr=_asyncio.subprocess.PIPE,
+            cwd=os.getcwd(),
         )
-        if result.returncode != 0:
-            raise RuntimeError(f"git diff failed: {result.stderr}")
-        return await self.run(code=result.stdout, file_path=f"diff:{diff_ref}")
+        stdout, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            raise RuntimeError(f"git diff failed: {stderr.decode()}")
+        return await self.run(code=stdout.decode(), file_path=f"diff:{diff_ref}")
 
     async def run_on_repo(self, repo_path: str, file_patterns: list[str] = None) -> list[AgentResult]:
         """Run review on an entire repository. High token consumption scenario.
@@ -208,15 +211,18 @@ class CodeReviewWorkflow:
         """
         diff_result = await self.run_from_diff(diff_ref)
 
-        import subprocess
+        import asyncio as _asyncio
         self._validate_diff_ref(diff_ref)
-        changed = subprocess.run(
-            ["git", "diff", "--name-only", diff_ref],
-            capture_output=True, text=True, cwd=os.getcwd()
+        proc = await _asyncio.create_subprocess_exec(
+            "git", "diff", "--name-only", diff_ref,
+            stdout=_asyncio.subprocess.PIPE,
+            stderr=_asyncio.subprocess.PIPE,
+            cwd=os.getcwd(),
         )
+        stdout, _ = await proc.communicate()
 
         full_results = [diff_result]
-        for file in changed.stdout.strip().split("\n"):
+        for file in stdout.decode().strip().split("\n"):
             if file and os.path.exists(file):
                 code = Path(file).read_text(encoding="utf-8")
                 result = await self.run(code=code, file_path=file)

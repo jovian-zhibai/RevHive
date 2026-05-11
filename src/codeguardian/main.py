@@ -45,7 +45,14 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
         if cfg.should_ignore(file):
             click.echo(f"Skipping {file} — matches ignore pattern in .codeguardian.yml")
             return
-        code = Path(file).read_text(encoding="utf-8")
+        try:
+            code = Path(file).read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            click.echo(f"Error: {file} is not a valid text file (encoding issue).", err=True)
+            sys.exit(1)
+        except (PermissionError, OSError) as exc:
+            click.echo(f"Error: cannot read {file}: {exc}", err=True)
+            sys.exit(1)
         result = _run_with_timeout(workflow.run(code=code, file_path=file))
     elif diff_ref:
         result = _run_with_timeout(workflow.run_from_diff(diff_ref))
