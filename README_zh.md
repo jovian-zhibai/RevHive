@@ -111,7 +111,7 @@ python examples/sample_review.py
 | Qwen (通义) | `qwen-plus` | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (智谱) | `glm-4` | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
 | Moonshot | `moonshot-v1-8k` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
-| **Anthropic** | `claude-sonnet-4-20250514` | 设置 `ANTHROPIC_API_KEY`，model 以 `claude` 开头 |
+| **Anthropic** | `claude-sonnet-4-20250514` | `pip install -e ".[anthropic]"`，设置 `ANTHROPIC_API_KEY` |
 
 **快速预设：** 将 `LLM_MODEL` 设为预设名（如 `openai`、`deepseek`、`qwen`），CodeGuardian 自动配置 base URL。显式设置 `LLM_BASE_URL` 优先级更高。
 
@@ -258,6 +258,22 @@ src/codeguardian/
   main.py           # CLI 入口
 tests/              # 45+ 测试覆盖 agents、workflow、demo
 examples/           # 开箱即用的示例
+```
+
+## 安全
+
+CodeGuardian 重视自身代码安全：
+
+- **依赖扫描** — CI 中每次推送和 PR 都运行 `pip-audit`，检测依赖中的已知 CVE。
+- **静态分析** — `bandit` 扫描源码中的常见安全问题（硬编码密钥、不安全反序列化、注入风险）。
+- **Docker 加固** — 容器以非 root 用户（`appuser`）运行。敏感文件（`.env`、`*.pem`、`.git/`）通过 `.dockerignore` 排除。
+
+本地运行安全检查：
+
+```bash
+pip install pip-audit bandit
+pip-audit
+bandit -r src/ -c pyproject.toml
 ```
 
 ## 贡献
