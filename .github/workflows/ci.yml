@@ -33,4 +33,4 @@ jobs:
       - name: Dependency vulnerability scan
         run: pip-audit --skip-editable
       - name: Static security analysis
-        run: bandit -r src/
+        run: bandit -r src/ -ll
