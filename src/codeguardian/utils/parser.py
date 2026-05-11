@@ -1,7 +1,10 @@
 """Code parsing utilities using tree-sitter."""
 
+import logging
+import os
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,7 +42,7 @@ SUPPORTED_EXTENSIONS: list[str] = list(EXT_LANG.keys())
 
 def _detect_language(file_path: str) -> str:
     """Detect language from file extension."""
-    ext = PurePosixPath(file_path).suffix.lower()
+    ext = os.path.splitext(file_path)[1].lower()
     return EXT_LANG.get(ext, "python")
 
 
@@ -62,14 +65,14 @@ def parse_code(code: str, language: str = "python", file_path: str = "") -> Code
 
 def _parse_with_tree_sitter(code: str, language: str) -> CodeStructure:
     """Parse code using tree-sitter for accurate AST analysis."""
+    if language != "python":
+        logger.debug("No tree-sitter grammar for %s, using regex fallback", language)
+        return _parse_with_regex(code, language)
+
     import tree_sitter_python as tspython
     from tree_sitter import Language, Parser
 
-    lang_map = {
-        "python": tspython.language(),
-    }
-
-    parser = Parser(Language(lang_map.get(language, tspython.language())))
+    parser = Parser(Language(tspython.language()))
     tree = parser.parse(code.encode())
 
     functions = []

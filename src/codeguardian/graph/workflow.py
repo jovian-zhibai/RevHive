@@ -156,9 +156,17 @@ class CodeReviewWorkflow:
         final_state = await self.graph.ainvoke(initial_state)
         return final_state.get("final_result", AgentResult(agent_name="System", summary="No results"))
 
+    @staticmethod
+    def _validate_diff_ref(diff_ref: str) -> None:
+        """Validate that diff_ref contains only safe characters for git."""
+        import re
+        if not re.match(r'^[a-zA-Z0-9._/~^:-]+$', diff_ref):
+            raise ValueError(f"Invalid diff reference: {diff_ref}")
+
     async def run_from_diff(self, diff_ref: str) -> AgentResult:
         """Run review on a git diff."""
         import subprocess
+        self._validate_diff_ref(diff_ref)
         result = subprocess.run(
             ["git", "diff", diff_ref],
             capture_output=True, text=True, cwd=os.getcwd()
@@ -205,6 +213,7 @@ class CodeReviewWorkflow:
         diff_result = await self.run_from_diff(diff_ref)
 
         import subprocess
+        self._validate_diff_ref(diff_ref)
         changed = subprocess.run(
             ["git", "diff", "--name-only", diff_ref],
             capture_output=True, text=True, cwd=os.getcwd()

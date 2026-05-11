@@ -67,6 +67,7 @@ class BaseReviewAgent(ABC):
     ):
         self.name = name
         self.description = description
+        self._api_key = api_key or os.getenv("LLM_API_KEY", "")
 
         # Resolve model presets (e.g. "mimo" -> base_url + model name).
         from codeguardian.config import GuardianConfig
@@ -126,9 +127,8 @@ class BaseReviewAgent(ABC):
             response = await self.llm.ainvoke(messages)
         except Exception as exc:
             safe_msg = str(exc)
-            api_key = os.getenv("LLM_API_KEY", "")
-            if api_key:
-                safe_msg = safe_msg.replace(api_key, "***")
+            if self._api_key:
+                safe_msg = safe_msg.replace(self._api_key, "***")
             logger.error("%s: LLM call failed for %s: %s", self.name, file_path, safe_msg)
             return AgentResult(
                 agent_name=self.name,
@@ -139,7 +139,7 @@ class BaseReviewAgent(ABC):
         return AgentResult(
             agent_name=self.name,
             findings=findings,
-            summary=self._extract_summary(response.content),
+            summary=self._extract_summary(response.content, findings),
             token_usage=response.response_metadata.get("token_usage", {}).get("total_tokens", 0),
         )
 
@@ -259,7 +259,7 @@ End with a brief summary of your review."""
             suggestion=d.get("suggestion"),
         )
 
-    def _extract_summary(self, response: str) -> str:
+    def _extract_summary(self, response: str, findings: list[ReviewFinding] | None = None) -> str:
         """Extract or generate a summary from the LLM response.
 
         Strategy:
@@ -296,7 +296,8 @@ End with a brief summary of your review."""
                     return " ".join(summary_parts).strip()
 
         # Strategy 2: auto-generate from findings
-        findings = self._parse_findings(response)
+        if findings is None:
+            findings = self._parse_findings(response)
         if findings:
             counts: dict[str, int] = {}
             for f in findings:
