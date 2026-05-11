@@ -1,12 +1,13 @@
 """CLI entry point for CodeGuardian."""
 
-# TODO: use rich for terminal output (tables, syntax highlighting, progress bars)
 import asyncio
 import logging
+import sys
 from pathlib import Path
 
 import click
 
+from codeguardian import __version__
 from codeguardian.config import load_config
 from codeguardian.graph.workflow import CodeReviewWorkflow, ReviewReport
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.3.0")
+@click.version_option(version=__version__)
 def cli():
     """CodeGuardian - AI-powered multi-agent code review system."""
     pass
@@ -26,6 +27,17 @@ def cli():
 @click.option("--model", "-m", default=None, help="LLM model to use")
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 @click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
+def _run_with_timeout(coro, timeout: int = 300):
+    """Run an async coroutine with a timeout (default 5 minutes)."""
+    async def _wrapper():
+        return await asyncio.wait_for(coro, timeout=timeout)
+    try:
+        return asyncio.run(_wrapper())
+    except asyncio.TimeoutError:
+        click.echo("Error: Review timed out after 5 minutes.", err=True)
+        sys.exit(1)
+
+
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
     """Run code review on a file or git diff."""
     cfg = load_config()
@@ -36,9 +48,9 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
             click.echo(f"Skipping {file} — matches ignore pattern in .codeguardian.yml")
             return
         code = Path(file).read_text(encoding="utf-8")
-        result = asyncio.run(workflow.run(code=code, file_path=file))
+        result = _run_with_timeout(workflow.run(code=code, file_path=file))
     elif diff_ref:
-        result = asyncio.run(workflow.run_from_diff(diff_ref))
+        result = _run_with_timeout(workflow.run_from_diff(diff_ref))
     else:
         click.echo("Please specify --file or --diff")
         return

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import fnmatch
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -21,6 +22,10 @@ from codeguardian.agents.base import Severity
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CONFIG_FILENAME = ".codeguardian.yml"
+
+# Cache for loaded config to avoid re-reading from disk on every agent construction.
+_config_cache: GuardianConfig | None = None
+_config_cache_path: str | None = None
 
 # Severity ordering for threshold comparison.
 _SEVERITY_ORDER: dict[str, int] = {
@@ -103,17 +108,17 @@ class GuardianConfig:
                 continue
 
             prefix = pat.split("**")[0]
-            suffix = pat.split("**")[-1].lstrip("/")
+            suffix = pat.split("**")[-1].lstrip("/").lstrip(os.sep)
 
             # Match prefix against file_path and all its parent directories
             prefix_match = False
             if prefix:
                 check = file_path
                 while check:
-                    if fnmatch.fnmatch(check, prefix.rstrip("/")):
+                    if fnmatch.fnmatch(check, prefix.rstrip("/").rstrip(os.sep)):
                         prefix_match = True
                         break
-                    check = check.rsplit("/", 1)[0] if "/" in check else ""
+                    check = os.path.dirname(check)
             else:
                 prefix_match = True
 
@@ -122,7 +127,8 @@ class GuardianConfig:
 
             if not suffix:
                 return True
-            if fnmatch.fnmatch(file_path, suffix) or fnmatch.fnmatch(file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path, suffix):
+            basename = os.path.basename(file_path) if os.sep in file_path or "/" in file_path else file_path
+            if fnmatch.fnmatch(file_path, suffix) or fnmatch.fnmatch(basename, suffix):
                 return True
 
         return False
@@ -133,24 +139,42 @@ def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
 
     Returns a default (empty) config if the file does not exist or cannot
     be parsed, so callers never need to handle ``None``.
+
+    Results are cached so repeated calls (e.g. from 9 agent constructors)
+    do not re-read the YAML from disk.
     """
+    global _config_cache, _config_cache_path
+
     if path is None:
         config_path = Path.cwd() / _DEFAULT_CONFIG_FILENAME
     else:
         config_path = Path(path)
 
+    resolved = str(config_path.resolve())
+    if _config_cache is not None and _config_cache_path == resolved:
+        return _config_cache
+
     if not config_path.is_file():
         logger.debug("No config file found at %s — using defaults", config_path)
-        return GuardianConfig()
+        cfg = GuardianConfig()
+        _config_cache = cfg
+        _config_cache_path = resolved
+        return cfg
 
     try:
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     except Exception as exc:
         logger.warning("Failed to parse %s: %s — using defaults", config_path, exc)
-        return GuardianConfig()
+        cfg = GuardianConfig()
+        _config_cache = cfg
+        _config_cache_path = resolved
+        return cfg
 
     if not isinstance(raw, dict):
-        return GuardianConfig()
+        cfg = GuardianConfig()
+        _config_cache = cfg
+        _config_cache_path = resolved
+        return cfg
 
     model = raw.get("model")
 
@@ -173,4 +197,7 @@ def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
     if isinstance(raw_ignore, list):
         ignore = [str(p) for p in raw_ignore]
 
-    return GuardianConfig(model=model, agents=agents, ignore=ignore)
+    cfg = GuardianConfig(model=model, agents=agents, ignore=ignore)
+    _config_cache = cfg
+    _config_cache_path = resolved
+    return cfg
