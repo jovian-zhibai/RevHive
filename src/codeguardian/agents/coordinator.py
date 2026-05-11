@@ -42,14 +42,70 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         }
         deduplicated.sort(key=lambda f: severity_order.get(f.severity, 99))
 
-        summary = self._generate_summary(deduplicated, results)
+        risk_score = self._calculate_risk_score(deduplicated)
+        summary = self._generate_summary(deduplicated, results, risk_score)
 
         return AgentResult(
             agent_name="CoordinatorAgent",
             findings=deduplicated,
             summary=summary,
             token_usage=sum(r.token_usage for r in results),
+            risk_score=risk_score,
         )
+
+    _RISK_POINTS = {
+        Severity.CRITICAL: 25,
+        Severity.HIGH: 15,
+        Severity.MEDIUM: 5,
+        Severity.LOW: 1,
+    }
+
+    @staticmethod
+    def _calculate_risk_score(findings: list[ReviewFinding]) -> int:
+        """Calculate risk score from findings.
+
+        Scoring: CRITICAL=25, HIGH=15, MEDIUM=5, LOW=1. Capped at 100.
+        """
+        score = sum(
+            CoordinatorAgent._RISK_POINTS.get(f.severity, 0)
+            for f in findings
+        )
+        return min(100, score)
+
+    @staticmethod
+    def _risk_level(score: int) -> str:
+        if score <= 20:
+            return "LOW"
+        if score <= 50:
+            return "MEDIUM"
+        if score <= 80:
+            return "HIGH"
+        return "CRITICAL"
+
+    @staticmethod
+    def _risk_emoji(score: int) -> str:
+        if score <= 20:
+            return "✅"
+        if score <= 50:
+            return "⚠️"
+        if score <= 80:
+            return "🔴"
+        return "🚨"
+
+    @staticmethod
+    def _risk_score_block(findings: list[ReviewFinding], score: int) -> str:
+        """Build the risk score summary block."""
+        level = CoordinatorAgent._risk_level(score)
+        emoji = CoordinatorAgent._risk_emoji(score)
+        counts: dict[str, int] = {}
+        for f in findings:
+            counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
+        parts = []
+        for sev in ("critical", "high", "medium", "low"):
+            if sev in counts:
+                parts.append(f"{counts[sev]} {sev.capitalize()}")
+        breakdown = " · ".join(parts)
+        return f"{emoji} Risk Score: {level} ({score}/100)\n\n{breakdown}"
 
     def _deduplicate_findings(self, findings: list[ReviewFinding]) -> list[ReviewFinding]:
         """Remove duplicate findings by normalising and deduplicating on title."""
@@ -62,13 +118,20 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
                 unique.append(f)
         return unique
 
-    def _generate_summary(self, findings: list[ReviewFinding], agent_results: list[AgentResult]) -> str:
-        """Build a human-readable summary with severity breakdown and critical callouts."""
+    def _generate_summary(
+        self,
+        findings: list[ReviewFinding],
+        agent_results: list[AgentResult],
+        risk_score: int = 0,
+    ) -> str:
+        """Build a human-readable summary with risk score and severity breakdown."""
         severity_counts = {}
         for f in findings:
             severity_counts[f.severity.value] = severity_counts.get(f.severity.value, 0) + 1
 
         lines = [
+            self._risk_score_block(findings, risk_score),
+            "",
             f"Review completed with {len(findings)} findings across {len(agent_results)} agents.",
             "Severity breakdown: " + ", ".join(f"{k}: {v}" for k, v in sorted(severity_counts.items())),
         ]

@@ -48,6 +48,7 @@ class AgentResult:
     findings: list[ReviewFinding] = field(default_factory=list)
     summary: str = ""
     token_usage: int = 0
+    risk_score: Optional[int] = None
 
 
 class BaseReviewAgent(ABC):
