@@ -16,6 +16,7 @@ import random
 from dataclasses import dataclass
 
 from codeguardian.agents.base import AgentResult, ReviewFinding, Severity
+from codeguardian.agents.coordinator import CoordinatorAgent
 
 
 # ---------------------------------------------------------------------------
@@ -266,13 +267,15 @@ class DemoReviewWorkflow:
 
         # Coordinator pass
         all_findings = _deduplicate_and_sort(all_findings)
-        coordinator_summary = _build_coordinator_summary(all_findings)
+        risk_score = CoordinatorAgent._calculate_risk_score(all_findings)
+        coordinator_summary = _build_coordinator_summary(all_findings, risk_score)
 
         return AgentResult(
             agent_name="CoordinatorAgent",
             findings=all_findings,
             summary=coordinator_summary,
             token_usage=total_tokens if self.config.simulate_token_usage else 0,
+            risk_score=risk_score,
         )
 
 
@@ -300,8 +303,8 @@ def _deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
     return unique
 
 
-def _build_coordinator_summary(findings: list[ReviewFinding]) -> str:
-    """Generate a Markdown summary with severity breakdown and critical callouts."""
+def _build_coordinator_summary(findings: list[ReviewFinding], risk_score: int = 0) -> str:
+    """Generate a Markdown summary with risk score and severity breakdown."""
     counts: dict[str, int] = {}
     for f in findings:
         counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
@@ -313,6 +316,8 @@ def _build_coordinator_summary(findings: list[ReviewFinding]) -> str:
     lines = [
         "CodeGuardian Demo Review Report",
         "=================================",
+        "",
+        CoordinatorAgent._risk_score_block(findings, risk_score),
         "",
         f"Review completed with **{len(findings)} findings** across {len(agent_counts)} agents.",
         "",

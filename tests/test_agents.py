@@ -237,6 +237,70 @@ def test_coordinator_empty_input():
     assert result.token_usage == 0
 
 
+def test_coordinator_risk_score():
+    """Verify risk score calculation for various severity combinations."""
+    import asyncio
+
+    coordinator = CoordinatorAgent(model="mimo-v2.5-pro", api_key="test-key")
+
+    def _make_findings(severities):
+        return [
+            ReviewFinding(agent="Test", severity=s, title=f"Finding {i} {s.value}", description="...")
+            for i, s in enumerate(severities)
+        ]
+
+    # Empty: 0 points
+    result_empty = asyncio.run(coordinator.synthesize([]))
+    assert result_empty.risk_score == 0
+
+    # All LOW (6 * 1 = 6): LOW
+    low_findings = _make_findings([Severity.LOW] * 6)
+    result_low = asyncio.run(coordinator.synthesize([
+        AgentResult(agent_name="Test", findings=low_findings)
+    ]))
+    assert result_low.risk_score == 6
+    assert result_low.risk_score <= 20  # LOW range
+
+    # 4 MEDIUM + 2 LOW (4*5 + 2*1 = 22): MEDIUM
+    mixed_findings = _make_findings([Severity.MEDIUM] * 4 + [Severity.LOW] * 2)
+    result_medium = asyncio.run(coordinator.synthesize([
+        AgentResult(agent_name="Test", findings=mixed_findings)
+    ]))
+    assert result_medium.risk_score == 22
+    assert 21 <= result_medium.risk_score <= 50  # MEDIUM range
+
+    # 2 HIGH + 3 MEDIUM + 2 LOW (2*15 + 3*5 + 2*1 = 47): MEDIUM
+    high_findings = _make_findings(
+        [Severity.HIGH] * 2 + [Severity.MEDIUM] * 3 + [Severity.LOW] * 2
+    )
+    result_high = asyncio.run(coordinator.synthesize([
+        AgentResult(agent_name="Test", findings=high_findings)
+    ]))
+    assert result_high.risk_score == 47
+    assert 21 <= result_high.risk_score <= 50  # MEDIUM range
+
+    # 1 CRITICAL + 2 HIGH + 4 MEDIUM + 6 LOW (25 + 30 + 20 + 6 = 81): CRITICAL
+    critical_findings = _make_findings(
+        [Severity.CRITICAL] + [Severity.HIGH] * 2 + [Severity.MEDIUM] * 4 + [Severity.LOW] * 6
+    )
+    result_critical = asyncio.run(coordinator.synthesize([
+        AgentResult(agent_name="Test", findings=critical_findings)
+    ]))
+    assert result_critical.risk_score == 81
+    assert result_critical.risk_score >= 81  # CRITICAL range
+
+    # Cap at 100
+    many_critical = _make_findings([Severity.CRITICAL] * 10)
+    result_capped = asyncio.run(coordinator.synthesize([
+        AgentResult(agent_name="Test", findings=many_critical)
+    ]))
+    assert result_capped.risk_score == 100
+
+    # Verify risk score appears in summary
+    assert "Risk Score" in result_critical.summary
+    assert "CRITICAL" in result_critical.summary
+
+
 # ---------------------------------------------------------------------------
 # Build human prompt tests
 # ---------------------------------------------------------------------------
