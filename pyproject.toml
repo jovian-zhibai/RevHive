@@ -59,6 +59,12 @@ all = [
     "codeguardian[server,anthropic,tree-sitter,dev]",
 ]
 
+[project.urls]
+Homepage = "https://github.com/SoulJian03/CodeGuardian"
+Documentation = "https://souljian03.github.io/CodeGuardian"
+Repository = "https://github.com/SoulJian03/CodeGuardian"
+Issues = "https://github.com/SoulJian03/CodeGuardian/issues"
+
 [project.scripts]
 codeguardian = "codeguardian.main:cli"
 

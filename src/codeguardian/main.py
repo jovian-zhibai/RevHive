@@ -73,5 +73,29 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
         click.echo(report)
 
 
+@cli.command()
+@click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
+@click.option("--output", "-o", type=click.Path(), help="Output file path")
+def demo(fmt: str, output: str):
+    """Run a demo review with mock findings (no API key needed)."""
+    from codeguardian.demo import DemoReviewWorkflow
+    from codeguardian.graph.workflow import ReviewReport
+
+    demo_wf = DemoReviewWorkflow()
+    result = demo_wf.run()
+    report_obj = ReviewReport(result)
+
+    if fmt == "json":
+        report = report_obj.to_json()
+    else:
+        report = report_obj.to_markdown()
+
+    if output:
+        Path(output).write_text(report, encoding="utf-8")
+        click.echo(f"Report saved to {output}")
+    else:
+        click.echo(report)
+
+
 if __name__ == "__main__":
     cli()
