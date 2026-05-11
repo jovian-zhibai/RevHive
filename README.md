@@ -11,6 +11,25 @@
 
 CodeGuardian deploys 10 specialized AI agents — 9 reviewing in parallel, 1 synthesizing results — to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues before they reach production.
 
+### Risk Score
+
+Every review outputs a risk score (0-100) so you know at a glance whether it's safe to merge:
+
+| Score | Level | Meaning |
+|-------|-------|---------|
+| 0-20 | ✅ LOW | Safe to merge |
+| 21-50 | ⚠️ MEDIUM | Review recommended before merge |
+| 51-80 | 🔴 HIGH | Fix before merge |
+| 81-100 | 🚨 CRITICAL | Do not merge |
+
+Example output:
+
+```
+🚨 Risk Score: CRITICAL (81/100)
+
+1 Critical · 2 High · 4 Medium · 6 Low
+```
+
 ## Why CodeGuardian?
 
 | Pain Point | CodeGuardian Solution |
