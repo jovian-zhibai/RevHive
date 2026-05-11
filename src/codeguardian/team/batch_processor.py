@@ -73,6 +73,19 @@ class TeamBatchProcessor:
         self._model = model or self.workflow.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
         self._semaphore = asyncio.Semaphore(3)
 
+        # Pre-create agent instances for modes that bypass the workflow.
+        common_kwargs = {
+            "model": self._model,
+            "api_key": os.getenv("LLM_API_KEY"),
+            "base_url": os.getenv("LLM_BASE_URL"),
+        }
+        from codeguardian.agents.fix_agent import FixAgent
+        from codeguardian.agents.test_agent import TestAgent
+        from codeguardian.agents.doc_agent import DocAgent
+        self._fix_agent = FixAgent(**common_kwargs)
+        self._test_agent = TestAgent(**common_kwargs)
+        self._doc_agent = DocAgent(**common_kwargs)
+
     async def run_daily_cycle(self) -> dict:
         """Execute a full daily review cycle across all repos."""
         results = {
@@ -171,33 +184,15 @@ class TeamBatchProcessor:
                 return {"tokens_used": result.token_usage, "critical_findings": critical}
 
             elif mode == "fix":
-                from codeguardian.agents.fix_agent import FixAgent
-                agent = FixAgent(
-                    model=self._model,
-                    api_key=os.getenv("LLM_API_KEY"),
-                    base_url=os.getenv("LLM_BASE_URL"),
-                )
-                result = await agent.review(code, file_path)
+                result = await self._fix_agent.review(code, file_path)
                 return {"tokens_used": result.token_usage}
 
             elif mode == "test":
-                from codeguardian.agents.test_agent import TestAgent
-                agent = TestAgent(
-                    model=self._model,
-                    api_key=os.getenv("LLM_API_KEY"),
-                    base_url=os.getenv("LLM_BASE_URL"),
-                )
-                result = await agent.review(code, file_path)
+                result = await self._test_agent.review(code, file_path)
                 return {"tokens_used": result.token_usage}
 
             elif mode == "doc":
-                from codeguardian.agents.doc_agent import DocAgent
-                agent = DocAgent(
-                    model=self._model,
-                    api_key=os.getenv("LLM_API_KEY"),
-                    base_url=os.getenv("LLM_BASE_URL"),
-                )
-                result = await agent.review(code, file_path)
+                result = await self._doc_agent.review(code, file_path)
                 return {"tokens_used": result.token_usage}
 
         except Exception as exc:
