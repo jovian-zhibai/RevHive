@@ -71,12 +71,10 @@ Example output:
 
 ```bash
 # 1. Install
-git clone https://github.com/SoulJian03/CodeGuardian.git
-cd CodeGuardian
-pip install -e ".[dev]"
+pip install codeguardian-ai
 
-# 2. Try demo mode (no API key needed!)
-python examples/sample_review.py
+# 2. Try demo (no API key needed!)
+codeguardian demo
 
 # 3. Set your LLM API key
 export LLM_API_KEY=your-api-key
