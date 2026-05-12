@@ -53,12 +53,13 @@ Example output:
 | Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
 | CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
-| PR inline comments | 🔜 SaaS | ✅ | ✅ | ✅ | ✅ |
+| PR inline comments | ✅ SaaS | ✅ | ✅ | ✅ | ✅ |
+| Quality gate (status check) | ✅ SaaS | ❌ | ❌ | ✅ | ❌ |
 | IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
 | Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
 
-> 🔜 = Coming soon in SaaS version
+> ✅ SaaS = Available in SaaS version, 🔜 = Coming soon
 
 ## Architecture
 
