@@ -34,3 +34,98 @@ jobs:
         run: pip-audit --skip-editable
       - name: Static security analysis
         run: bandit -r src/ -ll
+
+  check-demo-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Verify demo output matches documentation
+        run: |
+          set -e
+
+          # Get actual values from demo
+          ACTUAL_SCORE=$(python -c "from codeguardian.demo import DemoReviewWorkflow; print(DemoReviewWorkflow().run().risk_score)")
+          ACTUAL_DIST=$(python -c "
+          from codeguardian.demo import DemoReviewWorkflow
+          from collections import Counter
+          from codeguardian.agents.coordinator import CoordinatorAgent
+          r = DemoReviewWorkflow().run()
+          c = Counter(f.severity.value for f in r.findings)
+          level = CoordinatorAgent._risk_level(r.risk_score)
+          print(f'{c.get(\"critical\",0)}C/{c.get(\"high\",0)}H/{c.get(\"medium\",0)}M/{c.get(\"low\",0)}L')
+          print(level)
+          ")
+          ACTUAL_CML=$(echo "$ACTUAL_DIST" | head -1)
+          ACTUAL_LEVEL=$(echo "$ACTUAL_DIST" | tail -1)
+
+          echo "Actual score: $ACTUAL_SCORE"
+          echo "Actual distribution: $ACTUAL_CML"
+          echo "Actual level: $ACTUAL_LEVEL"
+
+          # Extract numbers from distribution (e.g., "1C/0H/7M/14L" -> 1 0 7 14)
+          ACTUAL_C=$(echo "$ACTUAL_CML" | sed 's/C.*//')
+          ACTUAL_H=$(echo "$ACTUAL_CML" | sed 's/.*C\///' | sed 's/H.*//')
+          ACTUAL_M=$(echo "$ACTUAL_CML" | sed 's/.*H\///' | sed 's/M.*//')
+          ACTUAL_L=$(echo "$ACTUAL_CML" | sed 's/.*M\///' | sed 's/L.*//')
+          ACTUAL_TOTAL=$((ACTUAL_C + ACTUAL_H + ACTUAL_M + ACTUAL_L))
+
+          echo "Parsed: C=$ACTUAL_C H=$ACTUAL_H M=$ACTUAL_M L=$ACTUAL_L Total=$ACTUAL_TOTAL"
+
+          ERRORS=""
+
+          # Check each doc file
+          for FILE in README.md README_zh.md docs/index.html; do
+            if [ ! -f "$FILE" ]; then
+              echo "WARNING: $FILE not found, skipping"
+              continue
+            fi
+
+            # Check score number appears in file
+            if ! grep -q "$ACTUAL_SCORE" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE missing score $ACTUAL_SCORE"
+            fi
+
+            # Check level label appears in file
+            if ! grep -qi "$ACTUAL_LEVEL" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE missing level $ACTUAL_LEVEL"
+            fi
+
+            # Check severity distribution numbers
+            if ! grep -q "$ACTUAL_C Critical" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Critical count"
+            fi
+            if ! grep -q "$ACTUAL_H High" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE has wrong High count"
+            fi
+            if ! grep -q "$ACTUAL_M Medium" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Medium count"
+            fi
+            if ! grep -q "$ACTUAL_L Low" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Low count"
+            fi
+
+            # Check total findings count appears somewhere in file
+            if ! grep -qE "($ACTUAL_TOTAL|20\+)" "$FILE"; then
+              ERRORS="$ERRORS\n$mismatch: $FILE missing findings count"
+            fi
+          done
+
+          if [ -n "$ERRORS" ]; then
+            echo ""
+            echo "=== CONSISTENCY CHECK FAILED ==="
+            echo -e "$ERRORS"
+            echo ""
+            echo "Actual demo output:"
+            echo "  Score: $ACTUAL_SCORE ($ACTUAL_LEVEL)"
+            echo "  Distribution: $ACTUAL_CML"
+            echo "  Total: $ACTUAL_TOTAL findings"
+            echo ""
+            echo "Fix the docs to match, then re-run CI."
+            exit 1
+          fi
+
+          echo "All docs consistent with demo output."
