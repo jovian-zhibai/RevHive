@@ -57,14 +57,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
             "suggestion": "Use subprocess.run() with a command list (not shell=True) and validate all inputs against an allowlist.",
         },
         {
-            "severity": Severity.LOW,
+            "severity": Severity.HIGH,
             "title": "[DEMO] SQL Injection via string interpolation",
             "description": "User-controlled input is interpolated directly into a SQL query string, allowing attackers to modify query semantics.",
             "line_number": 12,
             "suggestion": "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
         },
         {
-            "severity": Severity.LOW,
+            "severity": Severity.MEDIUM,
             "title": "[DEMO] Hardcoded credential detected",
             "description": "A secret token appears to be hardcoded in source code rather than loaded from environment variables.",
             "line_number": 8,

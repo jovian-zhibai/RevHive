@@ -31,7 +31,7 @@ Example output:
 ```
 🚨 Risk Score: HIGH (74/100)
 
-1 Critical · 0 High · 7 Medium · 14 Low
+1 Critical · 1 High · 8 Medium · 12 Low
 ```
 
 ## Why CodeGuardian?
@@ -280,7 +280,7 @@ src/codeguardian/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 45+ tests covering agents, workflow, demo
+tests/              # 37 tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
 ```
 
