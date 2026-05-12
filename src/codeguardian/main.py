@@ -36,7 +36,8 @@ def _run_with_timeout(coro, timeout: int = 600):
 @click.option("--model", "-m", default=None, help="LLM model to use")
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 @click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
-def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
+@click.option("--timeout", "-t", default=600, type=int, help="Review timeout in seconds")
+def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int):
     """Run code review on a file or git diff."""
     cfg = load_config()
     workflow = CodeReviewWorkflow(model=model, config=cfg)
@@ -53,9 +54,9 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str):
         except (PermissionError, OSError) as exc:
             click.echo(f"Error: cannot read {file}: {exc}", err=True)
             sys.exit(1)
-        result = _run_with_timeout(workflow.run(code=code, file_path=file))
+        result = _run_with_timeout(workflow.run(code=code, file_path=file), timeout=timeout)
     elif diff_ref:
-        result = _run_with_timeout(workflow.run_from_diff(diff_ref))
+        result = _run_with_timeout(workflow.run_from_diff(diff_ref), timeout=timeout)
     else:
         click.echo("Please specify --file or --diff")
         return
