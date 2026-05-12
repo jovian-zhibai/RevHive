@@ -53,12 +53,13 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 | Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
 | CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
-| PR inline comments | 🔜 SaaS | ✅ | ✅ | ✅ | ✅ |
+| PR inline comments | ✅ SaaS | ✅ | ✅ | ✅ | ✅ |
+| Quality gate (status check) | ✅ SaaS | ❌ | ❌ | ✅ | ❌ |
 | IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
 | Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
 
-> 🔜 = Coming soon in SaaS version
+> ✅ SaaS = SaaS 版本可用，🔜 = 即将推出
 
 ## 架构设计
 
