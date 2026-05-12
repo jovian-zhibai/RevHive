@@ -99,7 +99,14 @@ export LLM_API_KEY=your-api-key
 codeguardian review --file src/main.py   # real review
 ```
 
-**Option B: GitHub App (automatic PR reviews)**
+**Option B: Docker**
+
+```bash
+docker build -t codeguardian .
+docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review --file /code/src/main.py
+```
+
+**Option C: GitHub App (automatic PR reviews)**
 
 [Install the GitHub App](https://github.com/SoulJian03/CodeGuardian) → every PR gets reviewed automatically, no CLI needed. (Coming soon)
 

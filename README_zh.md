@@ -99,7 +99,14 @@ export LLM_API_KEY=your-api-key
 codeguardian review --file src/main.py   # 真实审查
 ```
 
-**方式二：GitHub App（自动 PR 审查）**
+**方式二：Docker**
+
+```bash
+docker build -t codeguardian .
+docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review --file /code/src/main.py
+```
+
+**方式三：GitHub App（自动 PR 审查）**
 
 [安装 GitHub App](https://github.com/SoulJian03/CodeGuardian) → 每个 PR 自动审查，无需 CLI。（即将推出）
 
