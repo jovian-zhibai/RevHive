@@ -107,9 +107,9 @@ docker build -t codeguardian .
 docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review --file /code/src/main.py
 ```
 
-**Option C: GitHub App (automatic PR reviews) — coming soon**
+**Option C: GitHub App (automatic PR reviews)**
 
-Install the GitHub App → every PR gets reviewed automatically. Watch this repo for updates.
+[Install the GitHub App](https://github.com/apps/codeguardian-bot) → every PR gets reviewed automatically, no CLI needed.
 
 ## Demo Mode
 
@@ -208,9 +208,7 @@ ignore:                          # glob patterns — ** matches any depth
 
 ## GitHub App Integration
 
-Automatic PR reviews via GitHub App — coming soon. Watch this repo for updates.
-
-In the meantime, use the CLI or the GitHub Actions workflow below.
+[Install the GitHub App](https://github.com/apps/codeguardian-bot) for automatic PR reviews. Every PR gets reviewed with inline comments — no CLI needed.
 
 ```yaml
 # .github/workflows/code-review.yml
