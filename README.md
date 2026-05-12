@@ -53,13 +53,13 @@ Example output:
 | Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
 | CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
-| PR inline comments | ✅ SaaS | ✅ | ✅ | ✅ | ✅ |
-| Quality gate (status check) | ✅ SaaS | ❌ | ❌ | ✅ | ❌ |
+| PR inline comments | 🔜 | ✅ | ✅ | ✅ | ✅ |
+| Quality gate (status check) | 🔜 | ❌ | ❌ | ✅ | ❌ |
 | IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
 | Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
 
-> ✅ SaaS = Available in SaaS version, 🔜 = Coming soon
+> 🔜 = Coming soon
 
 ## Architecture
 
@@ -107,11 +107,9 @@ docker build -t codeguardian .
 docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review --file /code/src/main.py
 ```
 
-**Option C: GitHub App (automatic PR reviews)**
+**Option C: GitHub App (automatic PR reviews) — coming soon**
 
-[Install the GitHub App](https://github.com/SoulJian03/CodeGuardian) → every PR gets reviewed automatically, no CLI needed. (Coming soon)
-
-See [GitHub App Integration](#github-app-integration) for setup details.
+Install the GitHub App → every PR gets reviewed automatically. Coming soon. Watch this repo for updates.
 
 ## Demo Mode
 
@@ -168,10 +166,6 @@ Other languages are supported via LLM understanding but may have fewer specializ
 | `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
 | `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
 | `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name |
-| `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
-| `GITHUB_APP_ID` | Server only | — | GitHub App ID for installation token auth |
-| `GITHUB_PRIVATE_KEY` | Server only | — | PEM private key content (preferred for Railway/deploy) |
-| `GITHUB_PRIVATE_KEY_PATH` | Server only | `codeguardian-bot.private-key.pem` | Path to PEM file (local dev fallback) |
 
 ## Configuration
 
@@ -214,7 +208,9 @@ ignore:                          # glob patterns — ** matches any depth
 
 ## GitHub App Integration
 
-For automatic PR reviews, install the CodeGuardian GitHub App and configure the webhook server. For command-line usage, no GitHub App is needed.
+Automatic PR reviews via GitHub App — coming soon. Watch this repo for updates.
+
+In the meantime, use the CLI or the GitHub Actions workflow below.
 
 ```yaml
 # .github/workflows/code-review.yml
@@ -256,19 +252,6 @@ jobs:
               body: report
             });
 ```
-
-## Token Consumption
-
-CodeGuardian is designed for high-throughput token consumption — making it an ideal workload for MiMo's free tier or high-capacity plans:
-
-| Mode | Tokens / Event | Use Case |
-|---|---|---|
-| Single file 9-agent review | ~35,000 | Per-PR or on-demand |
-| Auto-fix generation | ~50,000 | Post-review fix |
-| Test suite generation | ~40,000 | Coverage gap fill |
-| Multi-turn deep review | ~120,000 | Critical security findings |
-| Repo-level full scan | ~1,500,000 | Code health audit |
-| Team daily batch | ~10,000,000 | 5+ repos continuous monitoring |
 
 ## Project Structure
 
