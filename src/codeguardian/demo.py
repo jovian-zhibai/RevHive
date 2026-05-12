@@ -269,6 +269,7 @@ class DemoReviewWorkflow:
         # Coordinator pass
         all_findings = deduplicate_and_sort(all_findings)
         risk_score = CoordinatorAgent._calculate_risk_score(all_findings)
+        risk_score = min(risk_score, 72)  # Demo: show HIGH, not CRITICAL
         coordinator_summary = _build_coordinator_summary(all_findings, risk_score)
 
         return AgentResult(

@@ -1,3 +1,7 @@
-"""CodeGuardian - Multi-Agent collaborative code review and security scanning system."""
+"""CodeGuardian - AI code review tool with 10 parallel agents."""
 
-__version__ = "0.3.0"
+try:
+    from importlib.metadata import version as _version
+    __version__ = _version("codeguardian-ai")
+except Exception:
+    __version__ = "0.3.1"

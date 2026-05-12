@@ -101,7 +101,7 @@ codeguardian review --file src/main.py   # 真实审查
 
 **方式二：GitHub App（自动 PR 审查）**
 
-[安装 GitHub App](https://github.com/apps/codeguardian-bot/installations/new) → 每个 PR 自动审查，无需 CLI。
+[安装 GitHub App](https://github.com/SoulJian03/CodeGuardian) → 每个 PR 自动审查，无需 CLI。（即将推出）
 
 详见 [GitHub App 集成](#github-app-集成)。
 

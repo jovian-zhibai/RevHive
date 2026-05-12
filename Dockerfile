@@ -1,8 +1,8 @@
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="CodeGuardian"
-LABEL org.opencontainers.image.description="Multi-Agent AI code review system powered by MiMo"
-LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.description="AI code review tool with 10 parallel agents"
+LABEL org.opencontainers.image.licenses="BSL-1.1"
 
 RUN groupadd --gid 1000 appuser && \
     useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser

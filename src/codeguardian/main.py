@@ -40,7 +40,6 @@ def _run_with_timeout(coro, timeout: int = 600):
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int):
     """Run code review on a file or git diff."""
     cfg = load_config()
-    workflow = CodeReviewWorkflow(model=model, config=cfg)
 
     if file:
         if cfg.should_ignore(file):
@@ -54,11 +53,13 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
         except (PermissionError, OSError) as exc:
             click.echo(f"Error: cannot read {file}: {exc}", err=True)
             sys.exit(1)
+        workflow = CodeReviewWorkflow(model=model, config=cfg)
         result = _run_with_timeout(workflow.run(code=code, file_path=file), timeout=timeout)
     elif diff_ref:
+        workflow = CodeReviewWorkflow(model=model, config=cfg)
         result = _run_with_timeout(workflow.run_from_diff(diff_ref), timeout=timeout)
     else:
-        click.echo("Please specify --file or --diff")
+        click.echo("Please specify --file or --diff to review.")
         return
 
     report_obj = ReviewReport(result)
