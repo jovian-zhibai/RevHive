@@ -253,6 +253,15 @@ jobs:
             });
 ```
 
+## Token Consumption
+
+| Mode | Tokens / Event | Use Case |
+|---|---|---|
+| Single file 9-agent review | ~35,000 | Per-PR or on-demand |
+| Auto-fix generation | ~50,000 | Post-review fix |
+| Test suite generation | ~40,000 | Coverage gap fill |
+| Multi-turn deep review | ~120,000 | Critical security findings |
+
 ## Project Structure
 
 ```
