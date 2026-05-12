@@ -109,7 +109,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review 
 
 **方式三：GitHub App（自动 PR 审查）— 即将推出**
 
-安装 GitHub App → 每个 PR 自动审查。即将推出，敬请关注。
+安装 GitHub App → 每个 PR 自动审查。敬请关注。
 
 ## Demo 模式
 
