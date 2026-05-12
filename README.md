@@ -29,9 +29,9 @@ Every review outputs a risk score (0-100) so you know at a glance whether it's s
 Example output:
 
 ```
-🚨 Risk Score: CRITICAL (81/100)
+🚨 Risk Score: HIGH (74/100)
 
-1 Critical · 2 High · 4 Medium · 6 Low
+1 Critical · 0 High · 7 Medium · 14 Low
 ```
 
 ## Why CodeGuardian?
