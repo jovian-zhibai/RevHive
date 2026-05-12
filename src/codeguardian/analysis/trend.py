@@ -3,11 +3,9 @@
 Scans every commit in a date range, running full review on each version.
 Extremely token-intensive: N commits × full review per commit."""
 
-import os
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Optional
 
 from codeguardian.graph.workflow import CodeReviewWorkflow
