@@ -43,6 +43,23 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 | "LGTM" 文化让审查形同虚设 | 每个 PR 都有详尽、客观的审计报告 |
 | 缺少团队级质量可见性 | 趋势分析持续追踪代码健康度 |
 
+## CodeGuardian vs Others
+
+| Feature | CodeGuardian | CodeRabbit | Sourcery | SonarQube | Copilot Review |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| AI-driven review | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Multi-agent parallel | ✅ 10 | ❌ | ❌ | ❌ | ❌ |
+| Chinese LLM support | ✅ 5 providers | ❌ | ❌ | ❌ | ❌ |
+| Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
+| CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
+| PR inline comments | 🔜 SaaS | ✅ | ✅ | ✅ | ✅ |
+| IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
+| Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
+| Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
+
+> 🔜 = Coming soon in SaaS version
+
 ## 架构设计
 
 ```
@@ -210,7 +227,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e .
+      - run: pip install codeguardian-ai
       - name: Run CodeGuardian Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}

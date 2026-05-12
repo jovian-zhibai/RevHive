@@ -28,21 +28,21 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "StyleAgent": [
         {
             "severity": Severity.LOW,
-            "title": "Missing docstring for function",
+            "title": "[DEMO] Missing docstring for function",
             "description": "The function lacks a docstring describing its purpose, parameters, and return value.",
             "line_number": 10,
             "suggestion": 'Add a triple-quoted docstring: """Fetches user by ID from database."""',
         },
         {
             "severity": Severity.LOW,
-            "title": "Variable name too short",
+            "title": "[DEMO] Variable name too short",
             "description": "Single-letter or overly abbreviated variable names hurt readability.",
             "line_number": 25,
             "suggestion": "Rename `d` to `user_data` or a more descriptive name.",
         },
         {
             "severity": Severity.LOW,
-            "title": "Line exceeds 120 characters",
+            "title": "[DEMO] Line exceeds 120 characters",
             "description": "Long lines are hard to read in side-by-side diff views and narrow terminals.",
             "line_number": 42,
             "suggestion": "Break into multiple lines using intermediate variables or line continuation.",
@@ -51,28 +51,28 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "SecurityAgent": [
         {
             "severity": Severity.CRITICAL,
-            "title": "Remote Code Execution via shell injection",
+            "title": "[DEMO] Remote Code Execution via shell injection",
             "description": "User input passed unsanitized to subprocess.call() allows arbitrary command execution with the application's privileges.",
             "line_number": 45,
             "suggestion": "Use subprocess.run() with a command list (not shell=True) and validate all inputs against an allowlist.",
         },
         {
             "severity": Severity.HIGH,
-            "title": "SQL Injection via string interpolation",
+            "title": "[DEMO] SQL Injection via string interpolation",
             "description": "User-controlled input is interpolated directly into a SQL query string, allowing attackers to modify query semantics.",
             "line_number": 12,
             "suggestion": "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
         },
         {
             "severity": Severity.MEDIUM,
-            "title": "Hardcoded credential detected",
+            "title": "[DEMO] Hardcoded credential detected",
             "description": "A secret token appears to be hardcoded in source code rather than loaded from environment variables.",
             "line_number": 8,
             "suggestion": "Load from os.environ.get('API_SECRET') and store the value in .env (ensure .env is gitignored).",
         },
         {
             "severity": Severity.HIGH,
-            "title": "MD5 used for password hashing",
+            "title": "[DEMO] MD5 used for password hashing",
             "description": "MD5 is cryptographically broken and unsuitable for password storage.",
             "line_number": 20,
             "suggestion": "Use bcrypt or argon2: `bcrypt.hashpw(password.encode(), bcrypt.gensalt())`",
@@ -81,14 +81,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "PerformanceAgent": [
         {
             "severity": Severity.MEDIUM,
-            "title": "N+1 Query Pattern",
+            "title": "[DEMO] N+1 Query Pattern",
             "description": "A database query is executed inside a loop, causing N+1 round-trips to the database.",
             "line_number": 28,
             "suggestion": "Fetch all needed data in a single batch query using WHERE id IN (...).",
         },
         {
             "severity": Severity.LOW,
-            "title": "Missing caching for repeated computation",
+            "title": "[DEMO] Missing caching for repeated computation",
             "description": "The same expensive computation is repeated in multiple call sites with identical inputs.",
             "line_number": 35,
             "suggestion": "Use `functools.lru_cache` or memoization on the function.",
@@ -97,21 +97,21 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "LogicAgent": [
         {
             "severity": Severity.HIGH,
-            "title": "Missing exception handling",
+            "title": "[DEMO] Missing exception handling",
             "description": "A json.loads() call is not wrapped in try/except — malformed input will crash the service.",
             "line_number": 16,
             "suggestion": "Wrap in try/except json.JSONDecodeError and return a user-friendly error message.",
         },
         {
             "severity": Severity.MEDIUM,
-            "title": "Unchecked None return value",
+            "title": "[DEMO] Unchecked None return value",
             "description": "A function may return None, but the caller dereferences the result without a None check.",
             "line_number": 22,
             "suggestion": "Add: if result is None: raise ValueError('Resource not found') or return default.",
         },
         {
             "severity": Severity.LOW,
-            "title": "Off-by-one potential in range",
+            "title": "[DEMO] Off-by-one potential in range",
             "description": "A loop using range(len(seq)) might miss the last element due to < vs <=.",
             "line_number": 31,
             "suggestion": "Replace with `for item in seq:` for clarity and correctness.",
@@ -120,14 +120,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "RepoAgent": [
         {
             "severity": Severity.MEDIUM,
-            "title": "Duplicate utility function across modules",
+            "title": "[DEMO] Duplicate utility function across modules",
             "description": "The same `parse_date()` function is defined independently in three modules.",
             "line_number": None,
             "suggestion": "Extract into a shared `utils/datetime.py` module and import from one place.",
         },
         {
             "severity": Severity.LOW,
-            "title": "Inconsistent error response format",
+            "title": "[DEMO] Inconsistent error response format",
             "description": "Some endpoints return `{'error': msg}` while others return `{'message': msg, 'code': n}`.",
             "line_number": None,
             "suggestion": "Standardize on a single error response envelope across all API handlers.",
@@ -136,14 +136,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "RefactorAgent": [
         {
             "severity": Severity.LOW,
-            "title": "Long function — consider extracting helpers",
+            "title": "[DEMO] Long function — consider extracting helpers",
             "description": "A function of 80+ lines handles validation, business logic, and I/O in one place.",
             "line_number": 15,
             "suggestion": "Extract `_validate_input()`, `_process_order()`, `_persist_result()` as separate methods.",
         },
         {
             "severity": Severity.LOW,
-            "title": "Strategy pattern opportunity",
+            "title": "[DEMO] Strategy pattern opportunity",
             "description": "A chain of if/elif branches dispatches on payment type — fragile to extension.",
             "line_number": 40,
             "suggestion": "Replace with a payment strategy dict: `strategies[payment_type].pay(amount)`.",
@@ -152,14 +152,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "FixAgent": [
         {
             "severity": Severity.HIGH,
-            "title": "Null pointer dereference in user lookup path",
+            "title": "[DEMO] Null pointer dereference in user lookup path",
             "description": "get_user_by_id() may return None, but caller dereferences .email without null check — causes 500 error on missing users.",
             "line_number": 18,
             "suggestion": "Add guard: user = get_user_by_id(uid); if not user: raise HTTPException(404).",
         },
         {
             "severity": Severity.MEDIUM,
-            "title": "Race condition in inventory update",
+            "title": "[DEMO] Race condition in inventory update",
             "description": "Read-modify-write on stock quantity is not atomic — concurrent orders can oversell inventory.",
             "line_number": 55,
             "suggestion": "Use SELECT ... FOR UPDATE or UPDATE ... WHERE stock >= quantity RETURNING to make the check-and-decrement atomic.",
@@ -168,14 +168,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "TestAgent": [
         {
             "severity": Severity.MEDIUM,
-            "title": "Missing test coverage for error paths",
+            "title": "[DEMO] Missing test coverage for error paths",
             "description": "Only happy-path tests exist. No tests for invalid JSON input, database timeout, or upstream API 503 fallback.",
             "line_number": None,
             "suggestion": "Add pytest.mark.parametrize tests covering malformed input, connection errors, and timeout scenarios.",
         },
         {
             "severity": Severity.LOW,
-            "title": "No security regression test for XSS fix",
+            "title": "[DEMO] No security regression test for XSS fix",
             "description": "The XSS sanitizer was patched last month but has no regression test — a refactor could re-introduce the vulnerability silently.",
             "line_number": None,
             "suggestion": "Add test_xss_sanitizer_blocks_script_tags with known payload vectors to prevent regression.",
@@ -184,14 +184,14 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     "DocAgent": [
         {
             "severity": Severity.LOW,
-            "title": "Public API missing docstrings and usage examples",
+            "title": "[DEMO] Public API missing docstrings and usage examples",
             "description": "3 of 5 public functions in the module lack docstrings. The authenticate() function has no documented error responses.",
             "line_number": 8,
             "suggestion": "Add Google-style docstrings with Args, Returns, Raises sections. Include a usage example in the module docstring.",
         },
         {
             "severity": Severity.LOW,
-            "title": "Configuration options not documented",
+            "title": "[DEMO] Configuration options not documented",
             "description": "Environment variables and config keys used at startup are not listed in README or a CONFIG.md reference.",
             "line_number": None,
             "suggestion": "Document all env vars (12 total) in a table: name, default, description, required.",

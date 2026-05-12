@@ -41,64 +41,52 @@ class TrendAnalyzer:
         self.workflow = CodeReviewWorkflow(model=model)
 
     async def analyze_range(self, days: int = 30, files_per_commit: int = 10) -> list[TrendPoint]:
-        """Analyze code quality over the past N days."""
+        """Analyze code quality over the past N days.
+
+        Uses ``git show <commit>:<path>`` to read historical files read-only,
+        so the working tree is never modified.
+        """
         commits = self._get_commits(days)
         trend = []
 
-        # Save current branch so we can restore it reliably.
-        original_branch = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, cwd=self.repo_path,
-        ).stdout.strip()
+        for commit_hash, commit_date in commits:
+            files = self._get_changed_files(commit_hash)[:files_per_commit]
+            total_findings = 0
+            severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            total_tokens = 0
 
-        # Stash any uncommitted changes to avoid losing work.
-        subprocess.run(["git", "stash"], capture_output=True, cwd=self.repo_path)
-
-        try:
-            for commit_hash, commit_date in commits:
-                result = subprocess.run(
-                    ["git", "checkout", commit_hash],
-                    capture_output=True, cwd=self.repo_path
-                )
-                if result.returncode != 0:
+            for f in files:
+                code = self._read_file_at_commit(commit_hash, f)
+                if code is None:
                     continue
+                result = await self.workflow.run(code=code, file_path=f)
+                total_findings += len(result.findings)
+                total_tokens += result.token_usage
+                for finding in result.findings:
+                    severity_counts[finding.severity.value] = severity_counts.get(finding.severity.value, 0) + 1
 
-                files = self._get_changed_files(commit_hash)[:files_per_commit]
-                total_findings = 0
-                severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
-                total_tokens = 0
-
-                for f in files:
-                    file_path = os.path.join(self.repo_path, f)
-                    if os.path.exists(file_path):
-                        code = Path(file_path).read_text(encoding="utf-8", errors="ignore")
-                        result = await self.workflow.run(code=code, file_path=f)
-                        total_findings += len(result.findings)
-                        total_tokens += result.token_usage
-                        for finding in result.findings:
-                            severity_counts[finding.severity.value] = severity_counts.get(finding.severity.value, 0) + 1
-
-                trend.append(TrendPoint(
-                    commit=commit_hash[:8],
-                    date=commit_date,
-                    total_findings=total_findings,
-                    critical_count=severity_counts["critical"],
-                    high_count=severity_counts["high"],
-                    medium_count=severity_counts["medium"],
-                    low_count=severity_counts["low"],
-                    token_usage=total_tokens,
-                ))
-        finally:
-            subprocess.run(
-                ["git", "checkout", original_branch],
-                capture_output=True, cwd=self.repo_path,
-            )
-            subprocess.run(
-                ["git", "stash", "pop"],
-                capture_output=True, cwd=self.repo_path,
-            )
+            trend.append(TrendPoint(
+                commit=commit_hash[:8],
+                date=commit_date,
+                total_findings=total_findings,
+                critical_count=severity_counts["critical"],
+                high_count=severity_counts["high"],
+                medium_count=severity_counts["medium"],
+                low_count=severity_counts["low"],
+                token_usage=total_tokens,
+            ))
 
         return trend
+
+    def _read_file_at_commit(self, commit_hash: str, file_path: str) -> str | None:
+        """Read a file at a specific commit without modifying the working tree."""
+        result = subprocess.run(
+            ["git", "show", f"{commit_hash}:{file_path}"],
+            capture_output=True, text=True, cwd=self.repo_path,
+        )
+        if result.returncode != 0:
+            return None
+        return result.stdout
 
     def _get_commits(self, days: int) -> list[tuple[str, str]]:
         """Get commit hashes and dates for the past N days."""
