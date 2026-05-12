@@ -38,13 +38,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-server = [
-    "fastapi>=0.115.0",
-    "uvicorn>=0.34.0",
-    "httpx>=0.28.0",
-    "pyjwt>=2.10.0",
-    "cryptography>=44.0.0",
-]
 anthropic = [
     "langchain-anthropic>=0.1.0",
 ]
@@ -58,7 +51,7 @@ dev = [
     "ruff>=0.4.0",
 ]
 all = [
-    "codeguardian[server,anthropic,tree-sitter,dev]",
+    "codeguardian[anthropic,tree-sitter,dev]",
 ]
 
 [project.urls]
