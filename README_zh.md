@@ -29,9 +29,9 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 示例输出：
 
 ```
-🚨 Risk Score: HIGH (74/100)
+🚨 Risk Score: CRITICAL (92/100)
 
-1 Critical · 0 High · 7 Medium · 14 Low
+1 Critical · 1 High · 8 Medium · 12 Low
 ```
 
 ## 为什么选择 CodeGuardian？
@@ -280,7 +280,7 @@ src/codeguardian/
   analysis/        # 历史趋势分析
   demo.py           # Demo 模式（无需 API Key）
   main.py           # CLI 入口
-tests/              # 45+ 测试覆盖 agents、workflow、demo
+tests/              # 37 测试覆盖 agents、workflow、demo
 examples/           # 开箱即用的示例
 ```
 
