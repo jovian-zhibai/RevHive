@@ -11,6 +11,10 @@
 
 CodeGuardian deploys 10 specialized AI agents — 9 reviewing in parallel, 1 synthesizing results — to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues before they reach production.
 
+- **Structured Output** — Agents return structured JSON via Pydantic schemas, with regex fallback for unsupported LLMs
+- **Semantic Deduplication** — Title matching + keyword Jaccard similarity prevents duplicate findings across agents
+- **LLM Conflict Resolution** — Coordinator uses AI to resolve contradictory assessments between agents
+
 ### Risk Score
 
 Every review outputs a risk score (0-100) so you know at a glance whether it's safe to merge:
@@ -65,7 +69,7 @@ Example output:
 | **FixAgent** | Generates complete corrected code with root cause analysis |
 | **TestAgent** | Unit tests, edge case tests, security regression tests |
 | **DocAgent** | API docs, architecture docs, usage examples |
-| **Coordinator** | Deduplicates, prioritizes, resolves conflicts, generates report |
+| **Coordinator** | Deduplicates (semantic), resolves conflicts via LLM, calculates risk score, generates report |
 
 ## Quick Start
 
