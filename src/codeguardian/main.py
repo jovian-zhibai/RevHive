@@ -21,12 +21,12 @@ def cli():
     pass
 
 
-def _run_with_timeout(coro, timeout: int = 300):
-    """Run an async coroutine with a timeout (default 5 minutes)."""
+def _run_with_timeout(coro, timeout: int = 600):
+    """Run an async coroutine with a timeout (default 10 minutes)."""
     try:
         return asyncio.run(asyncio.wait_for(coro, timeout=timeout))
     except asyncio.TimeoutError:
-        click.echo("Error: Review timed out after 5 minutes.", err=True)
+        click.echo("Error: Review timed out after 10 minutes.", err=True)
         sys.exit(1)
 
 
