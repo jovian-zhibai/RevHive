@@ -280,7 +280,7 @@ src/codeguardian/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 37 tests covering agents, workflow, demo
+tests/              # 46 tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
 ```
 
