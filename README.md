@@ -109,7 +109,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review 
 
 **Option C: GitHub App (automatic PR reviews) — coming soon**
 
-Install the GitHub App → every PR gets reviewed automatically. Coming soon. Watch this repo for updates.
+Install the GitHub App → every PR gets reviewed automatically. Watch this repo for updates.
 
 ## Demo Mode
 
@@ -273,7 +273,7 @@ src/codeguardian/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 46 tests covering agents, workflow, demo
+tests/              # 37 tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
 ```
 
