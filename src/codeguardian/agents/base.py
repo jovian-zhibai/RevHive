@@ -69,6 +69,7 @@ class BaseReviewAgent(ABC):
         self.name = name
         self.description = description
         self._api_key = api_key or os.getenv("LLM_API_KEY", "")
+        self._use_structured_output = False
 
         from codeguardian.utils.llm_client import create_llm_client
         self.llm = create_llm_client(
@@ -79,6 +80,16 @@ class BaseReviewAgent(ABC):
             max_retries=max_retries,
             request_timeout=request_timeout,
         )
+
+        # Try to enable structured output
+        try:
+            from codeguardian.models.schemas import ReviewResult
+            self._structured_llm = self.llm.with_structured_output(ReviewResult)
+            self._use_structured_output = True
+            logger.debug("%s: structured output enabled", self.name)
+        except Exception:
+            self._structured_llm = None
+            logger.debug("%s: structured output not available, using regex fallback", self.name)
 
     @abstractmethod
     def get_system_prompt(self) -> str:
@@ -92,11 +103,40 @@ class BaseReviewAgent(ABC):
 
     async def review(self, code: str, file_path: str = "") -> AgentResult:
         """Run review on the given code, with automatic retry on failure."""
+        system_prompt = self.get_system_prompt()
+        human_prompt = self._build_human_prompt(code, file_path)
         messages = [
-            SystemMessage(content=self.get_system_prompt()),
-            HumanMessage(content=self._build_human_prompt(code, file_path)),
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt),
         ]
 
+        # Try structured output first
+        if self._use_structured_output and self._structured_llm:
+            try:
+                result = await self._structured_llm.ainvoke(messages)
+                findings = [
+                    ReviewFinding(
+                        agent=self.name,
+                        severity=Severity(f.severity.lower()),
+                        title=f.title,
+                        description=f.description,
+                        line_number=f.line_number,
+                        code_snippet=f.code_snippet,
+                        suggestion=f.suggestion,
+                    )
+                    for f in result.findings
+                ]
+                return AgentResult(
+                    agent_name=self.name,
+                    findings=findings,
+                    summary=result.summary or self._auto_summary(findings),
+                    token_usage=0,  # structured output doesn't always return token info
+                )
+            except Exception as exc:
+                logger.warning("%s: structured output failed for %s, falling back to regex: %s",
+                              self.name, file_path, exc)
+
+        # Fallback: raw LLM call + regex parsing
         try:
             response = await self.llm.ainvoke(messages)
         except Exception as exc:
@@ -134,7 +174,9 @@ Output format for each finding:
 - Description: [What's wrong]
 - Suggestion: [How to fix]
 
-End with a brief summary of your review."""
+End with a brief summary of your review.
+
+Please output your review results as structured JSON."""
 
     _FIELD_RE = re.compile(r"^-\s*(Severity|Title|Line|Description|Suggestion):\s*", re.IGNORECASE)
 
@@ -273,3 +315,13 @@ End with a brief summary of your review."""
             return f"Review completed with {len(findings)} findings ({', '.join(parts)})."
 
         return "Review completed."
+
+    def _auto_summary(self, findings: list[ReviewFinding]) -> str:
+        """Auto-generate a summary from findings list."""
+        if not findings:
+            return "Review completed with no findings."
+        counts: dict[str, int] = {}
+        for f in findings:
+            counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
+        parts = [f"{v} {k}" for k, v in sorted(counts.items(), key=lambda x: SEVERITY_ORDER.get(x[0], 99))]
+        return f"Review completed with {len(findings)} findings ({', '.join(parts)})."
