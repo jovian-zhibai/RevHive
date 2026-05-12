@@ -101,7 +101,7 @@ codeguardian review --file src/main.py   # real review
 
 **Option B: GitHub App (automatic PR reviews)**
 
-[Install the GitHub App](https://github.com/apps/codeguardian-bot/installations/new) → every PR gets reviewed automatically, no CLI needed.
+[Install the GitHub App](https://github.com/SoulJian03/CodeGuardian) → every PR gets reviewed automatically, no CLI needed. (Coming soon)
 
 See [GitHub App Integration](#github-app-integration) for setup details.
 
