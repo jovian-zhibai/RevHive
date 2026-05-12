@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "codeguardian-ai"
 version = "0.3.1"
-description = "Multi-Agent collaborative code review and security scanning system powered by MiMo"
+description = "AI code review tool with 10 parallel agents. Security scanning, performance analysis, and logic review. Supports MiMo, OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic."
 readme = "README.md"
 license = {text = "BSL-1.1"}
 requires-python = ">=3.10"
 authors = [
     {name = "CodeGuardian Team"}
 ]
-keywords = ["code-review", "multi-agent", "langgraph", "ai", "security", "mimo", "xiaomi"]
+keywords = ["code-review", "multi-agent", "langgraph", "ai", "security", "mimo", "xiaomi", "code-quality", "static-analysis", "linting", "code-scanning", "devsecops", "sast", "pull-request", "ci-cd"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
