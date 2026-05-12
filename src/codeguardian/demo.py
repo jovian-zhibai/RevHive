@@ -57,21 +57,21 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
             "suggestion": "Use subprocess.run() with a command list (not shell=True) and validate all inputs against an allowlist.",
         },
         {
-            "severity": Severity.HIGH,
+            "severity": Severity.LOW,
             "title": "[DEMO] SQL Injection via string interpolation",
             "description": "User-controlled input is interpolated directly into a SQL query string, allowing attackers to modify query semantics.",
             "line_number": 12,
             "suggestion": "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
         },
         {
-            "severity": Severity.MEDIUM,
+            "severity": Severity.LOW,
             "title": "[DEMO] Hardcoded credential detected",
             "description": "A secret token appears to be hardcoded in source code rather than loaded from environment variables.",
             "line_number": 8,
             "suggestion": "Load from os.environ.get('API_SECRET') and store the value in .env (ensure .env is gitignored).",
         },
         {
-            "severity": Severity.HIGH,
+            "severity": Severity.MEDIUM,
             "title": "[DEMO] MD5 used for password hashing",
             "description": "MD5 is cryptographically broken and unsuitable for password storage.",
             "line_number": 20,
@@ -96,7 +96,7 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     ],
     "LogicAgent": [
         {
-            "severity": Severity.HIGH,
+            "severity": Severity.MEDIUM,
             "title": "[DEMO] Missing exception handling",
             "description": "A json.loads() call is not wrapped in try/except — malformed input will crash the service.",
             "line_number": 16,
@@ -151,7 +151,7 @@ _MOCK_FINDINGS: dict[str, list[dict]] = {
     ],
     "FixAgent": [
         {
-            "severity": Severity.HIGH,
+            "severity": Severity.LOW,
             "title": "[DEMO] Null pointer dereference in user lookup path",
             "description": "get_user_by_id() may return None, but caller dereferences .email without null check — causes 500 error on missing users.",
             "line_number": 18,
@@ -269,7 +269,6 @@ class DemoReviewWorkflow:
         # Coordinator pass
         all_findings = deduplicate_and_sort(all_findings)
         risk_score = CoordinatorAgent._calculate_risk_score(all_findings)
-        risk_score = min(risk_score, 72)  # Demo: show HIGH, not CRITICAL
         coordinator_summary = _build_coordinator_summary(all_findings, risk_score)
 
         return AgentResult(

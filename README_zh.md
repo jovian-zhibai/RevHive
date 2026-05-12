@@ -29,9 +29,9 @@ CodeGuardian 部署 10 个专业 AI Agent — 9 个并行审查，1 个综合汇
 示例输出：
 
 ```
-🚨 Risk Score: CRITICAL (81/100)
+🚨 Risk Score: HIGH (74/100)
 
-1 Critical · 2 High · 4 Medium · 6 Low
+1 Critical · 0 High · 7 Medium · 14 Low
 ```
 
 ## 为什么选择 CodeGuardian？
