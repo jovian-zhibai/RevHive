@@ -244,8 +244,28 @@ def test_coordinator_risk_score():
     coordinator = CoordinatorAgent(model="mimo-v2.5-pro", api_key="test-key")
 
     def _make_findings(severities):
+        descs = [
+            "User input passed to subprocess without sanitization allows shell injection",
+            "Database query concatenates strings instead of using parameterized placeholders",
+            "Module imports os.path but never uses it anywhere in the codebase",
+            "Two goroutines write to same map without mutex causing data corruption",
+            "AWS secret key AKIA1234567890 hardcoded in config.py line 42",
+            "File descriptor opened in loop but never closed causing resource exhaustion",
+            "Array index off by one when iterating range(len(items))",
+            "MD5 hash used for password storage instead of bcrypt or argon2",
+            "HTTP request has no timeout causing thread to block indefinitely",
+            "Function calculateTotal uses camelCase but module uses snake_case",
+            "ORM loads related objects inside loop instead of using select_related",
+            "Deprecated logging.warn() called instead of logging.warning()",
+            "Redis cache key collision causes stale data served to different users",
+            "JWT token expiry not validated allowing replay attacks after logout",
+            "CORS header wildcard allows any origin to make authenticated requests",
+            "Log injection via unsanitized user-controlled string in log message",
+            "XML parser vulnerable to billion laughs denial of service attack",
+            "Redirect URL not validated enabling open redirect phishing attacks",
+        ]
         return [
-            ReviewFinding(agent="Test", severity=s, title=f"Finding {i} {s.value}", description="...")
+            ReviewFinding(agent="Test", severity=s, title=f"Unique finding {i} about {s.value} issue", description=descs[i % len(descs)])
             for i, s in enumerate(severities)
         ]
 
