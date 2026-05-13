@@ -50,7 +50,7 @@ Performs three steps after agents finish: (1) semantic dedup via Jaccard similar
 
 ### Key Modules
 
-- `config.py` — loads `.revhive.yml`, defines `GuardianConfig` and LLM model presets
+- `config.py` — loads `.revhive.yml`, defines `RevHiveConfig` and LLM model presets
 - `demo.py` — mock workflow that runs without an API key (deterministic findings)
 - `utils/llm_client.py` — factory returning `ChatOpenAI` or `ChatAnthropic` with provider presets
 - `utils/parser.py` — code parsing via tree-sitter (optional) with regex fallback, 17 languages
@@ -68,6 +68,12 @@ MiMo (default), OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic. Set via `LLM_MODEL
 - Review config: `.revhive.yml` in project root (agent selection, ignore patterns)
 - Ruff config: in `pyproject.toml` under `[tool.ruff]` (line-length=120, target py310)
 - pytest config: in `pyproject.toml` under `[tool.pytest.ini_options]`
+
+## Git Identity
+
+- Author: `Jansen003 <jansenwu007@gmail.com>`
+- Co-Authored-By: `Jansen003 <Jansen003@users.noreply.github.com>` — no Claude co-author
+- Never use SoulJian03 in commits, contributors, or any git context
 
 ## CI
 

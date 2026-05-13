@@ -50,10 +50,6 @@ If you discover a security vulnerability, please report it via a [GitHub Issue](
 | `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
 | `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
 | `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name or preset (`mimo`, `openai`, `deepseek`, `qwen`, `glm`, `kimi`, `claude`) |
-| `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
-| `GITHUB_APP_ID` | Server only | — | GitHub App ID |
-| `GITHUB_PRIVATE_KEY` | Server only | — | PEM private key content |
-| `GITHUB_PRIVATE_KEY_PATH` | Server only | `revhive-bot.private-key.pem` | Path to PEM file (local dev fallback) |
 
 ## Supported LLM Backends
 
