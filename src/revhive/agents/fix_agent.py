@@ -1,6 +1,6 @@
 """Automated fix generation agent — produces complete corrected code."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class FixAgent(BaseReviewAgent):

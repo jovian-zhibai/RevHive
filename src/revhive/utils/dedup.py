@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from codeguardian.agents.base import ReviewFinding, SEVERITY_ORDER
+from revhive.agents.base import ReviewFinding, SEVERITY_ORDER
 
 # Common English stop words for keyword extraction
 _STOP_WORDS = frozenset({

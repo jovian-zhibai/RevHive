@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from codeguardian.graph.workflow import CodeReviewWorkflow
+from revhive.graph.workflow import CodeReviewWorkflow
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +79,9 @@ class TeamBatchProcessor:
             "api_key": os.getenv("LLM_API_KEY"),
             "base_url": os.getenv("LLM_BASE_URL"),
         }
-        from codeguardian.agents.fix_agent import FixAgent
-        from codeguardian.agents.test_agent import TestAgent
-        from codeguardian.agents.doc_agent import DocAgent
+        from revhive.agents.fix_agent import FixAgent
+        from revhive.agents.test_agent import TestAgent
+        from revhive.agents.doc_agent import DocAgent
         self._fix_agent = FixAgent(**common_kwargs)
         self._test_agent = TestAgent(**common_kwargs)
         self._doc_agent = DocAgent(**common_kwargs)
@@ -127,7 +127,7 @@ class TeamBatchProcessor:
 
             if all_findings:
                 try:
-                    from codeguardian.agents.conversation_reviewer import ConversationReviewer
+                    from revhive.agents.conversation_reviewer import ConversationReviewer
                     reviewer = ConversationReviewer(
                         model=self._model,
                         api_key=os.getenv("LLM_API_KEY"),

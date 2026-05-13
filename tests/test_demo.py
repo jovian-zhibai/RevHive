@@ -1,13 +1,13 @@
 """Tests for the demo / dry-run mode."""
 
 import json
-from codeguardian.demo import (
+from revhive.demo import (
     DemoReviewWorkflow,
     DemoConfig,
     _MOCK_FINDINGS,
 )
-from codeguardian.agents.base import Severity
-from codeguardian.graph.workflow import ReviewReport
+from revhive.agents.base import Severity
+from revhive.graph.workflow import ReviewReport
 
 
 def test_demo_workflow_runs():
@@ -52,7 +52,7 @@ def test_demo_report_markdown():
     report = ReviewReport(result)
     md = report.to_markdown()
 
-    assert "# CodeGuardian Review Report" in md
+    assert "# RevHive Review Report" in md
     assert "SecurityAgent" in md
     assert "SQL Injection" in md
 

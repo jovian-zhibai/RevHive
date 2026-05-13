@@ -1,8 +1,8 @@
-"""Demo / dry-run mode for CodeGuardian.
+"""Demo / dry-run mode for RevHive.
 
 Runs a complete multi-agent review pipeline with simulated (mock) LLM
 responses. No API key required — perfect for evaluation, CI smoke tests,
-and demonstrating CodeGuardian's capabilities to reviewers.
+and demonstrating RevHive's capabilities to reviewers.
 
 Produces the same structured output as the real workflow:
   - Markdown report with severity-badged findings
@@ -15,9 +15,9 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 
-from codeguardian.agents.base import AgentResult, ReviewFinding, Severity
-from codeguardian.agents.coordinator import CoordinatorAgent
-from codeguardian.utils.dedup import deduplicate_and_sort
+from revhive.agents.base import AgentResult, ReviewFinding, Severity
+from revhive.agents.coordinator import CoordinatorAgent
+from revhive.utils.dedup import deduplicate_and_sort
 
 
 # ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ class DemoReviewWorkflow:
 
     Usage::
 
-        from codeguardian.graph.workflow import ReviewReport
+        from revhive.graph.workflow import ReviewReport
 
         demo = DemoReviewWorkflow()
         result = demo.run(SAMPLE_CODE, file_path="app.py")
@@ -296,7 +296,7 @@ def _build_coordinator_summary(findings: list[ReviewFinding], risk_score: int = 
         agent_counts[f.agent] = agent_counts.get(f.agent, 0) + 1
 
     lines = [
-        "CodeGuardian Demo Review Report",
+        "RevHive Demo Review Report",
         "=================================",
         "",
         CoordinatorAgent._risk_score_block(findings, risk_score),

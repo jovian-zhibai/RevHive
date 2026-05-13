@@ -16,14 +16,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install codeguardian-ai
-      - name: Run CodeGuardian Review
+      - run: pip install revhive-ai
+      - name: Run RevHive Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
           LLM_BASE_URL: https://api.xiaomimimo.com/v1
           LLM_MODEL: mimo-v2.5-pro
         run: |
-          codeguardian review --diff HEAD~1 --format markdown --output review_report.md
+          revhive review --diff HEAD~1 --format markdown --output review_report.md
       - name: Post Review Comment
         uses: actions/github-script@v7
         with:

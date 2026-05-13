@@ -1,8 +1,8 @@
 """Tests for the LangGraph review workflow."""
 
 import pytest
-from codeguardian.graph.workflow import ReviewReport, ReviewState
-from codeguardian.agents.base import AgentResult, ReviewFinding, Severity
+from revhive.graph.workflow import ReviewReport, ReviewState
+from revhive.agents.base import AgentResult, ReviewFinding, Severity
 
 
 def test_review_state_defaults():
@@ -36,7 +36,7 @@ def test_report_markdown_empty():
     )
     report = ReviewReport(result)
     md = report.to_markdown()
-    assert "CodeGuardian Review Report" in md
+    assert "RevHive Review Report" in md
     assert "Total Findings:** 0" in md
 
 
@@ -105,8 +105,8 @@ def test_report_json():
 def test_workflow_graph_structure():
     """Verify the LangGraph workflow can be built without errors."""
     import os
-    from codeguardian.graph.workflow import CodeReviewWorkflow
-    from codeguardian.config import GuardianConfig
+    from revhive.graph.workflow import CodeReviewWorkflow
+    from revhive.config import GuardianConfig
 
     # Use empty config (all agents enabled) to verify full graph.
     cfg = GuardianConfig()
@@ -149,7 +149,7 @@ Summary: All good."""
 @pytest.mark.asyncio
 async def test_single_agent_review_with_mock():
     """Test that a single agent can run with a mocked LLM."""
-    from codeguardian.agents.security_agent import SecurityAgent
+    from revhive.agents.security_agent import SecurityAgent
 
     agent = SecurityAgent(model="mock", api_key="test-key")
     agent.llm = _MockLLM()
@@ -164,7 +164,7 @@ async def test_single_agent_review_with_mock():
 @pytest.mark.asyncio
 async def test_coordinator_with_mock_llm():
     """Test coordinator synthesize (doesn't call LLM itself)."""
-    from codeguardian.agents.coordinator import CoordinatorAgent
+    from revhive.agents.coordinator import CoordinatorAgent
 
     coordinator = CoordinatorAgent(model="mock", api_key="test-key")
     results = [

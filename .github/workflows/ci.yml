@@ -48,11 +48,11 @@ jobs:
           set -e
 
           # Get actual values from demo
-          ACTUAL_SCORE=$(python -c "from codeguardian.demo import DemoReviewWorkflow; print(DemoReviewWorkflow().run().risk_score)")
+          ACTUAL_SCORE=$(python -c "from revhive.demo import DemoReviewWorkflow; print(DemoReviewWorkflow().run().risk_score)")
           ACTUAL_DIST=$(python -c "
-          from codeguardian.demo import DemoReviewWorkflow
+          from revhive.demo import DemoReviewWorkflow
           from collections import Counter
-          from codeguardian.agents.coordinator import CoordinatorAgent
+          from revhive.agents.coordinator import CoordinatorAgent
           r = DemoReviewWorkflow().run()
           c = Counter(f.severity.value for f in r.findings)
           level = CoordinatorAgent._risk_level(r.risk_score)

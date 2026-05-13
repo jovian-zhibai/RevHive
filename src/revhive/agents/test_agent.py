@@ -1,6 +1,6 @@
 """Automated test generation agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class TestAgent(BaseReviewAgent):

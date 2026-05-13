@@ -1,4 +1,4 @@
-"""CLI entry point for CodeGuardian."""
+"""CLI entry point for RevHive."""
 
 import asyncio
 import logging
@@ -8,8 +8,8 @@ from pathlib import Path
 import click
 
 from codeguardian import __version__
-from codeguardian.config import load_config
-from codeguardian.graph.workflow import CodeReviewWorkflow, ReviewReport
+from revhive.config import load_config
+from revhive.graph.workflow import CodeReviewWorkflow, ReviewReport
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @click.group()
 @click.version_option(version=__version__)
 def cli():
-    """CodeGuardian - AI-powered multi-agent code review system."""
+    """RevHive - AI-powered multi-agent code review system."""
     pass
 
 
@@ -43,7 +43,7 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
 
     if file:
         if cfg.should_ignore(file):
-            click.echo(f"Skipping {file} — matches ignore pattern in .codeguardian.yml")
+            click.echo(f"Skipping {file} — matches ignore pattern in .revhive.yml")
             return
         try:
             code = Path(file).read_text(encoding="utf-8")
@@ -82,7 +82,7 @@ def _render_demo_rich(result) -> None:
     from rich.text import Text
     from rich import box
 
-    from codeguardian.agents.base import Severity
+    from revhive.agents.base import Severity
 
     console = Console()
     score = result.risk_score or 0
@@ -161,7 +161,7 @@ def _render_demo_rich(result) -> None:
     body.append("\n")
     body.append("⚡ Demo mode — no API key required", style="dim cyan")
 
-    panel = Panel(body, title="[bold]🛡️ CodeGuardian Review Report[/bold]", box=box.ROUNDED)
+    panel = Panel(body, title="[bold]🛡️ RevHive Review Report[/bold]", box=box.ROUNDED)
     console.print(panel)
 
 
@@ -170,8 +170,8 @@ def _render_demo_rich(result) -> None:
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 def demo(fmt: str, output: str):
     """Run a demo review with mock findings (no API key needed)."""
-    from codeguardian.demo import DemoReviewWorkflow
-    from codeguardian.graph.workflow import ReviewReport
+    from revhive.demo import DemoReviewWorkflow
+    from revhive.graph.workflow import ReviewReport
 
     demo_wf = DemoReviewWorkflow()
     result = demo_wf.run()

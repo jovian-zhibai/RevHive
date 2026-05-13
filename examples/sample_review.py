@@ -1,4 +1,4 @@
-"""Example: Running CodeGuardian on sample code.
+"""Example: Running RevHive on sample code.
 
 Two modes:
   - Demo mode (default): No API key needed, uses mock responses.
@@ -15,7 +15,7 @@ Usage:
 import os
 import asyncio
 
-from codeguardian.graph.workflow import ReviewReport
+from revhive.graph.workflow import ReviewReport
 
 SAMPLE_CODE = """
 import sqlite3
@@ -59,10 +59,10 @@ def send_notification(user_id, message):
 
 async def run_demo():
     """Demo mode — no API key needed."""
-    from codeguardian.demo import DemoReviewWorkflow
+    from revhive.demo import DemoReviewWorkflow
 
     print("=" * 60)
-    print("  CodeGuardian Demo — Multi-Agent Code Review")
+    print("  RevHive Demo — Multi-Agent Code Review")
     print("  (No API key required)")
     print("=" * 60)
     print()
@@ -87,7 +87,7 @@ async def run_demo():
 
 async def run_live():
     """Live mode — requires LLM_API_KEY."""
-    from codeguardian.graph.workflow import CodeReviewWorkflow
+    from revhive.graph.workflow import CodeReviewWorkflow
 
     api_key = os.getenv("LLM_API_KEY")
     if not api_key:

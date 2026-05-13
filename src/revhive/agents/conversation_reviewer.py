@@ -10,7 +10,7 @@ from typing import Optional
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from codeguardian.agents.base import AgentResult, ReviewFinding
+from revhive.agents.base import AgentResult, ReviewFinding
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class ConversationReviewer:
 
     def __init__(self, model: Optional[str] = None, api_key: Optional[str] = None,
                  base_url: Optional[str] = None, provider: Optional[str] = None):
-        from codeguardian.utils.llm_client import create_llm_client
+        from revhive.utils.llm_client import create_llm_client
         self.llm = create_llm_client(
             api_key=api_key or "",
             base_url=base_url,

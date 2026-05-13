@@ -1,6 +1,6 @@
-"""Configuration loader for CodeGuardian.
+"""Configuration loader for RevHive.
 
-Reads ``.codeguardian.yml`` from a given path (defaults to the current
+Reads ``.revhive.yml`` from a given path (defaults to the current
 working directory) and exposes a typed ``GuardianConfig`` object used by
 the workflow, CLI, and batch processor to decide which agents to run,
 which files to skip, and the minimum severity to report.
@@ -17,11 +17,11 @@ from typing import Optional
 
 import yaml
 
-from codeguardian.agents.base import Severity
+from revhive.agents.base import Severity
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CONFIG_FILENAME = ".codeguardian.yml"
+_DEFAULT_CONFIG_FILENAME = ".revhive.yml"
 
 # Cache for loaded config to avoid re-reading from disk on every agent construction.
 _config_cache: GuardianConfig | None = None
@@ -39,7 +39,7 @@ class AgentConfig:
 
 @dataclass
 class GuardianConfig:
-    """Top-level configuration object loaded from ``.codeguardian.yml``."""
+    """Top-level configuration object loaded from ``.revhive.yml``."""
 
     MODEL_PRESETS: dict[str, dict[str, str]] = field(default_factory=lambda: {
         "mimo": {"base_url": "https://api.xiaomimimo.com/v1", "model": "mimo-v2.5-pro"},
@@ -128,7 +128,7 @@ class GuardianConfig:
 
 
 def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
-    """Load ``.codeguardian.yml`` from *path* (or CWD) and return a ``GuardianConfig``.
+    """Load ``.revhive.yml`` from *path* (or CWD) and return a ``GuardianConfig``.
 
     Returns a default (empty) config if the file does not exist or cannot
     be parsed, so callers never need to handle ``None``.

@@ -1,6 +1,6 @@
 """Performance analysis agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class PerformanceAgent(BaseReviewAgent):

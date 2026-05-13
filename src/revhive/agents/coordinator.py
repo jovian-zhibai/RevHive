@@ -3,8 +3,8 @@
 import logging
 import re
 
-from codeguardian.agents.base import BaseReviewAgent, AgentResult, ReviewFinding, Severity, SEVERITY_ORDER
-from codeguardian.utils.dedup import deduplicate_and_sort, _extract_keywords, _jaccard_similarity
+from revhive.agents.base import BaseReviewAgent, AgentResult, ReviewFinding, Severity, SEVERITY_ORDER
+from revhive.utils.dedup import deduplicate_and_sort, _extract_keywords, _jaccard_similarity
 
 logger = logging.getLogger(__name__)
 

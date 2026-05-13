@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
 
-from codeguardian.graph.workflow import CodeReviewWorkflow
+from revhive.graph.workflow import CodeReviewWorkflow
 
 
 @dataclass
