@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install revhive-ai
+      - run: pip install -e ".[dev]"
       - name: Run RevHive Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}

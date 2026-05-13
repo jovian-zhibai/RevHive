@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from codeguardian import __version__
+from revhive import __version__
 from revhive.config import load_config
 from revhive.graph.workflow import CodeReviewWorkflow, ReviewReport
 

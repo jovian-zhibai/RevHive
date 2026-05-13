@@ -106,10 +106,10 @@ def test_workflow_graph_structure():
     """Verify the LangGraph workflow can be built without errors."""
     import os
     from revhive.graph.workflow import CodeReviewWorkflow
-    from revhive.config import GuardianConfig
+    from revhive.config import RevHiveConfig
 
     # Use empty config (all agents enabled) to verify full graph.
-    cfg = GuardianConfig()
+    cfg = RevHiveConfig()
     os.environ.setdefault("LLM_API_KEY", "test-key")
     workflow = CodeReviewWorkflow(model="mimo-v2.5-pro", config=cfg)
     graph = workflow.graph

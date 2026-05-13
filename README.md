@@ -109,7 +109,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code revhive review --fil
 
 **Option C: GitHub App (automatic PR reviews)**
 
-[Install the GitHub App](https://github.com/apps/codeguardian-bot) → every PR gets reviewed automatically, no CLI needed.
+[Install the GitHub App](https://github.com/apps/revhive-bot) → every PR gets reviewed automatically, no CLI needed.
 
 ## Demo Mode
 
@@ -208,7 +208,7 @@ ignore:                          # glob patterns — ** matches any depth
 
 ## GitHub App Integration
 
-[Install the GitHub App](https://github.com/apps/codeguardian-bot) for automatic PR reviews. Every PR gets reviewed with inline comments — no CLI needed.
+[Install the GitHub App](https://github.com/apps/revhive-bot) for automatic PR reviews. Every PR gets reviewed with inline comments — no CLI needed.
 
 ```yaml
 # .github/workflows/code-review.yml
@@ -271,7 +271,7 @@ src/revhive/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 46 tests covering agents, workflow, demo
+tests/              # 37 tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
 ```
 
@@ -288,7 +288,7 @@ To run security checks locally:
 ```bash
 pip install pip-audit bandit
 pip-audit
-bandit -r src/ -c pyproject.toml
+bandit -r src/ -ll --skip B101
 ```
 
 ## Contributing
