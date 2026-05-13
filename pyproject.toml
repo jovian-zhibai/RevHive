@@ -55,10 +55,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/SoulJian03/CodeGuardian"
-Documentation = "https://souljian03.github.io/CodeGuardian"
-Repository = "https://github.com/SoulJian03/CodeGuardian"
-Issues = "https://github.com/SoulJian03/CodeGuardian/issues"
+Homepage = "https://github.com/Jansen003/RevHive"
+Documentation = "https://jansen003.github.io/RevHive"
+Repository = "https://github.com/Jansen003/RevHive"
+Issues = "https://github.com/Jansen003/RevHive/issues"
 
 [project.scripts]
 codeguardian = "codeguardian.main:cli"

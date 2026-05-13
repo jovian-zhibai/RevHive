@@ -5,7 +5,7 @@
 [![LangGraph](https://img.shields.io/badge/framework-LangGraph-orange)](https://langchain-ai.github.io/langgraph/)
 [![MiMo](https://img.shields.io/badge/powered_by-MiMo-red)](https://platform.xiaomimimo.com)
 [![Agents](https://img.shields.io/badge/agents-10-blue)]()
-[![CI](https://github.com/SoulJian03/CodeGuardian/actions/workflows/ci.yml/badge.svg)](https://github.com/SoulJian03/CodeGuardian/actions)
+[![CI](https://github.com/Jansen003/RevHive/actions/workflows/ci.yml/badge.svg)](https://github.com/Jansen003/RevHive/actions)
 
 **AI-Powered Multi-Agent Code Review & Security Scanning System**
 
