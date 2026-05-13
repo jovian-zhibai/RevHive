@@ -45,8 +45,8 @@ def create_llm_client(
         )
 
     # Resolve model presets (e.g. "mimo" -> base_url + model name).
-    from revhive.config import GuardianConfig
-    _preset = GuardianConfig().resolve_preset(model)
+    from revhive.config import RevHiveConfig
+    _preset = RevHiveConfig().resolve_preset(model)
     if _preset:
         base_url = base_url or _preset.get("base_url")
         model = _preset.get("model", model)

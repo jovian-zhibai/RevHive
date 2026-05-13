@@ -73,7 +73,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         return min(100, score)
 
     @staticmethod
-    def _risk_level(score: int) -> str:
+    def risk_level(score: int) -> str:
         if score <= 20:
             return "LOW"
         if score <= 50:
@@ -83,7 +83,7 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         return "CRITICAL"
 
     @staticmethod
-    def _risk_emoji(score: int) -> str:
+    def risk_emoji(score: int) -> str:
         if score <= 20:
             return "✅"
         if score <= 50:
@@ -92,11 +92,15 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
             return "🔴"
         return "🚨"
 
+    # Backward-compatible aliases for internal use
+    _risk_level = risk_level
+    _risk_emoji = risk_emoji
+
     @staticmethod
     def _risk_score_block(findings: list[ReviewFinding], score: int) -> str:
         """Build the risk score summary block."""
-        level = CoordinatorAgent._risk_level(score)
-        emoji = CoordinatorAgent._risk_emoji(score)
+        level = CoordinatorAgent.risk_level(score)
+        emoji = CoordinatorAgent.risk_emoji(score)
         counts: dict[str, int] = {}
         for f in findings:
             counts[f.severity.value] = counts.get(f.severity.value, 0) + 1

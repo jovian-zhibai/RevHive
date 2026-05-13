@@ -1,7 +1,7 @@
 """Configuration loader for RevHive.
 
 Reads ``.revhive.yml`` from a given path (defaults to the current
-working directory) and exposes a typed ``GuardianConfig`` object used by
+working directory) and exposes a typed ``RevHiveConfig`` object used by
 the workflow, CLI, and batch processor to decide which agents to run,
 which files to skip, and the minimum severity to report.
 """
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_CONFIG_FILENAME = ".revhive.yml"
 
 # Cache for loaded config to avoid re-reading from disk on every agent construction.
-_config_cache: GuardianConfig | None = None
+_config_cache: RevHiveConfig | None = None
 _config_cache_path: str | None = None
 
 
@@ -38,7 +38,7 @@ class AgentConfig:
 
 
 @dataclass
-class GuardianConfig:
+class RevHiveConfig:
     """Top-level configuration object loaded from ``.revhive.yml``."""
 
     MODEL_PRESETS: dict[str, dict[str, str]] = field(default_factory=lambda: {
@@ -127,8 +127,8 @@ class GuardianConfig:
         return False
 
 
-def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
-    """Load ``.revhive.yml`` from *path* (or CWD) and return a ``GuardianConfig``.
+def load_config(path: Optional[str | Path] = None) -> RevHiveConfig:
+    """Load ``.revhive.yml`` from *path* (or CWD) and return a ``RevHiveConfig``.
 
     Returns a default (empty) config if the file does not exist or cannot
     be parsed, so callers never need to handle ``None``.
@@ -149,7 +149,7 @@ def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
 
     if not config_path.is_file():
         logger.debug("No config file found at %s — using defaults", config_path)
-        cfg = GuardianConfig()
+        cfg = RevHiveConfig()
         _config_cache = cfg
         _config_cache_path = resolved
         return cfg
@@ -158,13 +158,13 @@ def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     except Exception as exc:
         logger.warning("Failed to parse %s: %s — using defaults", config_path, exc)
-        cfg = GuardianConfig()
+        cfg = RevHiveConfig()
         _config_cache = cfg
         _config_cache_path = resolved
         return cfg
 
     if not isinstance(raw, dict):
-        cfg = GuardianConfig()
+        cfg = RevHiveConfig()
         _config_cache = cfg
         _config_cache_path = resolved
         return cfg
@@ -190,7 +190,7 @@ def load_config(path: Optional[str | Path] = None) -> GuardianConfig:
     if isinstance(raw_ignore, list):
         ignore = [str(p) for p in raw_ignore]
 
-    cfg = GuardianConfig(model=model, agents=agents, ignore=ignore)
+    cfg = RevHiveConfig(model=model, agents=agents, ignore=ignore)
     _config_cache = cfg
     _config_cache_path = resolved
     return cfg

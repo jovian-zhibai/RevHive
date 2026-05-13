@@ -5,11 +5,11 @@ Two modes:
     Runs the full pipeline and produces a realistic report.
 
   - Live mode: Requires MiMo/OpenAI API key in environment.
-    Set CODE_GUARDIAN_LIVE=1 to activate.
+    Set REVHIVE_LIVE=1 to activate.
 
 Usage:
     python examples/sample_review.py            # demo mode
-    CODE_GUARDIAN_LIVE=1 python examples/sample_review.py  # live mode
+    REVHIVE_LIVE=1 python examples/sample_review.py  # live mode
 """
 
 import os
@@ -79,7 +79,7 @@ async def run_demo():
     print(f"Simulated token usage: {result.token_usage:,} tokens")
     print()
     print("To run with MiMo: export LLM_API_KEY=your-key")
-    print("  CODE_GUARDIAN_LIVE=1 python examples/sample_review.py")
+    print("  REVHIVE_LIVE=1 python examples/sample_review.py")
     print("-" * 60)
 
     return result
@@ -105,7 +105,7 @@ async def run_live():
 
 
 async def main():
-    if os.getenv("CODE_GUARDIAN_LIVE") == "1":
+    if os.getenv("REVHIVE_LIVE") == "1":
         await run_live()
     else:
         await run_demo()

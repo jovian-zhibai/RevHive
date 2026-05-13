@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +33,7 @@ jobs:
       - name: Dependency vulnerability scan
         run: pip-audit --skip-editable
       - name: Static security analysis
-        run: bandit -r src/ -ll
+        run: bandit -r src/ -ll --skip B101
 
   check-demo-consistency:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
           from revhive.agents.coordinator import CoordinatorAgent
           r = DemoReviewWorkflow().run()
           c = Counter(f.severity.value for f in r.findings)
-          level = CoordinatorAgent._risk_level(r.risk_score)
+          level = CoordinatorAgent.risk_level(r.risk_score)
           print(f'{c.get(\"critical\",0)}C/{c.get(\"high\",0)}H/{c.get(\"medium\",0)}M/{c.get(\"low\",0)}L')
           print(level)
           ")
@@ -86,31 +86,31 @@ jobs:
 
             # Check score number appears in file
             if ! grep -q "$ACTUAL_SCORE" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE missing score $ACTUAL_SCORE"
+              ERRORS="$ERRORS\n$FILE missing score $ACTUAL_SCORE"
             fi
 
             # Check level label appears in file
             if ! grep -qi "$ACTUAL_LEVEL" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE missing level $ACTUAL_LEVEL"
+              ERRORS="$ERRORS\n$FILE missing level $ACTUAL_LEVEL"
             fi
 
             # Check severity distribution numbers
             if ! grep -q "$ACTUAL_C Critical" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Critical count"
+              ERRORS="$ERRORS\n$FILE has wrong Critical count"
             fi
             if ! grep -q "$ACTUAL_H High" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE has wrong High count"
+              ERRORS="$ERRORS\n$FILE has wrong High count"
             fi
             if ! grep -q "$ACTUAL_M Medium" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Medium count"
+              ERRORS="$ERRORS\n$FILE has wrong Medium count"
             fi
             if ! grep -q "$ACTUAL_L Low" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE has wrong Low count"
+              ERRORS="$ERRORS\n$FILE has wrong Low count"
             fi
 
             # Check total findings count appears somewhere in file
             if ! grep -qE "($ACTUAL_TOTAL|20\+)" "$FILE"; then
-              ERRORS="$ERRORS\n$mismatch: $FILE missing findings count"
+              ERRORS="$ERRORS\n$FILE missing findings count"
             fi
           done
 

@@ -26,7 +26,7 @@ from revhive.agents import (
     CoordinatorAgent,
 )
 from revhive.agents.base import AgentResult, SEVERITY_ORDER
-from revhive.config import GuardianConfig, load_config
+from revhive.config import RevHiveConfig, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ _STATE_ATTR_MAP: dict[str, str] = {name: f"{name}_result" for name in _AGENT_CLA
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
 
-    def __init__(self, model: Optional[str] = None, config: Optional[GuardianConfig] = None):
+    def __init__(self, model: Optional[str] = None, config: Optional[RevHiveConfig] = None):
         self.config = config or load_config()
         api_key = os.getenv("LLM_API_KEY")
         base_url = os.getenv("LLM_BASE_URL", "https://api.xiaomimimo.com/v1")
@@ -156,7 +156,7 @@ class CodeReviewWorkflow:
     def _validate_diff_ref(diff_ref: str) -> None:
         """Validate that diff_ref contains only safe characters for git."""
         import re
-        if not re.match(r'^[a-zA-Z0-9._/~^:-]+$', diff_ref):
+        if '..' in diff_ref or not re.match(r'^[a-zA-Z0-9._/~^:-]+$', diff_ref):
             raise ValueError(f"Invalid diff reference: {diff_ref}")
 
     async def run_from_diff(self, diff_ref: str) -> AgentResult:
@@ -195,9 +195,17 @@ class CodeReviewWorkflow:
         # Apply ignore patterns from config.
         files = [f for f in files if not self.config.should_ignore(f)]
 
+        _MAX_FILE_SIZE = 1 * 1024 * 1024  # 1 MB
         results = []
         for f in files[:50]:
-            code = Path(f).read_text(encoding="utf-8", errors="ignore")
+            try:
+                if Path(f).stat().st_size > _MAX_FILE_SIZE:
+                    logger.info("Skipping %s (exceeds 1 MB limit)", f)
+                    continue
+                code = Path(f).read_text(encoding="utf-8", errors="ignore")
+            except (OSError, UnicodeDecodeError) as exc:
+                logger.warning("Skipping %s: %s", f, exc)
+                continue
             result = await self.run(code=code, file_path=f)
             results.append(result)
 
@@ -221,10 +229,18 @@ class CodeReviewWorkflow:
         )
         stdout, _ = await proc.communicate()
 
+        _MAX_FILE_SIZE = 1 * 1024 * 1024  # 1 MB
         full_results = [diff_result]
         for file in stdout.decode().strip().split("\n"):
             if file and os.path.exists(file):
-                code = Path(file).read_text(encoding="utf-8")
+                try:
+                    if Path(file).stat().st_size > _MAX_FILE_SIZE:
+                        logger.info("Skipping %s (exceeds 1 MB limit)", file)
+                        continue
+                    code = Path(file).read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError) as exc:
+                    logger.warning("Skipping %s: %s", file, exc)
+                    continue
                 result = await self.run(code=code, file_path=file)
                 full_results.append(result)
 
