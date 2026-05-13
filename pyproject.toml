@@ -3,14 +3,14 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codeguardian-ai"
+name = "revhive-ai"
 version = "0.3.2"
 description = "AI code review tool with 10 parallel agents. Security scanning, performance analysis, and logic review. Supports MiMo, OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic."
 readme = "README.md"
 license = {text = "BSL-1.1"}
 requires-python = ">=3.10"
 authors = [
-    {name = "CodeGuardian Team"}
+    {name = "RevHive Team"}
 ]
 keywords = ["code-review", "multi-agent", "langgraph", "ai", "security", "mimo", "xiaomi", "code-quality", "static-analysis", "linting", "code-scanning", "devsecops", "sast", "pull-request", "ci-cd"]
 classifiers = [
@@ -51,7 +51,7 @@ dev = [
     "ruff>=0.4.0",
 ]
 all = [
-    "codeguardian[anthropic,tree-sitter,dev]",
+    "revhive-ai[anthropic,tree-sitter,dev]",
 ]
 
 [project.urls]
@@ -61,11 +61,11 @@ Repository = "https://github.com/Jansen003/RevHive"
 Issues = "https://github.com/Jansen003/RevHive/issues"
 
 [project.scripts]
-codeguardian = "codeguardian.main:cli"
+revhive = "revhive.main:cli"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
-include = ["codeguardian*"]
+include = ["revhive*"]
 
 [tool.pytest.ini_options]
 filterwarnings = [

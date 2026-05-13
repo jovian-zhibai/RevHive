@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodeGuardian — AI Code Review, 10 Agents Deep</title>
+  <title>RevHive — AI Code Review, 10 Agents Deep</title>
   <meta name="description" content="AI code review tool with 10 parallel agents. Security scanning, performance analysis, and logic review. Supports MiMo, OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic.">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="CodeGuardian — AI Code Review, 10 Agents Deep">
+  <meta property="og:title" content="RevHive — AI Code Review, 10 Agents Deep">
   <meta property="og:description" content="AI code review tool with 10 parallel agents. Security, performance, logic, and more.">
   <meta property="og:url" content="https://jansen003.github.io/RevHive/">
   <meta property="og:type" content="website">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="CodeGuardian — AI Code Review, 10 Agents Deep">
+  <meta name="twitter:title" content="RevHive — AI Code Review, 10 Agents Deep">
   <meta name="twitter:description" content="AI code review tool with 10 parallel agents. Security, performance, logic, and more.">
 
   <!-- JSON-LD -->
@@ -22,7 +22,7 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "CodeGuardian",
+    "name": "RevHive",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any",
     "offers": {
@@ -80,7 +80,7 @@
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <a href="https://github.com/Jansen003/RevHive" class="text-white font-bold text-lg tracking-tight flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-accent"></span>
-        CodeGuardian
+        RevHive
       </a>
       <div class="flex items-center gap-4">
         <a href="https://github.com/Jansen003/RevHive" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">⭐ Star</a>
@@ -127,10 +127,10 @@
           <span class="w-3 h-3 rounded-full bg-red-500/70"></span>
           <span class="w-3 h-3 rounded-full bg-yellow-500/70"></span>
           <span class="w-3 h-3 rounded-full bg-green-500/70"></span>
-          <span class="ml-3 text-xs text-gray-500 font-mono">codeguardian review --diff HEAD~1</span>
+          <span class="ml-3 text-xs text-gray-500 font-mono">revhive review --diff HEAD~1</span>
         </div>
         <div class="terminal-body p-6 text-sm leading-relaxed overflow-x-auto">
-          <div class="text-gray-500 mb-4"># CodeGuardian Review Report</div>
+          <div class="text-gray-500 mb-4"># RevHive Review Report</div>
           <div class="text-red-400 font-semibold mb-1">🚨 Risk Score: CRITICAL (92/100)</div>
           <div class="text-gray-500 mb-4">1 Critical · 1 High · 8 Medium · 12 Low</div>
           <div class="text-white font-semibold mb-1">## Overview</div>
@@ -162,7 +162,7 @@
           <div class="w-10 h-10 rounded-full bg-accent/10 text-accent font-bold text-lg flex items-center justify-center mx-auto mb-4">1</div>
           <div class="text-white font-semibold mb-3">Install</div>
           <div class="bg-surface-3 rounded-lg px-4 py-3 text-left">
-            <code class="text-sm text-accent font-mono">pip install codeguardian-ai</code>
+            <code class="text-sm text-accent font-mono">pip install revhive-ai</code>
           </div>
         </div>
         <div class="fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-xl p-6 text-center">
@@ -176,7 +176,7 @@
           <div class="w-10 h-10 rounded-full bg-accent/10 text-accent font-bold text-lg flex items-center justify-center mx-auto mb-4">3</div>
           <div class="text-white font-semibold mb-3">Review</div>
           <div class="bg-surface-3 rounded-lg px-4 py-3 text-left">
-            <code class="text-sm text-accent font-mono">codeguardian review --diff HEAD~1</code>
+            <code class="text-sm text-accent font-mono">revhive review --diff HEAD~1</code>
           </div>
         </div>
       </div>
@@ -332,7 +332,7 @@
         <div class="fade-in fade-in-d1 text-center">
           <div class="w-12 h-12 rounded-full bg-accent/10 text-accent font-bold text-xl flex items-center justify-center mx-auto mb-4">1</div>
           <div class="text-white font-semibold mb-2">Push Code</div>
-          <div class="text-gray-400 text-sm">Open a PR or push to your branch. CodeGuardian triggers automatically.</div>
+          <div class="text-gray-400 text-sm">Open a PR or push to your branch. RevHive triggers automatically.</div>
         </div>
         <div class="fade-in fade-in-d2 text-center">
           <div class="w-12 h-12 rounded-full bg-accent/10 text-accent font-bold text-xl flex items-center justify-center mx-auto mb-4">2</div>
@@ -351,14 +351,14 @@
   <!-- Comparison -->
   <section class="py-20 px-6 border-t border-white/5">
     <div class="max-w-3xl mx-auto">
-      <h2 class="fade-in text-3xl md:text-4xl font-bold text-white text-center mb-12">Manual Review vs CodeGuardian</h2>
+      <h2 class="fade-in text-3xl md:text-4xl font-bold text-white text-center mb-12">Manual Review vs RevHive</h2>
       <div class="fade-in fade-in-d1 overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-white/10">
               <th class="py-3 pr-8 text-gray-400 font-medium text-sm"></th>
               <th class="py-3 px-4 text-gray-400 font-medium text-sm">Manual Review</th>
-              <th class="py-3 pl-4 text-accent font-medium text-sm">CodeGuardian</th>
+              <th class="py-3 pl-4 text-accent font-medium text-sm">RevHive</th>
             </tr>
           </thead>
           <tbody class="text-sm">
@@ -398,7 +398,7 @@
     <div class="fade-in max-w-2xl mx-auto text-center">
       <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Code Review for Everyone</h2>
       <p class="text-gray-400 leading-relaxed text-lg">
-        CodeGuardian is an open-source project on a mission to make code review accessible, thorough, and private. Your code stays on your machine. No signup required. Free for individual developers and open source projects.
+        RevHive is an open-source project on a mission to make code review accessible, thorough, and private. Your code stays on your machine. No signup required. Free for individual developers and open source projects.
       </p>
     </div>
   </section>
@@ -410,7 +410,7 @@
       <div class="space-y-6">
         <div class="fade-in fade-in-d1">
           <div class="text-white font-semibold mb-2">Is my code sent to external servers?</div>
-          <div class="text-gray-400 text-sm">No. The CLI runs entirely on your machine. Code is only sent to your chosen LLM provider (MiMo, OpenAI, etc.) — never to CodeGuardian servers.</div>
+          <div class="text-gray-400 text-sm">No. The CLI runs entirely on your machine. Code is only sent to your chosen LLM provider (MiMo, OpenAI, etc.) — never to RevHive servers.</div>
         </div>
         <div class="fade-in fade-in-d2">
           <div class="text-white font-semibold mb-2">How much does the LLM API cost?</div>
@@ -422,11 +422,11 @@
         </div>
         <div class="fade-in fade-in-d4">
           <div class="text-white font-semibold mb-2">How is this different from GitHub Copilot?</div>
-          <div class="text-gray-400 text-sm">Copilot focuses on code generation. CodeGuardian focuses on code review — 10 specialized agents analyze security, performance, logic, and more. They complement each other.</div>
+          <div class="text-gray-400 text-sm">Copilot focuses on code generation. RevHive focuses on code review — 10 specialized agents analyze security, performance, logic, and more. They complement each other.</div>
         </div>
         <div class="fade-in fade-in-d5">
           <div class="text-white font-semibold mb-2">How accurate are the reviews?</div>
-          <div class="text-gray-400 text-sm">CodeGuardian uses multiple specialized agents to cross-check findings. Results depend on the LLM model used — stronger models produce more accurate reviews. We recommend MiMo or Claude for best results.</div>
+          <div class="text-gray-400 text-sm">RevHive uses multiple specialized agents to cross-check findings. Results depend on the LLM model used — stronger models produce more accurate reviews. We recommend MiMo or Claude for best results.</div>
         </div>
       </div>
     </div>
@@ -451,7 +451,7 @@
     <div class="max-w-6xl mx-auto flex flex-col items-center gap-2 text-sm text-gray-500">
       <div class="flex items-center gap-2">
         <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
-        CodeGuardian &middot; BSL 1.1 License
+        RevHive &middot; BSL 1.1 License
       </div>
       <div>Built with LangGraph by <a href="https://github.com/Jansen003" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors underline underline-offset-2">Jansen003</a></div>
       <a href="https://github.com/Jansen003" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">GitHub</a>

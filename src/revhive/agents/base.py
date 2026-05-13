@@ -71,7 +71,7 @@ class BaseReviewAgent(ABC):
         self._api_key = api_key or os.getenv("LLM_API_KEY", "")
         self._use_structured_output = False
 
-        from codeguardian.utils.llm_client import create_llm_client
+        from revhive.utils.llm_client import create_llm_client
         self.llm = create_llm_client(
             api_key=self._api_key,
             base_url=base_url,
@@ -83,7 +83,7 @@ class BaseReviewAgent(ABC):
 
         # Try to enable structured output
         try:
-            from codeguardian.models.schemas import ReviewResult
+            from revhive.models.schemas import ReviewResult
             self._structured_llm = self.llm.with_structured_output(ReviewResult)
             self._use_structured_output = True
             logger.debug("%s: structured output enabled", self.name)

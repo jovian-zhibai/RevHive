@@ -1,6 +1,6 @@
 """Automated refactoring suggestion agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class RefactorAgent(BaseReviewAgent):

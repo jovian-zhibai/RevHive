@@ -1,6 +1,6 @@
 """Business logic review agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class LogicAgent(BaseReviewAgent):

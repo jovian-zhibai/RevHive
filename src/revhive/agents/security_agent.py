@@ -1,6 +1,6 @@
 """Security vulnerability scanning agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class SecurityAgent(BaseReviewAgent):

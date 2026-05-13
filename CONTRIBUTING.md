@@ -1,12 +1,12 @@
-# Contributing to CodeGuardian
+# Contributing to RevHive
 
-We welcome contributions! CodeGuardian is an AI-powered multi-agent code review system.
+We welcome contributions! RevHive is an AI-powered multi-agent code review system.
 
 ## Getting Started
 
 ```bash
 git clone https://github.com/Jansen003/RevHive.git
-cd CodeGuardian
+cd RevHive
 pip install -e ".[dev]"
 python examples/sample_review.py  # Demo mode (no API key needed)
 ```
@@ -22,7 +22,7 @@ python examples/sample_review.py  # Demo mode (no API key needed)
 ## Project Structure
 
 ```
-src/codeguardian/
+src/revhive/
   agents/       # Specialized review agents
   graph/        # LangGraph workflow orchestration
   utils/        # Parsing utilities
@@ -33,7 +33,7 @@ src/codeguardian/
 
 ## Adding a New Agent
 
-1. Create a new file in `src/codeguardian/agents/`
+1. Create a new file in `src/revhive/agents/`
 2. Extend `BaseReviewAgent`
 3. Implement `get_system_prompt()` and `get_review_focus()`
 4. Register in `agents/__init__.py`
@@ -53,7 +53,7 @@ If you discover a security vulnerability, please report it via a [GitHub Issue](
 | `GITHUB_WEBHOOK_SECRET` | Server only | — | HMAC secret for webhook signature verification |
 | `GITHUB_APP_ID` | Server only | — | GitHub App ID |
 | `GITHUB_PRIVATE_KEY` | Server only | — | PEM private key content |
-| `GITHUB_PRIVATE_KEY_PATH` | Server only | `codeguardian-bot.private-key.pem` | Path to PEM file (local dev fallback) |
+| `GITHUB_PRIVATE_KEY_PATH` | Server only | `revhive-bot.private-key.pem` | Path to PEM file (local dev fallback) |
 
 ## Supported LLM Backends
 

@@ -1,6 +1,6 @@
 """Code style and conventions review agent."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class StyleAgent(BaseReviewAgent):

@@ -1,4 +1,4 @@
-# CodeGuardian
+# RevHive
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-BSL--1.1-blue)](LICENSE)
@@ -9,7 +9,7 @@
 
 **AI-Powered Multi-Agent Code Review & Security Scanning System**
 
-CodeGuardian deploys 10 specialized AI agents — 9 reviewing in parallel, 1 synthesizing results — to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues before they reach production.
+RevHive deploys 10 specialized AI agents — 9 reviewing in parallel, 1 synthesizing results — to catch security vulnerabilities, performance bottlenecks, logic bugs, and style issues before they reach production.
 
 - **Structured Output** — Agents return structured JSON via Pydantic schemas, with regex fallback for unsupported LLMs
 - **Semantic Deduplication** — Title matching + keyword Jaccard similarity prevents duplicate findings across agents
@@ -34,18 +34,18 @@ Example output:
 1 Critical · 1 High · 8 Medium · 12 Low
 ```
 
-## Why CodeGuardian?
+## Why RevHive?
 
-| Pain Point | CodeGuardian Solution |
+| Pain Point | RevHive Solution |
 |---|---|
 | Manual CR takes 1-2 hours/day | 9 agents review in parallel in under 30 seconds |
 | Human reviewers miss subtle bugs | Each agent is a domain expert (security, perf, logic...) |
 | "LGTM" culture devalues review | Every PR gets a thorough, objective audit |
 | No team-wide quality visibility | Trend analysis tracks code health over time |
 
-## CodeGuardian vs Others
+## RevHive vs Others
 
-| Feature | CodeGuardian | CodeRabbit | Sourcery | SonarQube | Copilot Review |
+| Feature | RevHive | CodeRabbit | Sourcery | SonarQube | Copilot Review |
 |---------|:---:|:---:|:---:|:---:|:---:|
 | AI-driven review | ✅ | ✅ | ✅ | ❌ | ✅ |
 | Multi-agent parallel | ✅ 10 | ❌ | ❌ | ❌ | ❌ |
@@ -94,17 +94,17 @@ Example output:
 **Option A: CLI (30 seconds)**
 
 ```bash
-pip install codeguardian-ai
-codeguardian demo                        # no API key needed
+pip install revhive-ai
+revhive demo                        # no API key needed
 export LLM_API_KEY=your-api-key
-codeguardian review --file src/main.py   # real review
+revhive review --file src/main.py   # real review
 ```
 
 **Option B: Docker**
 
 ```bash
-docker build -t codeguardian .
-docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review --file /code/src/main.py
+docker build -t revhive .
+docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code revhive review --file /code/src/main.py
 ```
 
 **Option C: GitHub App (automatic PR reviews)**
@@ -113,7 +113,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code codeguardian review 
 
 ## Demo Mode
 
-CodeGuardian ships with a fully functional **demo mode** that runs the complete multi-agent pipeline with mock responses. No API key, no network, no cost — perfect for evaluation.
+RevHive ships with a fully functional **demo mode** that runs the complete multi-agent pipeline with mock responses. No API key, no network, no cost — perfect for evaluation.
 
 ```bash
 python examples/sample_review.py
@@ -136,13 +136,13 @@ This produces a realistic review report identical in structure to a live MiMo-ba
 | Kimi | `kimi` | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
 | **Anthropic** | `claude-sonnet-4-20250514` | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
 
-**Quick preset:** Set `LLM_MODEL` to a preset name (e.g., `openai`, `deepseek`, `qwen`) and CodeGuardian auto-configures the base URL. Explicit `LLM_BASE_URL` takes priority.
+**Quick preset:** Set `LLM_MODEL` to a preset name (e.g., `openai`, `deepseek`, `qwen`) and RevHive auto-configures the base URL. Explicit `LLM_BASE_URL` takes priority.
 
-MiMo is the **default and recommended backend**. CodeGuardian is optimized for MiMo's token economics and model capabilities.
+MiMo is the **default and recommended backend**. RevHive is optimized for MiMo's token economics and model capabilities.
 
 ## Supported Languages
 
-CodeGuardian's LLM-powered agents can review code in any language. Currently optimized for:
+RevHive's LLM-powered agents can review code in any language. Currently optimized for:
 
 | Language | Extensions | Security Patterns | Performance Patterns |
 |----------|-----------|-------------------|---------------------|
@@ -169,7 +169,7 @@ Other languages are supported via LLM understanding but may have fewer specializ
 
 ## Configuration
 
-Create `.codeguardian.yml` in your project root:
+Create `.revhive.yml` in your project root:
 
 ```yaml
 model: mimo-v2.5-pro
@@ -229,14 +229,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install codeguardian-ai
-      - name: Run CodeGuardian Review
+      - run: pip install revhive-ai
+      - name: Run RevHive Review
         env:
           LLM_API_KEY: ${{ secrets.MIMO_API_KEY }}
           LLM_BASE_URL: https://api.xiaomimimo.com/v1
           LLM_MODEL: mimo-v2.5-pro
         run: |
-          codeguardian review --diff HEAD~1 --format markdown --output review_report.md
+          revhive review --diff HEAD~1 --format markdown --output review_report.md
       - name: Post Review Comment
         uses: actions/github-script@v7
         with:
@@ -263,7 +263,7 @@ jobs:
 ## Project Structure
 
 ```
-src/codeguardian/
+src/revhive/
   agents/          # 10 specialized review agents
   graph/           # LangGraph workflow orchestration
   utils/           # Utility modules
@@ -271,13 +271,13 @@ src/codeguardian/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 37 tests covering agents, workflow, demo
+tests/              # 46 tests covering agents, workflow, demo
 examples/           # Ready-to-run examples
 ```
 
 ## Security
 
-CodeGuardian takes its own security seriously:
+RevHive takes its own security seriously:
 
 - **Dependency scanning** — `pip-audit` runs in CI on every push and PR to catch known CVEs in dependencies.
 - **Static analysis** — `bandit` scans the source code for common security issues (hardcoded secrets, unsafe deserialization, injection risks).

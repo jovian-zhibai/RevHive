@@ -13,7 +13,7 @@ from typing import Optional
 
 from langgraph.graph import StateGraph, END, START
 
-from codeguardian.agents import (
+from revhive.agents import (
     StyleAgent,
     SecurityAgent,
     PerformanceAgent,
@@ -25,8 +25,8 @@ from codeguardian.agents import (
     DocAgent,
     CoordinatorAgent,
 )
-from codeguardian.agents.base import AgentResult, SEVERITY_ORDER
-from codeguardian.config import GuardianConfig, load_config
+from revhive.agents.base import AgentResult, SEVERITY_ORDER
+from revhive.config import GuardianConfig, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +240,7 @@ class ReviewReport:
     def to_markdown(self) -> str:
         """Render the review result as a Markdown report."""
         lines = [
-            "# CodeGuardian Review Report\n",
+            "# RevHive Review Report\n",
             "## 📊 Overview\n",
             self.result.summary,
             f"\n**Total Findings:** {len(self.result.findings)}\n",

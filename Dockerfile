@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-LABEL org.opencontainers.image.title="CodeGuardian"
+LABEL org.opencontainers.image.title="RevHive"
 LABEL org.opencontainers.image.description="AI code review tool with 10 parallel agents"
 LABEL org.opencontainers.image.licenses="BSL-1.1"
 
@@ -21,5 +21,5 @@ COPY --chown=appuser:appuser . .
 
 USER appuser
 
-ENTRYPOINT ["codeguardian"]
+ENTRYPOINT ["revhive"]
 CMD ["--help"]

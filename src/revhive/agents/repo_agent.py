@@ -1,6 +1,6 @@
 """Repository-level review agent for large-scale codebase analysis."""
 
-from codeguardian.agents.base import BaseReviewAgent
+from revhive.agents.base import BaseReviewAgent
 
 
 class RepoAgent(BaseReviewAgent):
