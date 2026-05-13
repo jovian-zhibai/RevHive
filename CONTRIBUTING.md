@@ -5,7 +5,7 @@ We welcome contributions! CodeGuardian is an AI-powered multi-agent code review 
 ## Getting Started
 
 ```bash
-git clone https://github.com/SoulJian03/CodeGuardian.git
+git clone https://github.com/Jansen003/RevHive.git
 cd CodeGuardian
 pip install -e ".[dev]"
 python examples/sample_review.py  # Demo mode (no API key needed)
@@ -41,7 +41,7 @@ src/codeguardian/
 
 ## Security Reporting
 
-If you discover a security vulnerability, please report it via a [GitHub Issue](https://github.com/SoulJian03/CodeGuardian/issues) with the `security` label. Do not disclose vulnerabilities publicly until a fix is available.
+If you discover a security vulnerability, please report it via a [GitHub Issue](https://github.com/Jansen003/RevHive/issues) with the `security` label. Do not disclose vulnerabilities publicly until a fix is available.
 
 ## Environment Variables
 
