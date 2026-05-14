@@ -53,8 +53,8 @@ Example output:
 | Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
 | CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
-| PR inline comments | 🔜 | ✅ | ✅ | ✅ | ✅ |
-| Quality gate (status check) | 🔜 | ❌ | ❌ | ✅ | ❌ |
+| PR inline comments | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Quality gate (status check) | ✅ | ❌ | ❌ | ✅ | ❌ |
 | IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
 | Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
@@ -72,9 +72,7 @@ Example output:
   Style  Security  Perf  Logic  Repo  Refactor  Fix  Test  Doc
 ```
 
-**ConversationReviewer** runs on-demand multi-turn deep review of individual findings — challenging assumptions, exploring alternative fixes, and testing edge cases through 5 rounds of dialogue. Used for critical/high severity findings in batch mode.
-
-### All 10 Agents
+### All 9 Review Agents + Coordinator
 
 | Agent | Role |
 |---|---|
@@ -109,7 +107,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code revhive review --fil
 
 **Option C: GitHub App (automatic PR reviews)**
 
-[Install the GitHub App](https://github.com/apps/revhive-bot) → every PR gets reviewed automatically, no CLI needed.
+[Install the GitHub App](https://github.com/apps/codeguardian-bot) → every PR gets reviewed automatically, no CLI needed.
 
 ## Demo Mode
 
@@ -208,7 +206,7 @@ ignore:                          # glob patterns — ** matches any depth
 
 ## GitHub App Integration
 
-[Install the GitHub App](https://github.com/apps/revhive-bot) for automatic PR reviews. Every PR gets a detailed review report — no CLI needed.
+[Install the GitHub App](https://github.com/apps/codeguardian-bot) for automatic PR reviews. Every PR gets a detailed review report — no CLI needed.
 
 ```yaml
 # .github/workflows/code-review.yml
@@ -262,7 +260,7 @@ src/revhive/
   analysis/        # Historical trend analysis
   demo.py           # Demo mode (no API key required)
   main.py           # CLI entry point
-tests/              # 37 tests covering agents, workflow, demo
+tests/              # 54+ tests covering agents, workflow, demo, dedup, integration
 examples/           # Ready-to-run examples
 ```
 
