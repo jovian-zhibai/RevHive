@@ -37,6 +37,7 @@ class ReviewFinding:
     severity: Severity
     title: str
     description: str
+    file_path: Optional[str] = None
     line_number: Optional[int] = None
     code_snippet: Optional[str] = None
     suggestion: Optional[str] = None
@@ -120,6 +121,7 @@ class BaseReviewAgent(ABC):
                         severity=Severity(f.severity.lower()),
                         title=f.title,
                         description=f.description,
+                        file_path=getattr(f, "file_path", None) or file_path,
                         line_number=f.line_number,
                         code_snippet=f.code_snippet,
                         suggestion=f.suggestion,
@@ -170,31 +172,19 @@ Focus on: {self.get_review_focus()}
 Output format for each finding:
 - Severity: [LOW/MEDIUM/HIGH/CRITICAL]
 - Title: [Brief title]
+- File: {file_path}
 - Line: [Line number if applicable]
 - Description: [What's wrong]
 - Suggestion: [How to fix]
 
-End with a brief summary of your review.
+End with a brief summary of your review."""
 
-Please output your review results as structured JSON."""
-
-    _FIELD_RE = re.compile(r"^-\s*(Severity|Title|Line|Description|Suggestion):\s*", re.IGNORECASE)
+    _FIELD_RE = re.compile(r"^[-*\d.]*\s*\**\s*(Severity|Title|Line|Description|Suggestion|File)\s*\**\s*:\s*", re.IGNORECASE)
 
     def _parse_findings(self, response: str) -> list[ReviewFinding]:
         """Parse LLM response into structured findings.
 
-        Handles the primary bullet-point format::
-
-            - Severity: HIGH
-            - Title: SQL Injection
-            - Line: 12
-            - Description: User input interpolated into SQL query.
-            - Suggestion: Use parameterized queries.
-
-        Multi-line ``Description`` and ``Suggestion`` values are accumulated
-        until the next ``- Field:`` marker.  If the response contains no
-        parseable findings at all, the entire text is returned as a single
-        finding so that review output is never silently lost.
+        Handles bullet-point format (with flexible markers) and JSON fallback.
         """
         findings: list[ReviewFinding] = []
         current: dict = {}
@@ -202,12 +192,13 @@ Please output your review results as structured JSON."""
         for line in response.split("\n"):
             stripped = line.strip()
 
-            # New finding starts at "- Severity:"
-            if stripped.lower().startswith("- severity:"):
+            # New finding starts at severity marker (flexible: -, *, 1., etc.)
+            sev_match = re.match(r"^[-*\d.]*\s*\**\s*Severity\s*\**\s*:\s*(.*)", stripped, re.IGNORECASE)
+            if sev_match:
                 if current:
                     findings.append(self._dict_to_finding(current))
                 current = {"agent": self.name}
-                sev = stripped.split(":", 1)[1].strip().strip("[]")
+                sev = sev_match.group(1).strip().strip("[]")
                 try:
                     current["severity"] = Severity(sev.lower())
                 except ValueError:
@@ -217,36 +208,63 @@ Please output your review results as structured JSON."""
             if not current:
                 continue
 
-            # Other fields
-            if stripped.lower().startswith("- title:"):
-                current["title"] = stripped.split(":", 1)[1].strip()
-            elif stripped.lower().startswith("- line:"):
-                raw = stripped.split(":", 1)[1].strip()
-                digits = "".join(filter(str.isdigit, raw))
-                if digits:
-                    try:
-                        current["line_number"] = int(digits)
-                    except ValueError:
-                        pass
-            elif stripped.lower().startswith("- description:"):
-                current["description"] = stripped.split(":", 1)[1].strip()
-            elif stripped.lower().startswith("- suggestion:"):
-                current["suggestion"] = stripped.split(":", 1)[1].strip()
-
-            # Multi-line continuation: if the line does NOT start with a new
-            # "- Field:" marker, append it to the current active field.
-            elif not self._FIELD_RE.match(stripped) and stripped:
-                # Determine which field was last set and append
-                if "suggestion" in current and not stripped.startswith("-"):
+            # Parse other fields with flexible matching
+            field_match = self._FIELD_RE.match(stripped)
+            if field_match:
+                field_name = field_match.group(1).lower()
+                value = stripped[field_match.end():].strip()
+                match field_name:
+                    case "title":
+                        current["title"] = value
+                    case "line":
+                        digits = "".join(filter(str.isdigit, value))
+                        if digits:
+                            try:
+                                current["line_number"] = int(digits)
+                            except ValueError:
+                                pass
+                    case "description":
+                        current["description"] = value
+                    case "suggestion":
+                        current["suggestion"] = value
+                    case "file":
+                        current["file_path"] = value
+            elif stripped:
+                # Multi-line continuation
+                if "suggestion" in current:
                     current["suggestion"] += " " + stripped
-                elif "description" in current and not stripped.startswith("-"):
+                elif "description" in current:
                     current["description"] += " " + stripped
 
         if current:
             findings.append(self._dict_to_finding(current))
 
-        # Fallback: if no structured findings were parsed, wrap the whole
-        # response as a single finding so output is never silently lost.
+        # JSON fallback: if regex found nothing, try parsing as JSON
+        if not findings and response.strip():
+            import json
+            try:
+                # Strip markdown code fences if present
+                text = response.strip()
+                if text.startswith("```"):
+                    text = re.sub(r"^```(?:json)?\s*", "", text)
+                    text = re.sub(r"\s*```$", "", text)
+                data = json.loads(text)
+                items = data if isinstance(data, list) else data.get("findings", data.get("review_findings", []))
+                for item in items:
+                    if isinstance(item, dict):
+                        findings.append(ReviewFinding(
+                            agent=self.name,
+                            severity=Severity(item.get("severity", "low").lower()),
+                            title=item.get("title", "Unknown"),
+                            description=item.get("description", ""),
+                            file_path=item.get("file", item.get("file_path")),
+                            line_number=item.get("line", item.get("line_number")),
+                            suggestion=item.get("suggestion"),
+                        ))
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+                pass
+
+        # Last resort: wrap entire response as a single finding
         if not findings and response.strip():
             findings.append(ReviewFinding(
                 agent=self.name,
@@ -264,6 +282,7 @@ Please output your review results as structured JSON."""
             severity=d.get("severity", Severity.LOW),
             title=d.get("title", "Unknown"),
             description=d.get("description", ""),
+            file_path=d.get("file_path"),
             line_number=d.get("line_number"),
             suggestion=d.get("suggestion"),
         )
