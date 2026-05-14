@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
-      - run: pytest -v
+      - run: pytest -v --cov=revhive --cov-report=term-missing --cov-fail-under=50
       - run: ruff check src/ tests/
 
   security:

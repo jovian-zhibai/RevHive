@@ -3,11 +3,12 @@
 Default backend: MiMo (https://api.xiaomimimo.com/v1).
 """
 
+import importlib.util
 import json
 import logging
 import os
 import glob
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -25,7 +26,7 @@ from revhive.agents import (
     DocAgent,
     CoordinatorAgent,
 )
-from revhive.agents.base import AgentResult, SEVERITY_ORDER
+from revhive.agents.base import BaseReviewAgent, AgentResult, SEVERITY_ORDER
 from revhive.config import RevHiveConfig, load_config
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,50 @@ _AGENT_CLASSES: dict[str, type] = {
     "test":        TestAgent,
     "doc":         DocAgent,
 }
+
+
+def load_plugins(plugin_dir: str = "plugins") -> dict[str, type]:
+    """Load custom agent plugins from a directory.
+
+    Each .py file in *plugin_dir* can define an agent class that extends
+    :class:`BaseReviewAgent`. The class must be named ``Agent`` or have
+    a ``PLUGIN_NAME`` attribute specifying the registry name.
+
+    Returns a dict mapping plugin names to agent classes.
+    """
+    plugins: dict[str, type] = {}
+    plugin_path = Path(plugin_dir)
+    if not plugin_path.is_dir():
+        return plugins
+
+    for py_file in plugin_path.glob("*.py"):
+        if py_file.name.startswith("_"):
+            continue
+        try:
+            spec = importlib.util.spec_from_file_location(f"plugin_{py_file.stem}", py_file)
+            if spec is None or spec.loader is None:
+                continue
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            # Look for an Agent class or any BaseReviewAgent subclass
+            agent_cls = getattr(module, "Agent", None)
+            if agent_cls is None:
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if (isinstance(attr, type) and issubclass(attr, BaseReviewAgent)
+                            and attr is not BaseReviewAgent):
+                        agent_cls = attr
+                        break
+
+            if agent_cls is not None:
+                name = getattr(agent_cls, "PLUGIN_NAME", py_file.stem)
+                plugins[name] = agent_cls
+                logger.info("Loaded plugin agent: %s from %s", name, py_file)
+        except Exception as exc:
+            logger.warning("Failed to load plugin %s: %s", py_file, exc)
+
+    return plugins
 
 
 @dataclass
@@ -64,6 +109,7 @@ class ReviewState:
     test_result: Optional[AgentResult] = None
     doc_result: Optional[AgentResult] = None
     final_result: Optional[AgentResult] = None
+    plugin_results: dict[str, AgentResult] = field(default_factory=dict)
 
 
 # Reverse-lookup: agent name → ReviewState field name.
@@ -73,17 +119,22 @@ _STATE_ATTR_MAP: dict[str, str] = {name: f"{name}_result" for name in _AGENT_CLA
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
 
-    def __init__(self, model: Optional[str] = None, config: Optional[RevHiveConfig] = None):
+    def __init__(self, model: Optional[str] = None, config: Optional[RevHiveConfig] = None, plugin_dir: str = "plugins"):
         self.config = config or load_config()
         api_key = os.getenv("LLM_API_KEY")
         base_url = os.getenv("LLM_BASE_URL", "https://api.xiaomimimo.com/v1")
+
+        # Load built-in + plugin agents
+        all_agents = dict(_AGENT_CLASSES)
+        plugins = load_plugins(plugin_dir)
+        all_agents.update(plugins)
         model = model or self.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
 
         common_kwargs = {"model": model, "api_key": api_key, "base_url": base_url, "request_timeout": 120}
 
         # Only instantiate agents that are enabled in the config.
         self.agents: dict[str, object] = {}
-        for name, cls in _AGENT_CLASSES.items():
+        for name, cls in all_agents.items():
             if self.config.is_agent_enabled(name):
                 self.agents[name] = cls(**common_kwargs)
 
@@ -110,7 +161,7 @@ class CodeReviewWorkflow:
     def _make_runner(self, agent_name: str):
         """Return an async runner that reviews with the named agent."""
         agent = self.agents[agent_name]
-        state_attr = _STATE_ATTR_MAP[agent_name]
+        is_plugin = agent_name not in _STATE_ATTR_MAP
 
         async def _run(state: ReviewState) -> dict:
             result = await self._safe_review(agent, state)
@@ -119,7 +170,11 @@ class CodeReviewWorkflow:
             if threshold is not None and result.findings:
                 min_level = SEVERITY_ORDER.get(threshold.value, 99)
                 result.findings = [f for f in result.findings if SEVERITY_ORDER.get(f.severity.value, 99) <= min_level]
-            return {state_attr: result}
+            if is_plugin:
+                plugins = dict(state.plugin_results)
+                plugins[agent_name] = result
+                return {"plugin_results": plugins}
+            return {_STATE_ATTR_MAP[agent_name]: result}
 
         return _run
 
@@ -138,11 +193,15 @@ class CodeReviewWorkflow:
     async def _run_coordinate(self, state: ReviewState) -> dict:
         """Collect results from all enabled agents and synthesize."""
         results = []
-        for name in _AGENT_CLASSES:
-            if self.config.is_agent_enabled(name):
+        for name in self.agents:
+            # Built-in agents have dedicated state fields
+            if name in _STATE_ATTR_MAP:
                 r = getattr(state, _STATE_ATTR_MAP[name], None)
-                if r is not None:
-                    results.append(r)
+            else:
+                # Plugin agents use the plugin_results dict
+                r = state.plugin_results.get(name)
+            if r is not None:
+                results.append(r)
         final = await self.coordinator.synthesize(results)
         return {"final_result": final}
 

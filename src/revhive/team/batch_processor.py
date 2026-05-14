@@ -1,4 +1,6 @@
-"""Team-level batch processing engine.
+"""EXPERIMENTAL: Team-level batch processing engine.
+
+Not integrated into the main workflow. May be removed or redesigned.
 
 Runs continuous code review across multiple repositories for an entire team.
 This is the primary driver for high-volume token consumption."""

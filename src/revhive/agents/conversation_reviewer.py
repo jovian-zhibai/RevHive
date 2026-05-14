@@ -1,4 +1,6 @@
-"""Multi-turn conversational deep review engine.
+"""EXPERIMENTAL: Multi-turn conversational deep review engine.
+
+Not integrated into the main workflow. May be removed or redesigned.
 
 Each finding triggers a follow-up conversation where the reviewer
 asks clarifying questions, challenges assumptions, and explores

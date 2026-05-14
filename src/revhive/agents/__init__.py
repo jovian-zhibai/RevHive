@@ -10,7 +10,6 @@ from revhive.agents.fix_agent import FixAgent
 from revhive.agents.test_agent import TestAgent
 from revhive.agents.doc_agent import DocAgent
 from revhive.agents.coordinator import CoordinatorAgent
-from revhive.agents.conversation_reviewer import ConversationReviewer
 
 __all__ = [
     "StyleAgent",
@@ -23,5 +22,4 @@ __all__ = [
     "TestAgent",
     "DocAgent",
     "CoordinatorAgent",
-    "ConversationReviewer",
 ]
