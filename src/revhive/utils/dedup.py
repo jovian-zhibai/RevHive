@@ -97,10 +97,16 @@ def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
 
     for f in layer2:
         f_keywords = _extract_keywords(f.title + " " + f.description)
+        f_title_kw = _extract_keywords(f.title)
         merged = False
 
         for j, existing_kw in enumerate(unique_keywords):
-            if _jaccard_similarity(f_keywords, existing_kw) >= 0.5:
+            # Skip Jaccard dedup if both keyword sets are too small (high false positive risk)
+            if len(f_keywords) <= 1 and len(existing_kw) <= 1:
+                continue
+            # Require both keyword similarity AND title keyword overlap
+            title_overlap = _jaccard_similarity(f_title_kw, _extract_keywords(unique[j].title))
+            if _jaccard_similarity(f_keywords, existing_kw) >= 0.5 and title_overlap >= 0.3:
                 # Merge: keep higher severity, combine descriptions
                 existing = unique[j]
                 if SEVERITY_ORDER.get(f.severity.value, 99) < SEVERITY_ORDER.get(existing.severity.value, 99):
