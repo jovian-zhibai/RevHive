@@ -39,9 +39,10 @@ def _jaccard_similarity(a: set[str], b: set[str]) -> float:
 def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
     """Remove duplicate findings and sort by severity.
 
-    Two-layer dedup:
-    1. Exact title match (case-insensitive)
-    2. Semantic similarity: Jaccard ≥ 0.6 on title+description keywords
+    Three-layer dedup:
+    1. Same file+line: keep highest severity, merge descriptions
+    2. Exact title match (case-insensitive)
+    3. Semantic similarity: Jaccard ≥ 0.5 on title+description keywords
 
     When duplicates are found, the higher-severity one is kept and
     descriptions are merged.
@@ -49,33 +50,60 @@ def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
     if not findings:
         return []
 
-    # Layer 1: exact title dedup (keep higher severity)
-    title_map: dict[str, int] = {}
+    # Layer 1: file+line dedup (same location = same issue)
+    location_map: dict[str, int] = {}
     for i, f in enumerate(findings):
+        if f.file_path and f.line_number:
+            key = f"{f.file_path}:{f.line_number}"
+            if key in location_map:
+                existing_idx = location_map[key]
+                existing = findings[existing_idx]
+                if SEVERITY_ORDER.get(f.severity.value, 99) < SEVERITY_ORDER.get(existing.severity.value, 99):
+                    location_map[key] = i
+            else:
+                location_map[key] = i
+
+    # Keep findings with unique locations + findings without file_path
+    layer1: list[ReviewFinding] = []
+    seen_locations = set()
+    for i, f in enumerate(findings):
+        if f.file_path and f.line_number:
+            key = f"{f.file_path}:{f.line_number}"
+            if key in seen_locations:
+                continue
+            seen_locations.add(key)
+            # Keep the best one for this location
+            best_idx = location_map[key]
+            layer1.append(findings[best_idx])
+        else:
+            layer1.append(f)
+
+    # Layer 2: exact title dedup (keep higher severity)
+    title_map: dict[str, int] = {}
+    for i, f in enumerate(layer1):
         key = f.title.lower().strip()
         if key in title_map:
             existing_idx = title_map[key]
-            if SEVERITY_ORDER.get(f.severity.value, 99) < SEVERITY_ORDER.get(findings[existing_idx].severity.value, 99):
+            if SEVERITY_ORDER.get(f.severity.value, 99) < SEVERITY_ORDER.get(layer1[existing_idx].severity.value, 99):
                 title_map[key] = i
         else:
             title_map[key] = i
 
-    layer1: list[ReviewFinding] = [findings[i] for i in title_map.values()]
+    layer2: list[ReviewFinding] = [layer1[i] for i in title_map.values()]
 
-    # Layer 2: semantic similarity dedup
+    # Layer 3: semantic similarity dedup
     unique: list[ReviewFinding] = []
     unique_keywords: list[set[str]] = []
 
-    for f in layer1:
+    for f in layer2:
         f_keywords = _extract_keywords(f.title + " " + f.description)
         merged = False
 
         for j, existing_kw in enumerate(unique_keywords):
-            if _jaccard_similarity(f_keywords, existing_kw) >= 0.7:
+            if _jaccard_similarity(f_keywords, existing_kw) >= 0.5:
                 # Merge: keep higher severity, combine descriptions
                 existing = unique[j]
                 if SEVERITY_ORDER.get(f.severity.value, 99) < SEVERITY_ORDER.get(existing.severity.value, 99):
-                    # f has higher severity — replace title/severity but merge description
                     merged_desc = existing.description
                     if f.description and f.description not in merged_desc:
                         merged_desc = f.description + " " + merged_desc
@@ -84,23 +112,23 @@ def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
                         severity=f.severity,
                         title=f.title,
                         description=merged_desc,
+                        file_path=f.file_path or existing.file_path,
                         line_number=f.line_number or existing.line_number,
                         code_snippet=f.code_snippet or existing.code_snippet,
                         suggestion=f.suggestion or existing.suggestion,
                     )
                 else:
-                    # existing has higher severity — just merge description
                     if f.description and f.description not in existing.description:
                         unique[j] = ReviewFinding(
                             agent=existing.agent,
                             severity=existing.severity,
                             title=existing.title,
                             description=existing.description + " " + f.description,
+                            file_path=existing.file_path or f.file_path,
                             line_number=existing.line_number or f.line_number,
                             code_snippet=existing.code_snippet or f.code_snippet,
                             suggestion=existing.suggestion or f.suggestion,
                         )
-                # Update keywords for merged entry
                 unique_keywords[j] = _extract_keywords(unique[j].title + " " + unique[j].description)
                 merged = True
                 break
