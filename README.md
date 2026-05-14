@@ -107,7 +107,7 @@ docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code revhive review --fil
 
 **Option C: GitHub App (automatic PR reviews)**
 
-[Install the GitHub App](https://github.com/apps/codeguardian-bot) → every PR gets reviewed automatically, no CLI needed.
+[Install the GitHub App](https://github.com/apps/revhive-bot) → every PR gets reviewed automatically, no CLI needed.
 
 ## Demo Mode
 
@@ -206,7 +206,7 @@ ignore:                          # glob patterns — ** matches any depth
 
 ## GitHub App Integration
 
-[Install the GitHub App](https://github.com/apps/codeguardian-bot) for automatic PR reviews. Every PR gets a detailed review report — no CLI needed.
+[Install the GitHub App](https://github.com/apps/revhive-bot) for automatic PR reviews. Every PR gets a detailed review report — no CLI needed.
 
 ```yaml
 # .github/workflows/code-review.yml
