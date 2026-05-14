@@ -1,4 +1,6 @@
-"""Historical code quality trend analysis.
+"""EXPERIMENTAL: Historical code quality trend analysis.
+
+Not integrated into the main workflow. May be removed or redesigned.
 
 Scans every commit in a date range, running full review on each version.
 Extremely token-intensive: N commits × full review per commit."""
