@@ -29,9 +29,9 @@ Every review outputs a risk score (0-100) so you know at a glance whether it's s
 Example output:
 
 ```
-🚨 Risk Score: CRITICAL (92/100)
+🚨 Risk Score: CRITICAL (91/100)
 
-1 Critical · 1 High · 8 Medium · 12 Low
+1 Critical · 1 High · 8 Medium · 11 Low
 ```
 
 ## Why RevHive?
