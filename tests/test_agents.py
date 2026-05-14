@@ -360,7 +360,8 @@ def test_deepseek_base_url_accepted():
     assert str(agent.llm.openai_api_base) == "https://api.deepseek.com/v1"
 
 
-def test_agent_placeholder_api_key():
-    """When no api_key provided, a ValueError is raised."""
+def test_agent_placeholder_api_key(monkeypatch):
+    """When no api_key provided and no env var set, a ValueError is raised."""
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
     with pytest.raises(ValueError, match="API key is required"):
         StyleAgent(model="mimo-v2.5-pro")
