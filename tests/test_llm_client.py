@@ -1,6 +1,5 @@
 """Tests for LLM client factory."""
 
-import os
 import pytest
 from unittest.mock import patch
 
