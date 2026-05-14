@@ -256,6 +256,7 @@ class DemoReviewWorkflow:
                     severity=f["severity"],
                     title=f["title"],
                     description=f["description"],
+                    file_path=file_path,
                     line_number=f.get("line_number"),
                     suggestion=f.get("suggestion"),
                 )
