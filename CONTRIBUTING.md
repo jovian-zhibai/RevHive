@@ -5,7 +5,7 @@ We welcome contributions! RevHive is an AI-powered multi-agent code review syste
 ## Getting Started
 
 ```bash
-git clone https://github.com/Jansen003/RevHive.git
+git clone https://github.com/jovian-zhibai/RevHive.git
 cd RevHive
 pip install -e ".[dev]"
 python examples/sample_review.py  # Demo mode (no API key needed)
@@ -41,7 +41,7 @@ src/revhive/
 
 ## Security Reporting
 
-If you discover a security vulnerability, please report it via a [GitHub Issue](https://github.com/Jansen003/RevHive/issues) with the `security` label. Do not disclose vulnerabilities publicly until a fix is available.
+If you discover a security vulnerability, please report it via a [GitHub Issue](https://github.com/jovian-zhibai/RevHive/issues) with the `security` label. Do not disclose vulnerabilities publicly until a fix is available.
 
 ## Environment Variables
 

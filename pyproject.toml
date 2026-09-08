@@ -56,10 +56,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Jansen003/RevHive"
-Documentation = "https://jansen003.github.io/RevHive"
-Repository = "https://github.com/Jansen003/RevHive"
-Issues = "https://github.com/Jansen003/RevHive/issues"
+Homepage = "https://github.com/jovian-zhibai/RevHive"
+Documentation = "https://github.com/jovian-zhibai/RevHive"
+Repository = "https://github.com/jovian-zhibai/RevHive"
+Issues = "https://github.com/jovian-zhibai/RevHive/issues"
 
 [project.scripts]
 revhive = "revhive.main:cli"

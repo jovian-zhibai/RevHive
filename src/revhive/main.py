@@ -116,7 +116,7 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
                 "  Or set your LLM API key:\n\n"
                 "    export LLM_API_KEY=your-api-key\n\n"
                 "  Supported: MiMo, OpenAI, DeepSeek, Anthropic, Qwen, GLM, Kimi\n"
-                "  Docs: https://github.com/Jansen003/RevHive#quick-start\n",
+                "  Docs: https://github.com/jovian-zhibai/RevHive#quick-start\n",
                 err=True,
             )
             sys.exit(1)
@@ -230,7 +230,7 @@ def _render_demo_rich(result) -> None:
     # Star prompt
     star_text = Text()
     star_text.append("\n⭐ Like RevHive? ", style="bold")
-    star_text.append("Star us on GitHub", style="bold yellow link https://github.com/Jansen003/RevHive")
+    star_text.append("Star us on GitHub", style="bold yellow link https://github.com/jovian-zhibai/RevHive")
     star_text.append(" — helps more developers find this tool!", style="dim")
     console.print(star_text)
 
