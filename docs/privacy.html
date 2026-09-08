@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive — Privacy Policy (Draft)</title>
+  <meta name="description" content="What data RevHive collects, where it goes, and what it never does. Draft policy for the hosted GitHub App and this website.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            accent: '#10B981',
+            'accent-dark': '#059669',
+            surface: '#111113',
+            'surface-2': '#1a1a1e',
+            'surface-3': '#222228',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111113; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+  <!-- DRAFT notice -->
+  <div class="bg-amber-500/10 border-b border-amber-500/30">
+    <div class="max-w-3xl mx-auto px-6 py-2 text-center text-xs text-amber-400 font-medium tracking-wide">
+      DRAFT — pending legal review · feedback: souljian67@gmail.com
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="w-full bg-surface/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-white font-bold text-lg tracking-tight">Rev<span class="text-accent">Hive</span></a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="terms.html" class="text-gray-400 hover:text-white transition-colors font-medium">Terms</a>
+        <a href="commercial-license.html" class="text-gray-400 hover:text-white transition-colors font-medium">License</a>
+        <a href="https://github.com/jovian-zhibai/RevHive" target="_blank" rel="noopener" class="bg-accent hover:bg-accent-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-14">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Privacy Policy</h1>
+    <p class="text-gray-500 text-sm mt-2">Last updated: 2026-09-08 · Applies to the RevHive hosted GitHub App and this website.</p>
+
+    <div class="mt-10 space-y-10 text-sm leading-relaxed">
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">The short version</h2>
+        <ul class="space-y-2.5 text-gray-400">
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Self-hosting (CLI or server)? <span class="text-gray-200 font-semibold">We receive nothing.</span> Your code, diffs and API keys never leave your infrastructure.</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Hosted GitHub App? We receive only what GitHub sends to complete a review: PR diffs and metadata for repos you install the App on. We do not train models on your code.</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✕</span>We never sell, share, or monetize your code or metadata.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">1. What we collect — hosted GitHub App</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li><span class="text-gray-200 font-medium">Repository content in scope:</span> pull request diffs, changed-file contents, PR titles/descriptions — strictly for repos where you install the App, strictly to perform a review.</li>
+          <li><span class="text-gray-200 font-medium">Account identifiers:</span> GitHub installation ID, repository names, and the GitHub user ID of the installer (for billing and support).</li>
+          <li><span class="text-gray-200 font-medium">LLM provider data:</span> by default, review payloads are sent to the LLM backend configured for your account (BYOK — your key, your chosen provider: DeepSeek, MiMo, Qwen, GLM, Kimi, etc.). Provider handling is governed by that provider's policy. You can point RevHive at a provider you fully control.</li>
+          <li><span class="text-gray-200 font-medium">Operational logs:</span> request timestamps, repo name, review outcome. Logs retain diffs for <span class="text-gray-200 font-medium">30 days</span> (for debugging), then purge.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">2. What we collect — website &amp; licensing</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li>Email you send us for licensing/support — kept for the business relationship only.</li>
+          <li>Billing metadata from the payment processor (plan, status, invoice ID). <span class="text-gray-200 font-medium">Card numbers never touch our servers</span> — payments are handled by the processor.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">3. What we never do</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li>No training any model on your code — ours or anyone else's.</li>
+          <li>No selling or sharing code, diffs, or metadata with third parties (except the LLM provider you configure, to perform the review you requested).</li>
+          <li>No reading repos outside the App installation scope.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">4. Data residency</h2>
+        <p class="text-gray-400">Hosted service infrastructure location and sub-processors will be listed here before general availability. If your compliance requires code to remain in a specific jurisdiction (e.g., PRC), the <a href="commercial-license.html" class="text-accent underline underline-offset-2">Self-Host License</a> keeps all data inside your own network — that is its primary purpose.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">5. Your rights</h2>
+        <p class="text-gray-400">Email <a href="mailto:souljian67@gmail.com" class="text-accent underline underline-offset-2">souljian67@gmail.com</a> to request export or deletion of your account data, or to uninstall the App (which immediately stops all new data flow; stored diffs purge within 30 days).</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">6. Changes</h2>
+        <p class="text-gray-400">Material changes will be announced in the repo and via the App before taking effect. This is a draft — the version in force at the time of processing governs.</p>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5">
+    <div class="max-w-3xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <div>RevHive · <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">BSL 1.1</a></div>
+      <div class="flex items-center gap-5">
+        <a href="terms.html" class="text-gray-400 hover:text-accent transition-colors">Terms</a>
+        <a href="commercial-license.html" class="text-gray-400 hover:text-accent transition-colors">Commercial License</a>
+        <a href="index.html" class="text-gray-400 hover:text-accent transition-colors">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

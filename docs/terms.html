@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive — Terms of Service (Draft)</title>
+  <meta name="description" content="Draft terms of service for the RevHive hosted GitHub App: accounts, billing, acceptable use, liability.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            accent: '#10B981',
+            'accent-dark': '#059669',
+            surface: '#111113',
+            'surface-2': '#1a1a1e',
+            'surface-3': '#222228',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111113; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+  <!-- DRAFT notice -->
+  <div class="bg-amber-500/10 border-b border-amber-500/30">
+    <div class="max-w-3xl mx-auto px-6 py-2 text-center text-xs text-amber-400 font-medium tracking-wide">
+      DRAFT — pending legal review · feedback: souljian67@gmail.com
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="w-full bg-surface/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-white font-bold text-lg tracking-tight">Rev<span class="text-accent">Hive</span></a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="privacy.html" class="text-gray-400 hover:text-white transition-colors font-medium">Privacy</a>
+        <a href="commercial-license.html" class="text-gray-400 hover:text-white transition-colors font-medium">License</a>
+        <a href="https://github.com/jovian-zhibai/RevHive" target="_blank" rel="noopener" class="bg-accent hover:bg-accent-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-14">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Terms of Service</h1>
+    <p class="text-gray-500 text-sm mt-2">Last updated: 2026-09-08 · Applies to the RevHive hosted GitHub App (subscriptions). Self-hosting is governed by the <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-accent underline underline-offset-2">BSL 1.1 LICENSE</a> and the <a href="commercial-license.html" class="text-accent underline underline-offset-2">Commercial License</a>.</p>
+
+    <div class="mt-10 space-y-10 text-sm leading-relaxed">
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">1. The service</h2>
+        <p class="text-gray-400">RevHive reviews pull requests with multiple AI agents and posts findings to your repository. The hosted service is provided as-is; we may improve, change, or discontinue features with reasonable notice to paying subscribers.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">2. Accounts &amp; installation</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li>You grant the App the GitHub permissions needed to read PRs and post review comments — nothing more.</li>
+          <li>You are responsible for the LLM API keys you supply (BYOK). Treat them as confidential; we encrypt them at rest (AES-256-GCM) and never display them in full.</li>
+          <li>One subscription covers one GitHub account/organization as shown at purchase.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">3. Billing</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li>Free tier: 50 reviews/month. Paid tiers per the <a href="https://github.com/jovian-zhibai/RevHive#pricing--honest-numbers" target="_blank" rel="noopener" class="text-accent underline underline-offset-2">current pricing</a>.</li>
+          <li>Subscriptions renew monthly/yearly until cancelled; cancellation takes effect at the end of the paid period.</li>
+          <li>Payments are processed by our payment processor; we never store card numbers.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">4. Acceptable use</h2>
+        <ul class="list-disc pl-5 space-y-2 text-gray-400">
+          <li>Don't use the service to review content you have no right to process, or to violate any law or third-party rights.</li>
+          <li>Don't resell or redistribute the hosted service or attempt to bypass tier limits (see the LICENSE for redistribution rules on the code itself).</li>
+          <li>Don't probe, overload, or interfere with the service infrastructure.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">5. AI output disclaimer</h2>
+        <p class="text-gray-400">Reviews are automated analysis, not professional advice. Findings may include false positives and may miss real issues. <span class="text-gray-200 font-semibold">You remain responsible for what merges into your code.</span></p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">6. Liability</h2>
+        <p class="text-gray-400">To the maximum extent permitted by law, RevHive's total liability arising from the service is limited to the amount you paid in the 12 months before the claim. We are not liable for indirect or consequential damages, including lost data or profits.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">7. Termination</h2>
+        <p class="text-gray-400">You may stop at any time by uninstalling the App and cancelling. We may suspend accounts that violate these terms, with notice where practicable.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">8. Contact &amp; governing terms</h2>
+        <p class="text-gray-400">Questions: <a href="mailto:souljian67@gmail.com" class="text-accent underline underline-offset-2">souljian67@gmail.com</a>. This is a draft; the governing law and jurisdiction clause will be finalized with legal review before general availability.</p>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5">
+    <div class="max-w-3xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <div>RevHive · <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">BSL 1.1</a></div>
+      <div class="flex items-center gap-5">
+        <a href="privacy.html" class="text-gray-400 hover:text-accent transition-colors">Privacy</a>
+        <a href="commercial-license.html" class="text-gray-400 hover:text-accent transition-colors">Commercial License</a>
+        <a href="index.html" class="text-gray-400 hover:text-accent transition-colors">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
