@@ -18,8 +18,8 @@ production self-hosting for free; **v0.4.0 does not.**
 
 - **Not retroactive:** releases published before v0.4.0 remain governed by the grant
   they shipped with. The new grant applies to v0.4.0 and later.
-- Commercial licensing (Self-Host $690/yr for one org, Enterprise from $2,900/yr incl.
-  OEM/embedding rights): see [docs/commercial-license.html](https://jovian-zhibai.github.io/RevHive/commercial-license.html)
+- Commercial licensing (Self-Host $690/yr for one org, Enterprise quoted on
+  request incl. OEM/embedding rights): see [docs/commercial-license.html](https://revhive.souljian.cn/commercial-license.html)
   or email souljian67@gmail.com.
 - The hosted GitHub App (Pro / Business subscriptions) is unaffected — a subscription
   already covers production use of the hosted service.
