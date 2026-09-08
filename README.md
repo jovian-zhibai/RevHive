@@ -143,7 +143,7 @@ jobs:
 - **Pro ($12/mo)** — the "stop bad merges" tier: inline annotations + commit status gates so a risky PR *blocks* the merge.
 - **Business ($25/mo)** — for teams that treat review as part of delivery: Slack alerts, permanent history, SLA.
 
-**CLI mode is free forever** — `pip install revhive-ai`, bring your own key, run locally or in CI. You can even **self-host RevHive for production use at no charge** under BSL 1.1 (the only restriction: don't resell it as a competing hosted review service). If self-hosting is your path, star the repo and tell us which enterprise features would make you pay anyway — that's the roadmap.
+**CLI mode is free forever** — `pip install revhive-ai`, bring your own key, run locally or in CI for non-production use. **Under BSL 1.1, evaluation, testing, personal and open-source use are free; production use (reviewing code that ships in a commercial environment) requires a [commercial license](mailto:souljian67@gmail.com).** The one thing nobody can do: resell RevHive as a competing hosted review service. If you're a team that wants self-hosted production use, tell us what you need — that's the enterprise roadmap, and the license is the reason we can build it.
 
 **Why BYOK?** Because you already pay your LLM provider. We charge for the orchestration that makes 10 agents behave like one disciplined reviewer — no token markup, no model lock-in. Point it at whatever model fits your budget and compliance rules:
 
@@ -278,4 +278,11 @@ All contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Found a fa
 
 ## License
 
-BSL 1.1 — see [LICENSE](LICENSE). Converts to Apache 2.0 on 2030-05-12. Production self-hosting is allowed (see [Pricing](#pricing--honest-numbers)); the license only restricts reselling RevHive as a competing hosted review service.
+BSL 1.1 — see [LICENSE](LICENSE). Converts to Apache 2.0 on 2030-05-12.
+
+**What the license means in practice:**
+- **Free** — evaluation, testing, personal projects, open-source development, internal non-production use, and the hosted GitHub App's free tier.
+- **Paid (commercial license)** — production self-hosting: using RevHive to review/gate code that ships in a commercial or business environment. [Contact us](mailto:souljian67@gmail.com) for a license.
+- **Never allowed** — reselling RevHive as a competing hosted code review service.
+
+Questions on licensing? Open an issue or email souljian67@gmail.com.
