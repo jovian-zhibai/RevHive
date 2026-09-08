@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive Commercial License — Production Self-Hosting</title>
+  <meta name="description" content="BSL 1.1 lets you run RevHive free for evaluation, OSS and personal use. Self-host it in production? That requires a commercial license. Pricing, terms and how to buy.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            accent: '#10B981',
+            'accent-dark': '#059669',
+            surface: '#111113',
+            'surface-2': '#1a1a1e',
+            'surface-3': '#222228',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111113; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+  <!-- DRAFT notice -->
+  <div class="bg-amber-500/10 border-b border-amber-500/30">
+    <div class="max-w-5xl mx-auto px-6 py-2 text-center text-xs text-amber-400 font-medium tracking-wide">
+      DRAFT — pricing under review · Not yet accepting payments · Corrections welcome: souljian67@gmail.com
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="w-full bg-surface/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-white font-bold text-lg tracking-tight">Rev<span class="text-accent">Hive</span></a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="https://github.com/jovian-zhibai/RevHive" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors font-medium">GitHub</a>
+        <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors font-medium">LICENSE</a>
+        <a href="#pricing" class="bg-accent hover:bg-accent-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors">Get a license</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="max-w-5xl mx-auto px-6 pt-16 pb-10 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+      Run RevHive in production?<br><span class="text-accent">That takes a commercial license.</span>
+    </h1>
+    <p class="mt-5 text-lg text-gray-400 max-w-3xl mx-auto leading-relaxed">
+      RevHive is <span class="text-gray-200 font-semibold">BSL 1.1</span> — free for evaluation, open-source and personal use.
+      When you self-host it to review code that ships to production in a business environment,
+      the license is where RevHive stays sustainable. This page is that license.
+    </p>
+  </header>
+
+  <!-- Free vs paid vs never -->
+  <section class="max-w-5xl mx-auto px-6 pb-4">
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="bg-surface-2 border border-white/10 rounded-2xl p-6">
+        <div class="text-xs font-bold tracking-widest text-emerald-400 uppercase mb-3">Free — no license</div>
+        <ul class="space-y-2.5 text-sm text-gray-400 leading-relaxed">
+          <li class="flex gap-2"><span class="text-emerald-400 shrink-0">✓</span>Evaluation &amp; testing in any environment</li>
+          <li class="flex gap-2"><span class="text-emerald-400 shrink-0">✓</span>Personal projects, study, teaching</li>
+          <li class="flex gap-2"><span class="text-emerald-400 shrink-0">✓</span>Open-source development</li>
+          <li class="flex gap-2"><span class="text-emerald-400 shrink-0">✓</span>Internal non-production trials (dev / staging) in a company</li>
+        </ul>
+      </div>
+      <div class="bg-surface-2 border border-accent/40 rounded-2xl p-6">
+        <div class="text-xs font-bold tracking-widest text-amber-400 uppercase mb-3">Commercial license</div>
+        <ul class="space-y-2.5 text-sm text-gray-400 leading-relaxed">
+          <li class="flex gap-2"><span class="text-amber-400 shrink-0">→</span>Self-hosted RevHive used to review code that ships to production</li>
+          <li class="flex gap-2"><span class="text-amber-400 shrink-0">→</span>Production use inside a company, institution or other business</li>
+          <li class="flex gap-2"><span class="text-amber-400 shrink-0">→</span>Using RevHive as a delivery step for paid client / agency work</li>
+          <li class="flex gap-2"><span class="text-amber-400 shrink-0">→</span>Dev / staging environments that are part of a licensed production setup</li>
+        </ul>
+      </div>
+      <div class="bg-surface-2 border border-white/10 rounded-2xl p-6">
+        <div class="text-xs font-bold tracking-widest text-red-400 uppercase mb-3">Never allowed</div>
+        <ul class="space-y-2.5 text-sm text-gray-400 leading-relaxed">
+          <li class="flex gap-2"><span class="text-red-400 shrink-0">✕</span>Reselling RevHive as a competing hosted code-review service — under any license</li>
+          <li class="flex gap-2"><span class="text-red-400 shrink-0">✕</span>Redistributing the source under a different license</li>
+          <li class="flex gap-2"><span class="text-red-400 shrink-0">✕</span>Removing license / attribution notices</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-4 text-center">
+      These are plain-language summaries. The legal text is the <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-accent underline underline-offset-2">LICENSE file</a>, which governs.
+    </p>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="max-w-5xl mx-auto px-6 py-14">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-white text-center tracking-tight">Pricing</h2>
+    <p class="text-center text-gray-500 text-sm mt-2 mb-10">Draft tiers — final pricing to be confirmed. Every tier is a yearly license with 12 months of updates.</p>
+    <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <!-- Self-Host -->
+      <div class="bg-surface-2 border border-white/10 rounded-2xl p-8 flex flex-col">
+        <div class="text-sm font-semibold text-gray-400">Self-Host License</div>
+        <div class="mt-3 flex items-baseline gap-1">
+          <span class="text-4xl font-extrabold text-white">$690</span>
+          <span class="text-gray-500">/year</span>
+        </div>
+        <div class="text-sm text-gray-500 mt-1">≈ ¥4,980/年 · CNY invoice available</div>
+        <ul class="mt-6 space-y-3 text-sm text-gray-400 leading-relaxed flex-1">
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Production self-hosting for <span class="text-gray-200">one organization</span></li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Unlimited internal developers (named-seat not required)</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Minor-version updates for 12 months</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Email support for deployment &amp; license issues</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>License key + written grant of rights</li>
+        </ul>
+        <a href="mailto:souljian67@gmail.com?subject=RevHive%20Commercial%20License%20%E2%80%94%20Self-Host%20%3Corg%3E&body=Organization%3A%0ATeam%20size%3A%0ADeployment%20(Docker%20%2F%20K8s%20%2F%20bare)%3A%0ACode%20domain%20(e.g.%20fintech%2C%20SaaS)%3A%0AInvoice%20needs%20(CNY%20%2F%20USD)%3A%0A" class="mt-8 block text-center bg-accent hover:bg-accent-dark text-white font-semibold py-3 rounded-lg transition-colors">Request license</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="bg-surface-2 border border-accent/40 rounded-2xl p-8 flex flex-col relative">
+        <div class="absolute -top-3 left-8 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full">Data-residency focus</div>
+        <div class="text-sm font-semibold text-gray-400">Enterprise</div>
+        <div class="mt-3 flex items-baseline gap-1">
+          <span class="text-4xl font-extrabold text-white">Custom</span>
+        </div>
+        <div class="text-sm text-gray-500 mt-1">Quoted on request</div>
+        <ul class="mt-6 space-y-3 text-sm text-gray-400 leading-relaxed flex-1">
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Multiple deployments / group-level entities</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Private deployment assistance — incl. <span class="text-gray-200">domestic LLM backends &amp; data-stays-in-China</span> setup</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>Priority support + optional SLA</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">✓</span>PO / contract / compliance paperwork</li>
+        </ul>
+        <a href="mailto:souljian67@gmail.com?subject=RevHive%20Enterprise%20%E2%80%94%20%3Corg%3E&body=Organization%3A%0ATeam%20size%3A%0ADeployments%20(count%20%2F%20regions)%3A%0ACompliance%20requirements%3A%0AProcurement%20process%20(PO%20%2F%20contract)%3A%0A" class="mt-8 block text-center border border-accent text-accent hover:bg-accent hover:text-white font-semibold py-3 rounded-lg transition-colors">Contact sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to buy -->
+  <section class="max-w-3xl mx-auto px-6 pb-14">
+    <h2 class="text-2xl font-extrabold text-white tracking-tight">How to buy — today</h2>
+    <p class="text-gray-400 text-sm mt-2 leading-relaxed">
+      Checkout is being built; for now every license starts with an email. Expect a reply within
+      <span class="text-gray-200">1–2 business days</span> with the license text, activation steps and an invoice.
+    </p>
+    <div class="mt-5 bg-surface-2 border border-white/10 rounded-xl p-5 text-sm font-mono text-gray-300 leading-relaxed overflow-x-auto">
+      <div><span class="text-gray-500">To:</span> souljian67@gmail.com</div>
+      <div><span class="text-gray-500">Subject:</span> RevHive Commercial License — &lt;your org&gt;</div>
+      <div class="mt-2 text-gray-500">// Then just answer:</div>
+      <div>Organization · team size · deployment (Docker / K8s / bare)</div>
+      <div>What you'll review (fintech / SaaS / agency…) · invoice in CNY or USD</div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto px-6 pb-20">
+    <h2 class="text-2xl font-extrabold text-white tracking-tight mb-5">FAQ</h2>
+    <div class="space-y-3">
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">We already pay for the GitHub App (Pro/Business). Do we still need this?<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">No. A managed GitHub App subscription includes production use of the hosted service. The commercial license applies only when <em>you</em> deploy and run RevHive yourself (CLI / self-hosted server).</p>
+      </details>
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">We self-host but only to evaluate. Free?<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">Yes — internal non-production evaluation is free under the BSL grant. The moment reviewed code ships to production, buy the Self-Host License.</p>
+      </details>
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">Students, maintainers of OSS, hobbyists?<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">Covered by the free grant. Personal projects, study, teaching and open-source development never need a license.</p>
+      </details>
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">What do we actually receive?<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">A written grant of rights referencing your organization, the license key, activation/deployment notes, and an invoice (CNY or USD). Renewal before expiry keeps updates flowing.</p>
+      </details>
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">What happens at the Change Date (2030-05-12)?<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">The licensed work converts to Apache-2.0 and the license requirement disappears — anyone may use it freely, including in production.</p>
+      </details>
+      <details class="bg-surface-2 border border-white/10 rounded-xl p-5 group">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-200 list-none flex justify-between items-center">We need a PO / contract / procurement flow.<span class="text-accent group-open:rotate-45 transition-transform text-lg leading-none">+</span></summary>
+        <p class="text-sm text-gray-400 mt-3 leading-relaxed">That's the Enterprise tier. We'll work through your vendor process and provide the paperwork.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5">
+    <div class="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <div>RevHive · <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">BSL 1.1</a> · converts to Apache-2.0 on 2030-05-12</div>
+      <div class="flex items-center gap-5">
+        <a href="mailto:souljian67@gmail.com" class="text-gray-400 hover:text-accent transition-colors">souljian67@gmail.com</a>
+        <a href="https://github.com/jovian-zhibai/RevHive" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">GitHub</a>
+        <a href="index.html" class="text-gray-400 hover:text-accent transition-colors">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
