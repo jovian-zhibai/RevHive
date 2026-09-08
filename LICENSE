@@ -5,17 +5,27 @@ Licensor: RevHive
 Licensed Work: RevHive
 The Licensed Work is (c) 2026 RevHive
 
-Additional Use Grant: You may use the Licensed Work for any purpose
-except providing a competing code review service or a substantially
-similar product that offers automated code review as a hosted or
-managed service.
+Additional Use Grant: You may use the Licensed Work free of charge for
+non-production purposes, including evaluation, testing, personal
+projects, open-source development, and internal development that does
+not operate in a commercial environment.
+
+Production use — defined as using the Licensed Work to review, analyze,
+or gate code that is deployed, operated, or monetized in a commercial,
+business, or government environment — requires a separate commercial
+license from the Licensor.
+
+In all cases, you may not use the Licensed Work to provide a competing
+code review service or a substantially similar product that offers
+automated code review as a hosted or managed service.
 
 Change Date: 2030-05-12
 
 Change License: Apache License, Version 2.0
 
-For information about alternative licensing arrangements for the
-Licensed Work, please contact the Licensor.
+For information about alternative licensing arrangements or a
+commercial license for the Licensed Work, please contact the Licensor
+at souljian67@gmail.com.
 
 Notice
 
