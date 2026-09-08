@@ -4,37 +4,49 @@
 [![Downloads](https://img.shields.io/pypi/dm/revhive-ai)](https://pypi.org/project/revhive-ai/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-BSL--1.1-blue)](LICENSE)
-[![CI](https://github.com/Jansen003/RevHive/actions/workflows/ci.yml/badge.svg)](https://github.com/Jansen003/RevHive/actions)
+[![CI](https://github.com/jovian-zhibai/RevHive/actions/workflows/ci.yml/badge.svg)](https://github.com/jovian-zhibai/RevHive/actions)
 
-> **10 个 AI Agent 并行审查你的代码，30 秒出报告。安全漏洞、性能瓶颈、逻辑 Bug，一个都不放过。**
+> **10 AI reviewers. 30 seconds. One merge decision.**
+>
+> RevHive scans every pull request with 10 specialized agents (9 reviewers + 1 coordinator) for security holes, logic bugs, performance traps and test gaps — then hands you **one risk score and a deduplicated list worth reading**. No 90-comment noise. No "LGTM" gambling.
 
 ```bash
-pip install revhive-ai && revhive demo   # 30 秒体验，无需 API Key
+pip install revhive-ai && revhive demo   # 30-second taste — no API key, no setup
 ```
 
-**RevHive** 是一个 AI 驱动的多 Agent 代码审查系统。9 个专业 Agent 并行审查，1 个 Coordinator 汇总去重、解决冲突、计算风险评分。
+**Two ways to use it:**
+- **CLI / CI** — run it yourself, data never leaves your machine. Free forever under BSL.
+- **[GitHub App](https://github.com/apps/revhive-bot)** — every PR gets auto-reviewed. Free for 50 reviews/month, no credit card.
 
-- **10 个专业 Agent** — 安全、性能、逻辑、风格、测试、文档……各司其职
-- **风险评分 0-100** — 一眼看出这个 PR 能不能合并
-- **Demo 模式** — 不需要 API Key，30 秒跑完完整流程
-- **CLI 优先** — 本地运行，数据不出你的电脑
+> **Status:** early-stage and solo-built. We run RevHive on every PR we open in our own repos. False positives are the #1 thing we care about — if a finding is noise, [tell us](https://github.com/jovian-zhibai/RevHive/issues) and we'll fix the agent, not the symptom.
 
-- **Structured Output** — Agents return structured JSON via Pydantic schemas, with regex fallback for unsupported LLMs
-- **Semantic Deduplication** — Title matching + keyword Jaccard similarity prevents duplicate findings across agents
-- **LLM Conflict Resolution** — Coordinator uses AI to resolve contradictory assessments between agents
+---
 
-### Risk Score
+## Why people use it
 
-Every review outputs a risk score (0-100) so you know at a glance whether it's safe to merge:
+| The problem | What RevHive does about it |
+|---|---|
+| Reviewing a big PR properly takes 1–2 hours of a senior dev's day | 10 agents read it in parallel, report in ~30s |
+| Bugs ship because "LGTM" and nobody actually looked | Every PR gets a scored, deduplicated audit — no skipped files |
+| Security findings surface in prod, not in review | A dedicated Security agent hunts SQLi, XSS, secrets, weak crypto, auth flaws before merge |
+| Reviewer comments are noisy and ignored | Coordinator dedups findings across agents; you read one score, drill into what matters |
+| Team pays per-seat for review tools and still worries about data leaving the repo | BYOK: your code and keys go to the LLM *you* chose (DeepSeek, MiMo, Qwen, GLM, Kimi, OpenAI…), not to us |
+| Chinese models? Most tools assume OpenAI | 5 Chinese LLMs are first-class citizens — this is the only review tool with native DeepSeek/MiMo/Qwen/GLM/Kimi support |
 
-| Score | Level | Meaning |
-|-------|-------|---------|
-| 0-20 | ✅ LOW | Safe to merge |
-| 21-50 | ⚠️ MEDIUM | Review recommended before merge |
-| 51-80 | 🔴 HIGH | Fix before merge |
-| 81-100 | 🚨 CRITICAL | Do not merge |
+## Who it's for — and who it isn't
 
-Example output:
+**For:** solo devs and small teams that already do PR review but want a reliable second pair of eyes; teams that want a *pre-merge quality gate* without buying per-seat SaaS; anyone who cares where their code and API keys go.
+
+**Not (yet) for:** replacing your senior engineers' judgment; org-scale governance dashboards (on the [roadmap](#roadmap)); non-GitHub Git hosts ([roadmap](#roadmap)).
+
+## See it work
+
+```bash
+pip install revhive-ai
+revhive demo
+```
+
+The demo runs the full 10-agent pipeline locally with mock responses — same report structure as a real run, zero cost. You'll get a severity-ordered, deduplicated report ending in:
 
 ```
 🚨 Risk Score: CRITICAL (91/100)
@@ -42,199 +54,38 @@ Example output:
 1 Critical · 1 High · 8 Medium · 11 Low
 ```
 
-## Why RevHive?
+| Score | Level | Meaning |
+|-------|-------|---------|
+| 0–20 | ✅ LOW | Safe to merge |
+| 21–50 | ⚠️ MEDIUM | Review recommended before merge |
+| 51–80 | 🔴 HIGH | Fix before merge |
+| 81–100 | 🚨 CRITICAL | Do not merge |
 
-| 你的痛点 | RevHive 的解法 |
-|---|---|
-| 人工 Code Review 每天花 1-2 小时 | 9 个 Agent 并行审查，30 秒出报告 |
-| 人工审查容易遗漏细节 | 每个 Agent 是领域专家（安全、性能、逻辑……） |
-| "LGTM" 文化让 Bug 溜进去 | 每个 PR 都有完整的客观审计 |
-| 不知道团队代码质量趋势 | 跟踪代码健康度变化 |
+## Get started in 3 ways
 
-## 为什么值得 Star？
-
-- 这是目前**唯一支持中文 LLM（MiMo、DeepSeek、Qwen、GLM、Kimi）的代码审查工具**
-- CLI 完全免费，BYOK（自带 API Key），数据不出本地
-- Demo 模式让你 30 秒看到完整效果，零成本评估
-- 我们在持续迭代，Star 了就能收到更新通知
-
-## Pricing
-
-| Tier | Price | Reviews | Agents | Concurrent | Inline Comments | Commit Status | History | Slack | Support |
-|------|-------|---------|--------|------------|:---:|:---:|:---:|:---:|:---:|
-| **Free** | $0 | 50/mo | 4 core | 1 | — | — | — | — | Community |
-| **Pro** | $12/mo | Unlimited | All 9 | 10 | ✅ | ✅ | 30 days | — | Email (48h) |
-| **Business** | $25/mo | Unlimited | All 9 | 100 | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
-
-**CLI mode is free forever** — `pip install revhive-ai`, bring your own LLM key, run locally or in CI.
-
-**GitHub App** uses the tiers above. Start free, upgrade when you need inline annotations, commit status gates, and all 9 agents.
-
-All plans are **BYOK** — you pay your LLM provider directly. RevHive charges for orchestration, not tokens.
-
-**Typical LLM cost per PR review:** ~$0.05 with DeepSeek · ~$0.05–0.15 with MiMo · ~$0.10–0.30 with GPT-4o · Free with MiMo credits. You control spend through your own LLM account.
-
-## RevHive vs Others
-
-| Feature | RevHive | CodeRabbit | Sourcery | SonarQube | Copilot Review |
-|---------|:---:|:---:|:---:|:---:|:---:|
-| AI-driven review | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Multi-agent parallel | ✅ 10 | ❌ | ❌ | ❌ | ❌ |
-| Chinese LLM support | ✅ 5 providers | ❌ | ❌ | ❌ | ❌ |
-| Risk score (0-100) | ✅ | ✅ | ❌ | ✅ | ❌ |
-| CLI local-first | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
-| PR inline comments | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Quality gate (status check) | ✅ | ❌ | ❌ | ✅ | ❌ |
-| IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
-| Open source | ✅ BSL | Partial | ❌ | ✅ | ❌ |
-| Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ |
-
-> 🔜 = Coming soon
-
-## Architecture
-
-```
-┌─────────────┐
-│  Coordinator │ ← Synthesizes findings, resolves conflicts
-└──────┬──────┘
-       │ collects results from 9 parallel agents
-       ▼
-  Style  Security  Perf  Logic  Repo  Refactor  Fix  Test  Doc
-```
-
-### All 9 Review Agents + Coordinator
-
-| Agent | Role |
-|---|---|
-| **StyleAgent** | Naming conventions, formatting, documentation |
-| **SecurityAgent** | SQL injection, XSS, secrets, weak crypto, auth flaws |
-| **PerformanceAgent** | N+1 queries, memory leaks, algorithmic complexity |
-| **LogicAgent** | Edge cases, error handling, race conditions, type safety |
-| **RepoAgent** | Design patterns, SOLID principles, module structure, testability |
-| **RefactorAgent** | Design patterns, code transformation, incremental migration |
-| **FixAgent** | Generates complete corrected code with root cause analysis |
-| **TestAgent** | Unit tests, edge case tests, security regression tests |
-| **DocAgent** | API docs, architecture docs, usage examples |
-| **Coordinator** | Deduplicates (semantic), resolves conflicts via LLM, calculates risk score, generates report |
-
-## Quick Start
-
-**Option A: CLI (30 seconds)**
+**A. CLI — real review of a file or diff (30 seconds)**
 
 ```bash
-pip install revhive-ai              # 1. 安装
-revhive demo                        # 2. 跑 Demo（无需 API Key）
-revhive review --file src/main.py   # 3. 真实审查（需要 API Key）
+pip install revhive-ai
+export LLM_API_KEY=your-key            # DeepSeek, MiMo, Qwen, GLM, Kimi, OpenAI…
+revhive review --file src/main.py      # or: revhive review --diff HEAD~1
 ```
 
-**Option B: Docker**
+**B. GitHub App — automatic review on every PR**
+
+1. [Install the GitHub App](https://github.com/apps/revhive-bot) on the repos you care about
+2. Paste your LLM key in the auto-created dashboard (DeepSeek is pre-selected — ~$0.05/review)
+3. Done. Every new PR gets a review comment with the risk score.
+
+**C. CI — as a GitHub Action or Docker step**
 
 ```bash
 docker build -t revhive .
-docker run --rm -e LLM_API_KEY=your-api-key -v $(pwd):/code revhive review --file /code/src/main.py
+docker run --rm -e LLM_API_KEY=$LLM_API_KEY -v $(pwd):/code revhive review --file /code/src/main.py
 ```
 
-**Option C: GitHub App (automatic PR reviews)**
-
-[Install the GitHub App](https://github.com/apps/revhive-bot), paste your LLM API key in the dashboard (auto-created on install), and every PR gets reviewed automatically. Starts free (50 reviews/mo, 4 core agents). Upgrade to **Pro ($12/mo)** for all 9 agents, inline comments, and commit status gates, or **Business ($25/mo)** for Slack notifications, permanent history, and priority support. **DeepSeek is the default provider** in the dashboard — ~$0.05/review.
-
-## Demo Mode
-
-RevHive ships with a fully functional **demo mode** that runs the complete multi-agent pipeline with mock responses. No API key, no network, no cost — perfect for evaluation.
-
-```bash
-python examples/sample_review.py
-```
-
-This produces a realistic review report identical in structure to a live MiMo-backed run, including:
-- 20+ simulated findings across all 9 review agents
-- Severity-ordered report (CRITICAL / HIGH / MEDIUM / LOW)
-- Markdown and JSON output formats
-
-## Supported LLM Backends
-
-| Provider | Model | Cost / Review | Setup |
-|---|---|---|---|
-| **DeepSeek** | `deepseek-chat` | ~$0.05 | `LLM_BASE_URL=https://api.deepseek.com/v1` |
-| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | ~$0.05–0.15 (free credits) | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
-| OpenAI | `gpt-4o` | ~$0.10–0.30 | `LLM_BASE_URL=https://api.openai.com/v1` |
-| Qwen (Alibaba) | `qwen-plus` | ~$0.05–0.10 | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| Anthropic | `claude-sonnet-4-20250514` | ~$0.15–0.40 | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
-
-**Quick preset:** Set `LLM_MODEL` to a preset name (e.g., `deepseek`, `openai`, `qwen`) and RevHive auto-configures the base URL. Explicit `LLM_BASE_URL` takes priority.
-
-**CLI default:** MiMo (`mimo-v2.5-pro`). **GitHub App dashboard default:** DeepSeek (`deepseek-chat`) — the cheapest option at ~$0.05/review.
-
-## Supported Languages
-
-RevHive's LLM-powered agents can review code in any language. Currently optimized for:
-
-| Language | Extensions | Security Patterns | Performance Patterns |
-|----------|-----------|-------------------|---------------------|
-| Python | .py | ✅ Full | ✅ Full |
-| JavaScript/TypeScript | .js .jsx .mjs .ts .tsx | ✅ Full | ✅ Full |
-| Go | .go | ✅ Full | ✅ Full |
-| Rust | .rs | ✅ Full | ✅ Full |
-| Java | .java | ✅ Full | ✅ Full |
-| C/C++ | .c .cpp .h .hpp | ✅ Core | ⚠️ Basic |
-| Ruby | .rb | ✅ Core | ⚠️ Basic |
-| PHP | .php | ✅ Full | ⚠️ Basic |
-| Swift | .swift | ✅ Core | ⚠️ Basic |
-| Kotlin | .kt | ✅ Core | ⚠️ Basic |
-
-Other languages are supported via LLM understanding but may have fewer specialized patterns.
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `LLM_API_KEY` | **Yes** | — | API key for the LLM provider |
-| `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
-| `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name |
-
-## Configuration
-
-Create `.revhive.yml` in your project root:
-
-```yaml
-model: mimo-v2.5-pro
-
-agents:
-  style:
-    enabled: true
-  security:
-    enabled: true
-    severity_threshold: medium   # only report medium and above
-  performance:
-    enabled: true
-  logic:
-    enabled: true
-  repo:
-    enabled: true
-  refactor:
-    enabled: true
-  fix:
-    enabled: true
-  test:
-    enabled: true
-  doc:
-    enabled: false               # disable documentation agent
-
-ignore:                          # glob patterns — ** matches any depth
-  - "*.min.js"
-  - "*.min.css"
-  - "vendor/**"
-  - "node_modules/**"
-  - "migrations/**"
-  - "__pycache__/**"
-  - ".git/**"
-  - ".venv/**"
-```
-
-## GitHub App Integration
-
-[Install the GitHub App](https://github.com/apps/revhive-bot) for automatic PR reviews. Every PR gets a detailed review report — no CLI needed.
+<details>
+<summary>Full GitHub Actions workflow (copy-paste)</summary>
 
 ```yaml
 # .github/workflows/code-review.yml
@@ -258,7 +109,7 @@ jobs:
       - run: pip install revhive-ai
       - name: Run RevHive Review
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}       # DeepSeek is ~$0.05/review
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}   # DeepSeek ≈ $0.05/review
           LLM_BASE_URL: https://api.deepseek.com/v1
           LLM_MODEL: deepseek-chat
         run: |
@@ -276,47 +127,155 @@ jobs:
               body: report
             });
 ```
+</details>
 
-## Project Structure
+---
+
+## Pricing — honest numbers
+
+| Tier | Price | Reviews | Agents | Inline comments | Commit status gate | History | Slack | Support |
+|------|-------|---------|--------|:---:|:---:|:---:|:---:|:---:|
+| **Free** | $0 | 50/mo | 4 core | — | — | — | — | Community |
+| **Pro** | $12/mo | Unlimited | All 10 | ✅ | ✅ | 30 days | — | Email (48h) |
+| **Business** | $25/mo | Unlimited | All 10 | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
+
+- **Free** — for trying it out and light use. 50 reviews/month is roughly one active repo.
+- **Pro ($12/mo)** — the "stop bad merges" tier: inline annotations + commit status gates so a risky PR *blocks* the merge.
+- **Business ($25/mo)** — for teams that treat review as part of delivery: Slack alerts, permanent history, SLA.
+
+**CLI mode is free forever** — `pip install revhive-ai`, bring your own key, run locally or in CI. You can even **self-host RevHive for production use at no charge** under BSL 1.1 (the only restriction: don't resell it as a competing hosted review service). If self-hosting is your path, star the repo and tell us which enterprise features would make you pay anyway — that's the roadmap.
+
+**Why BYOK?** Because you already pay your LLM provider. We charge for the orchestration that makes 10 agents behave like one disciplined reviewer — no token markup, no model lock-in. Point it at whatever model fits your budget and compliance rules:
+
+| Provider | Typical cost / PR review |
+|---|---|
+| DeepSeek | ~$0.05 |
+| MiMo (Xiaomi) | ~$0.05–0.15 (free credits available) |
+| Qwen (Alibaba) | ~$0.05–0.10 |
+| OpenAI GPT-4o | ~$0.10–0.30 |
+| Anthropic Claude | ~$0.15–0.40 |
+
+Compare that with a per-seat review subscription ($10–45/user/month) **plus** your own spend — and remember the free tier already covers a full month of light use.
+
+## RevHive vs the alternatives
+
+| Feature | RevHive | CodeRabbit | Sourcery | SonarQube | Copilot Review |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| AI-driven review | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Multi-agent parallel review | ✅ 10 | ❌ | ❌ | ❌ | ❌ |
+| Chinese LLM support (DeepSeek/MiMo/Qwen/GLM/Kimi) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Risk score (0–100) | ✅ | ✅ | ❌ | ✅ | ❌ |
+| CLI local-first (code stays on your machine) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Demo mode (no API key) | ✅ | ❌ | ❌ | N/A | ❌ |
+| PR inline comments | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Quality gate (commit status) | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Source-available (BSL 1.1) | ✅ | Partial | ❌ | ✅ | ❌ |
+| Self-hostable | ✅ | ❌ | ❌ | ✅ | ❌ |
+| IDE integration | 🔜 | ❌ | ✅ | ✅ | ✅ |
+
+## Trust & security
+
+We eat our own dog food — RevHive's own CI runs pip-audit and bandit on every push, and the container runs as a non-root user:
+
+- **Dependency scanning** — `pip-audit` on every push/PR for known CVEs
+- **Static analysis** — `bandit` for hardcoded secrets, unsafe deserialization, injection
+- **Docker hardening** — non-root `appuser`, sensitive files excluded via `.dockerignore`
+
+```bash
+pip install pip-audit bandit && pip-audit && bandit -r src/ -ll --skip B101
+```
+
+## Roadmap
+
+1. **Precision benchmark** — a public dataset of real PRs with our false-positive/false-negative rates. We believe review tools should publish their noise ratio.
+2. **GitLab / Gitee support**
+3. **Enterprise tier** — org-wide dashboards, audit log, SSO, self-hosted license with support
+4. **Fix-PR workflow** — one-click PR that applies suggested fixes
+5. **IDE integration**
+
+Want something else? [Open an issue](https://github.com/jovian-zhibai/RevHive/issues) — it directly sets the order above.
+
+---
+
+## Reference
+
+### The 10 agents
+
+| Agent | Job |
+|---|---|
+| **SecurityAgent** | SQLi, XSS, secrets, weak crypto, auth flaws |
+| **PerformanceAgent** | N+1 queries, memory leaks, algorithmic complexity |
+| **LogicAgent** | Edge cases, error handling, race conditions, type safety |
+| **StyleAgent** | Naming, formatting, documentation |
+| **RepoAgent** | Design patterns, SOLID, module structure, testability |
+| **RefactorAgent** | Code transformation, incremental migration |
+| **FixAgent** | Complete corrected code with root-cause analysis |
+| **TestAgent** | Unit tests, edge-case tests, security regression tests |
+| **DocAgent** | API / architecture / usage docs |
+| **Coordinator** | Dedupes findings, resolves agent conflicts, computes risk score, writes the report |
+
+<details>
+<summary>Supported LLM backends & configuration</summary>
+
+| Provider | Model | Cost / review | Setup |
+|---|---|---|---|
+| **DeepSeek** | `deepseek-chat` | ~$0.05 | `LLM_BASE_URL=https://api.deepseek.com/v1` |
+| **MiMo (Xiaomi)** | `mimo-v2.5-pro` | ~$0.05–0.15 (free credits) | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
+| OpenAI | `gpt-4o` | ~$0.10–0.30 | `LLM_BASE_URL=https://api.openai.com/v1` |
+| Qwen (Alibaba) | `qwen-plus` | ~$0.05–0.10 | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| GLM (Zhipu) | `glm-4` | ~$0.05–0.15 | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
+| Kimi (Moonshot) | `kimi` | ~$0.05–0.15 | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| Anthropic | `claude-sonnet-4-20250514` | ~$0.15–0.40 | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
+
+**Presets:** set `LLM_MODEL` to `deepseek` / `openai` / `qwen` … and RevHive auto-configures the base URL. CLI default: MiMo. GitHub App dashboard default: DeepSeek (cheapest).
+
+**Env vars**
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | Yes | — | API key for your LLM provider |
+| `LLM_BASE_URL` | No | `https://api.xiaomimimo.com/v1` | LLM API endpoint |
+| `LLM_MODEL` | No | `mimo-v2.5-pro` | Model name |
+
+**Config file** — create `.revhive.yml` in your project root to toggle agents, set severity thresholds and ignore paths. Full example in [`README_zh.md`](README_zh.md) or `examples/`.
+</details>
+
+<details>
+<summary>Supported languages</summary>
+
+Python, JavaScript/TypeScript, Go, Rust, Java — **full** security & performance patterns. C/C++, Ruby, PHP, Swift, Kotlin — core patterns. Other languages still work via LLM understanding, with fewer specialized checks.
+</details>
+
+<details>
+<summary>Architecture & project structure</summary>
+
+```
+┌─────────────┐
+│ Coordinator │ ← synthesizes, dedupes, resolves conflicts, scores
+└──────┬──────┘
+       │ collects results from 9 parallel agents
+       ▼
+ Style  Security  Perf  Logic  Repo  Refactor  Fix  Test  Doc
+```
 
 ```
 src/revhive/
-  agents/          # 10 specialized agents (9 review + coordinator)
+  agents/          # 10 agents (9 reviewers + coordinator)
   graph/           # LangGraph workflow orchestration
-  utils/           # Utility modules
-  team/            # Batch processing engine
-  analysis/        # Historical trend analysis
-  demo.py           # Demo mode (no API key required)
-  main.py           # CLI entry point
-tests/              # 54+ tests covering agents, workflow, demo, dedup, integration
-examples/           # Ready-to-run examples
+  utils/           # LLM client, dedup, config
+  team/            # batch processing engine
+  analysis/        # trend analysis
+  demo.py          # demo mode (no API key)
+  main.py          # CLI entry point
+tests/              # 54+ tests: agents, workflow, demo, dedup, integration
+examples/           # ready-to-run examples
 ```
-
-## Security
-
-RevHive takes its own security seriously:
-
-- **Dependency scanning** — `pip-audit` runs in CI on every push and PR to catch known CVEs in dependencies.
-- **Static analysis** — `bandit` scans the source code for common security issues (hardcoded secrets, unsafe deserialization, injection risks).
-- **Docker hardening** — the container runs as a non-root user (`appuser`). Sensitive files (`.env`, `*.pem`, `.git/`) are excluded via `.dockerignore`.
-
-To run security checks locally:
-
-```bash
-pip install pip-audit bandit
-pip-audit
-bandit -r src/ -ll --skip B101
-```
+</details>
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome!
+All contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Found a false positive or a missed bug? That's the most valuable issue you can file.
 
 ## License
 
-BSL 1.1 — see [LICENSE](LICENSE). Converts to Apache 2.0 on 2030-05-12.
-
-
-
-
-
+BSL 1.1 — see [LICENSE](LICENSE). Converts to Apache 2.0 on 2030-05-12. Production self-hosting is allowed (see [Pricing](#pricing--honest-numbers)); the license only restricts reselling RevHive as a competing hosted review service.
