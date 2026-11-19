@@ -136,12 +136,12 @@ jobs:
 | Tier | Price | Reviews | Agents | Inline comments | Commit status gate | History | Slack | Support |
 |------|-------|---------|--------|:---:|:---:|:---:|:---:|:---:|
 | **Free** | $0 | 50/mo | 4 core | — | — | — | — | Community |
-| **Pro** | $12/mo | Unlimited | All 10 | ✅ | ✅ | 30 days | — | Email (48h) |
-| **Business** | $25/mo | Unlimited | All 10 | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
+| **Pro** | $9/mo | Unlimited | All 10 | ✅ | ✅ | 30 days | — | Email (48h) |
+| **Business** | $19/mo | Unlimited | All 10 | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
 
 - **Free** — for trying it out and light use. 50 reviews/month is roughly one active repo.
-- **Pro ($12/mo)** — the "stop bad merges" tier: inline annotations + commit status gates so a risky PR *blocks* the merge.
-- **Business ($25/mo)** — for teams that treat review as part of delivery: Slack alerts, permanent history, SLA.
+- **Pro ($9/mo)** — the "stop bad merges" tier: inline annotations + commit status gates so a risky PR *blocks* the merge.
+- **Business ($19/mo)** — for teams that treat review as part of delivery: Slack alerts, permanent history, SLA.
 
 **CLI mode is free forever** — `pip install revhive-ai`, bring your own key, run locally or in CI for non-production use. **Under BSL 1.1, evaluation, testing, personal and open-source use are free; production use (reviewing code that ships in a commercial environment) requires a [commercial license](mailto:souljian67@gmail.com).** The one thing nobody can do: resell RevHive as a competing hosted review service. If you're a team that wants self-hosted production use, tell us what you need — that's the enterprise roadmap, and the license is the reason we can build it.
 
