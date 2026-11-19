@@ -18,6 +18,8 @@ pip install revhive-ai && revhive demo   # 30 秒体验——无需 API Key、�
 - **CLI / CI** — 自己跑，数据不出你的机器。BSL 许可下永久免费。
 - **[GitHub App](https://github.com/apps/revhive-bot)** — 每个 PR 自动审查。每月免费 50 次，无需绑卡。
 
+**需要代码完全不出内网？** 见[中文方案页](https://jovian-zhibai.github.io/RevHive/zh.html)：BYOK + 国产模型 + 内网自托管，团队授权与私有化交付。也可以直接给一个仓库地址，我们免费出一份完整审查报告给你看效果。
+
 > **状态：** 早期项目，独立开发中。我们在自己所有仓库的每个 PR 上都跑 RevHive。**误报是我们最在意的事**——如果某条发现是噪音，[告诉我们](https://github.com/jovian-zhibai/RevHive/issues)，我们会修 Agent 本身，而不是掩盖症状。
 
 ---
