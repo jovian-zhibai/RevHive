@@ -17,3 +17,7 @@ review_report.md
 .workbuddy/
 docs/STRATEGY.md
 CLAUDE.md
+
+# private deployment artifacts
+deploy/.env
+deploy/reports/

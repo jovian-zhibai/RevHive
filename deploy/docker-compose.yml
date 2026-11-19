@@ -1,0 +1,24 @@
+services:
+  revhive:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: revhive:0.4.0
+    container_name: revhive
+    env_file:
+      - .env
+    volumes:
+      # Mount the repository you want reviewed, read-only.
+      # Change the left side to your own path.
+      - ${REVIEW_PATH:-./repo}:/work:ro
+      - ./reports:/reports
+    working_dir: /work
+    # No ports are published: RevHive is a CLI, it does not listen.
+    # The only outbound traffic is to LLM_BASE_URL below.
+    networks:
+      - revhive-net
+    command: ["--help"]
+
+networks:
+  revhive-net:
+    driver: bridge

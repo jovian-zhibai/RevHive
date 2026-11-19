@@ -1,0 +1,48 @@
+# 完全离线部署：模型跑在本机，代码一行都不出内网。
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ollama.yml up -d ollama
+#   docker compose -f docker-compose.yml -f docker-compose.ollama.yml run --rm revhive \
+#       review -f src/app.py --format markdown -o /reports/app.md
+#
+# 首次启动会拉取模型（qwen2.5-coder:14b 约 9 GB），之后完全离线可用。
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: revhive-ollama
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - revhive-net
+    # 不发布端口：只有 revhive 容器能访问它
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  revhive:
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      LLM_API_KEY: ollama
+      LLM_BASE_URL: http://ollama:11434/v1
+      LLM_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:14b}
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: revhive-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:14b}
+    entrypoint: ["/bin/sh", "-c", "ollama pull $$OLLAMA_MODEL"]
+    networks:
+      - revhive-net
+    restart: "no"
+
+volumes:
+  ollama-models:
