@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive — 代码不出内网的 AI 代码审查</title>
+  <meta name="description" content="自带国产模型 Key（DeepSeek / Qwen / GLM / Kimi），9 个专职 Agent 并行审 PR，一条门禁卡住高危合并。代码全程不经过我们的服务器，可完全内网离线运行。">
+  <meta property="og:title" content="RevHive — 代码不出内网的 AI 代码审查">
+  <meta property="og:description" content="自带国产模型 Key，9 个 Agent 并行审 PR，代码不出域。">
+  <meta property="og:url" content="https://jovian-zhibai.github.io/RevHive/zh.html">
+  <meta property="og:type" content="website">
+  <link rel="alternate" hreflang="en" href="https://jovian-zhibai.github.io/RevHive/">
+  <link rel="alternate" hreflang="zh-CN" href="https://jovian-zhibai.github.io/RevHive/zh.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'system-ui', 'sans-serif'] },
+        colors: { accent: '#10B981', 'accent-dark': '#059669', surface: '#111113', 'surface-2': '#1a1a1e', 'surface-3': '#222228' }
+      }}
+    }
+  </script>
+  <style>
+    @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fade-in 0.7s ease-out both; }
+    .fade-in-d1 { animation-delay: .1s } .fade-in-d2 { animation-delay: .2s } .fade-in-d3 { animation-delay: .3s }
+    .fade-in-d4 { animation-delay: .4s } .fade-in-d5 { animation-delay: .5s }
+    ::-webkit-scrollbar { width: 6px } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+<!-- Nav -->
+<nav class="sticky top-0 z-50 bg-surface/90 backdrop-blur border-b border-white/5">
+  <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/RevHive/zh.html" class="font-extrabold text-white tracking-tight">Rev<span class="text-accent">Hive</span></a>
+    <div class="flex items-center gap-6 text-sm">
+      <a href="#how" class="text-gray-400 hover:text-white transition-colors">怎么工作</a>
+      <a href="#compare" class="text-gray-400 hover:text-white transition-colors">对比</a>
+      <a href="#price" class="text-gray-400 hover:text-white transition-colors">价格</a>
+      <a href="/RevHive/" class="text-gray-500 hover:text-white transition-colors">EN</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="max-w-5xl mx-auto px-6 pt-20 pb-16">
+  <div class="fade-in inline-flex items-center gap-2 text-xs font-medium text-accent bg-accent/10 border border-accent/20 rounded-full px-3 py-1 mb-6">
+    <span class="w-1.5 h-1.5 bg-accent rounded-full"></span>源码不出内网 · 自带国产模型 · 可离线
+  </div>
+  <h1 class="fade-in fade-in-d1 text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
+    代码不出内网的<br class="hidden md:block">AI 代码审查
+  </h1>
+  <p class="fade-in fade-in-d2 text-lg text-gray-400 max-w-2xl leading-relaxed mb-8">
+    9 个专职 Agent 并行审你的 Pull Request，用你自己的 DeepSeek / Qwen / GLM / Kimi Key，
+    <strong class="text-white">代码全程不经过我们的服务器</strong>。跑在你自己内网的一台机器上，或者直接跑在开发者的笔记本上。
+  </p>
+  <div class="fade-in fade-in-d3 flex flex-wrap gap-3">
+    <a href="mailto:souljian67@gmail.com?subject=%E7%94%B3%E8%AF%B7%E5%85%8D%E8%B4%B9%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A" class="bg-accent hover:bg-accent-dark text-black font-semibold px-6 py-3 rounded-lg transition-colors">
+      免费出一份你仓库的审查报告
+    </a>
+    <a href="https://github.com/jovian-zhibai/RevHive" class="bg-surface-3 hover:bg-white/10 text-white font-medium px-6 py-3 rounded-lg border border-white/10 transition-colors">
+      GitHub 源码
+    </a>
+  </div>
+  <p class="fade-in fade-in-d4 text-xs text-gray-600 mt-4">
+    一个仓库地址 + 一个分支，我们出一份完整报告给你看。不满意就不用谈后面的事。
+  </p>
+</header>
+
+<!-- 为什么是现在 -->
+<section class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">为什么这件事突然变成刚需</h2>
+    <p class="text-gray-500 mb-10 max-w-2xl">不是因为 AI 更能找 bug 了，是因为用云端工具审代码这件事，在很多场景下已经不合规。</p>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6">
+        <div class="text-accent font-bold mb-2">合规底线</div>
+        <h3 class="text-white font-semibold mb-2">源码出境要过评估</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">《数据安全法》《促进和规范数据跨境流动规定》之下，把核心源码交给境外云端 AI 工具，很多场景需要先完成安全评估。等保 2.0 对核心系统代码的传输与存储也有明确管控要求。</p>
+      </div>
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6">
+        <div class="text-accent font-bold mb-2">供应链风险</div>
+        <h3 class="text-white font-semibold mb-2">境外工具后门预警</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">工信部网络安全监测平台已就境外 AI 编程工具的数据回传风险发布预警，要求政企与关键行业停用未完成国内合规备案的海外 AI 开发工具，优先采购可本地存储的国产方案。</p>
+      </div>
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6">
+        <div class="text-accent font-bold mb-2">乙方处境</div>
+        <h3 class="text-white font-semibold mb-2">甲方合同里写了“不得上云”</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">给金融、政务、央国企做外包的团队，合同里的数据条款往往直接禁止把代码放到第三方云。但团队又想用 AI 提效——这就是缺口所在：既要 AI，又不能上云。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 怎么工作 -->
+<section id="how" class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">它做的事，和“让大模型看一遍 diff”不一样</h2>
+    <p class="text-gray-500 mb-10 max-w-2xl">单次调用大模型看 diff，问题是噪声：说得多、说得散、说不到点上。真正难的是把多份报告收敛成一个能拍板的结论。</p>
+    <div class="grid md:grid-cols-5 gap-3 text-sm">
+      <div class="bg-surface-2 border border-white/5 rounded-lg p-4"><div class="text-accent text-xs font-bold mb-1">01</div><div class="text-white font-medium mb-1">切 diff</div><div class="text-gray-500">按文件与 hunk 切分，只送变化的上下文</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg p-4"><div class="text-accent text-xs font-bold mb-1">02</div><div class="text-white font-medium mb-1">9 个 Agent 并行</div><div class="text-gray-500">安全、性能、逻辑、并发、错误处理……各管一摊</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg p-4"><div class="text-accent text-xs font-bold mb-1">03</div><div class="text-white font-medium mb-1">语义去重</div><div class="text-gray-500">Jaccard 相似度 0.7 阈值合并重复问题</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg p-4"><div class="text-accent text-xs font-bold mb-1">04</div><div class="text-white font-medium mb-1">冲突裁决</div><div class="text-gray-500">两个 Agent 严重度打架时，用 LLM 裁决</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg p-4"><div class="text-accent text-xs font-bold mb-1">05</div><div class="text-white font-medium mb-1">一个风险分</div><div class="text-gray-500">加权封顶 100 分，卡住高危合并</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 对比 -->
+<section id="compare" class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">和主流方案的位置关系</h2>
+    <p class="text-gray-500 mb-10 max-w-2xl">不吹“比它们更强”。CodeRabbit 有几百人团队和 4000 万美元 ARR，功能上正面打不过。差别在部署方式和模型选择权。</p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="text-left text-gray-500 border-b border-white/10">
+            <th class="py-3 pr-4 font-medium"></th>
+            <th class="py-3 pr-4 font-medium">RevHive</th>
+            <th class="py-3 pr-4 font-medium">云端 SaaS（CodeRabbit 等）</th>
+            <th class="py-3 font-medium">IDE 内置（Copilot 等）</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-400">
+          <tr class="border-b border-white/5"><td class="py-3 pr-4 text-white">代码去哪</td><td class="py-3 pr-4 text-accent">只去你自己选的模型</td><td class="py-3 pr-4">厂商服务器</td><td class="py-3 pr-4">厂商云</td></tr>
+          <tr class="border-b border-white/5"><td class="py-3 pr-4 text-white">能否完全离线</td><td class="py-3 pr-4 text-accent">可以，接本地 Ollama</td><td class="py-3 pr-4">企业版可自托管，门槛高</td><td class="py-3 pr-4">不行</td></tr>
+          <tr class="border-b border-white/5"><td class="py-3 pr-4 text-white">模型选择</td><td class="py-3 pr-4 text-accent">自带 Key，国产模型一等公民</td><td class="py-3 pr-4">厂商决定</td><td class="py-3 pr-4">厂商决定</td></tr>
+          <tr class="border-b border-white/5"><td class="py-3 pr-4 text-white">谁付 token 钱</td><td class="py-3 pr-4 text-accent">你自己，按量，可审计</td><td class="py-3 pr-4">含在订阅里</td><td class="py-3 pr-4">含在订阅里</td></tr>
+          <tr class="border-b border-white/5"><td class="py-3 pr-4 text-white">审查形态</td><td class="py-3 pr-4">PR 门禁 + CLI + CI</td><td class="py-3 pr-4">PR 门禁</td><td class="py-3 pr-4">边写边提示</td></tr>
+          <tr><td class="py-3 pr-4 text-white">交付方式</td><td class="py-3 pr-4 text-accent">源码级，可改可审计</td><td class="py-3 pr-4">SaaS，改不了</td><td class="py-3 pr-4">插件，改不了</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 价格 -->
+<section id="price" class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">三种买法</h2>
+    <p class="text-gray-500 mb-10 max-w-2xl">命令行自己用是免费的，永久免费。要付钱的是“团队用”和“我们帮你落地”。</p>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6 flex flex-col">
+        <div class="text-white font-bold mb-1">自己用</div>
+        <div class="text-3xl font-extrabold text-white mb-1">¥0</div>
+        <div class="text-gray-500 text-sm mb-6">永久</div>
+        <a href="https://github.com/jovian-zhibai/RevHive#quick-start" class="text-center bg-surface-3 hover:bg-white/10 text-white font-medium py-2.5 rounded-lg border border-white/10 mb-6 transition-colors">看部署文档</a>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li>4 个核心 Agent</li>
+          <li>每月 50 次审查</li>
+          <li>CLI / CI 模式</li>
+          <li>自带模型 Key</li>
+        </ul>
+      </div>
+      <div class="bg-surface-2 border border-accent/40 rounded-xl p-6 flex flex-col relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-black text-xs font-bold px-3 py-0.5 rounded-full">多数团队选这个</div>
+        <div class="text-white font-bold mb-1">团队授权</div>
+        <div class="text-3xl font-extrabold text-white mb-1">¥2,999<span class="text-base text-gray-400 font-normal">/年</span></div>
+        <div class="text-gray-500 text-sm mb-6">≤10 名开发者</div>
+        <a href="mailto:souljian67@gmail.com?subject=%E5%9B%A2%E9%98%9F%E6%8E%88%E6%9D%83%E5%92%A8%E8%AF%A2" class="text-center bg-accent hover:bg-accent-dark text-black font-semibold py-2.5 rounded-lg mb-6 transition-colors">邮件咨询</a>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li>全部 9 个 Agent + 协调器</li>
+          <li>内网自托管，无审查次数上限</li>
+          <li>PR 门禁 + 行内注释</li>
+          <li>历史记录留存</li>
+          <li>邮件支持（48 小时）</li>
+        </ul>
+      </div>
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6 flex flex-col">
+        <div class="text-white font-bold mb-1">私有化交付</div>
+        <div class="text-3xl font-extrabold text-white mb-1">¥19,800<span class="text-base text-gray-400 font-normal">起</span></div>
+        <div class="text-gray-500 text-sm mb-6">一次性，含实施</div>
+        <a href="mailto:souljian67@gmail.com?subject=%E7%A7%81%E6%9C%89%E5%8C%96%E9%83%A8%E7%BD%B2%E5%92%A8%E8%AF%A2" class="text-center bg-surface-3 hover:bg-white/10 text-white font-medium py-2.5 rounded-lg border border-white/10 mb-6 transition-colors">获取报价</a>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li>部署到你的机房 / 专有云</li>
+          <li>对接本地 Ollama 或私有模型网关</li>
+          <li>接你的 GitLab / 内网 Git 与 CI</li>
+          <li>按你的规范写审查规则</li>
+          <li>源码级交付，可自行审计</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-gray-600 mt-6">价格含税，可开票。私有化交付的具体报价取决于部署环境与模型条件，先聊需求再定。</p>
+  </div>
+</section>
+
+<!-- 常见问题 -->
+<section class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-10">常见问题</h2>
+    <div class="space-y-6">
+      <div>
+        <h3 class="text-white font-semibold mb-2">代码会不会被传到你们服务器？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">不会。RevHive 是自带 Key（BYOK）的架构：它把 diff 直接发给你配置的模型服务商，或者你内网自己的模型。我们没有任何中转服务器，也没有你的代码。你可以断网跑，只要模型在内网。</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">必须要有 GPU 吗？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">不需要。用 DeepSeek、Qwen、GLM 的 API 就不需要 GPU，只付 token 钱。完全离线才需要本地推理，一张 4090 48G 跑 32B 量化模型对代码审查场景已经够用。</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">能接我们自己的 GitLab / Gitea 吗？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">内置是 GitHub App 和 CLI 两种接入。内网 GitLab / Gitea 走 CLI + CI 方式接入，私有化交付里我们帮你接好。这一项按你的环境现场确认。</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">它会不会像别的工具一样天天误报？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">会，取决于模型和规则。所以我们不承诺“零误报”，我们承诺你可以调：Agent 的提示词、严重度阈值、门禁分数线全部在配置文件里，改完即时生效。私有化交付里，规则是照你的代码规范写的。</p>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-2">为什么这么便宜？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">因为 token 钱你自己付，我们不承担推理成本，也就不需要靠订阅费覆盖算力。你付的是工具本身的价钱。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="border-t border-white/5 py-16 px-6">
+  <div class="max-w-3xl mx-auto text-center">
+    <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">先看报告，再谈钱</h2>
+    <p class="text-gray-400 mb-8">给我一个仓库地址和一个分支，我出一份完整审查报告。看完觉得有用，再谈授权或部署。</p>
+    <a href="mailto:souljian67@gmail.com?subject=%E7%94%B3%E8%AF%B7%E5%85%8D%E8%B4%B9%E5%AE%A1%E6%9F%A5%E6%8A%A5%E5%91%8A&body=%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80%EF%BC%9A%0A%E5%88%86%E6%94%AF%EF%BC%9A%0A%E6%8A%80%E6%9C%AF%E6%A0%88%EF%BC%9A%0A%E5%85%B3%E5%BF%83%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A" class="inline-block bg-accent hover:bg-accent-dark text-black font-semibold px-8 py-3.5 rounded-lg transition-colors">
+      souljian67@gmail.com
+    </a>
+  </div>
+</section>
+
+<footer class="border-t border-white/5 py-8 px-6">
+  <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600">
+    <div>RevHive · BSL 1.1 · 源码可审计</div>
+    <div class="flex gap-5">
+      <a href="/RevHive/" class="hover:text-gray-300 transition-colors">English</a>
+      <a href="/RevHive/terms.html" class="hover:text-gray-300 transition-colors">条款</a>
+      <a href="/RevHive/privacy.html" class="hover:text-gray-300 transition-colors">隐私</a>
+      <a href="https://github.com/jovian-zhibai/RevHive" class="hover:text-gray-300 transition-colors">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
