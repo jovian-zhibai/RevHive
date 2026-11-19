@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代码不出内网：企业内网部署 AI 代码审查的完整方案（2026）</title>
+  <meta name="description" content="为什么大多数团队不能直接用 CodeRabbit 或 Copilot？三种数据流向的对比、四种部署形态的取舍，以及用 Docker 和 DeepSeek/Qwen/Ollama 在内网跑起代码审查的可执行配置。">
+  <meta name="keywords" content="AI代码审查,私有化部署,代码不出内网,DeepSeek,通义千问,Ollama,内网code review,数据合规">
+  <meta property="og:title" content="代码不出内网：企业内网部署 AI 代码审查的完整方案">
+  <meta property="og:description" content="三种数据流向对比 + 四种部署形态取舍 + 可执行的 Docker 配置。">
+  <meta property="og:type" content="article">
+  <link rel="canonical" href="https://jovian-zhibai.github.io/RevHive/blog/ai-code-review-private-deployment.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Inter','PingFang SC','Microsoft YaHei','system-ui','sans-serif'], mono: ['JetBrains Mono','SF Mono','monospace'] },
+      colors: { accent: '#10B981', 'accent-dark': '#059669', surface: '#111113', 'surface-2': '#1a1a1e', 'surface-3': '#222228' }
+    }}}
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px }
+    article h2 { margin-top: 2.5rem; margin-bottom: 1rem; font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: -0.01em }
+    article h3 { margin-top: 1.75rem; margin-bottom: .6rem; font-size: 1.05rem; font-weight: 600; color: #e5e7eb }
+    article p { margin-bottom: 1rem; line-height: 1.85; color: #b4b4bb }
+    article ul, article ol { margin: 1rem 0 1rem 1.25rem; line-height: 1.85; color: #b4b4bb }
+    article li { margin-bottom: .4rem }
+    article li::marker { color: #10B981 }
+    article strong { color: #f3f4f6; font-weight: 600 }
+    article code { font-family: 'JetBrains Mono', monospace; font-size: .85em; background: rgba(255,255,255,.06); padding: .15em .4em; border-radius: 4px; color: #10B981 }
+    article pre { background: #0a0a0c; border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 1rem 1.15rem; overflow-x: auto; margin: 1.25rem 0; font-size: 12.5px; line-height: 1.8; font-family: 'JetBrains Mono', monospace; color: #c9d1d9 }
+    article table { width: 100%; margin: 1.25rem 0; font-size: .875rem; border-collapse: collapse }
+    article th { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid rgba(255,255,255,.1); color: #9ca3af; font-weight: 600; font-size: .8rem }
+    article td { padding: .6rem .75rem; border-bottom: 1px solid rgba(255,255,255,.05); color: #b4b4bb }
+    article blockquote { border-left: 3px solid #10B981; padding-left: 1rem; margin: 1.25rem 0; color: #9ca3af; font-style: normal }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+<nav class="sticky top-0 z-50 bg-surface/90 backdrop-blur border-b border-white/5">
+  <div class="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/RevHive/zh.html" class="font-extrabold text-white tracking-tight">Rev<span class="text-accent">Hive</span></a>
+    <div class="flex items-center gap-5 text-sm">
+      <a href="/RevHive/sample-report.html" class="text-gray-400 hover:text-white transition-colors">报告样张</a>
+      <a href="/RevHive/zh.html#price" class="text-accent hover:text-accent-dark font-medium transition-colors">报价</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 py-14">
+
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11 · 实施笔记</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">代码不出内网：企业内网部署 AI 代码审查的完整方案</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">写给被「不得上云」条款卡住、又确实想用 AI 的研发团队。</p>
+
+  <article>
+
+    <p>先说结论：<strong>用不用得上 AI 代码审查，技术早就不是问题了，问题在数据流向。</strong>
+    大多数团队不是不想用 CodeRabbit、Greptile、Copilot，而是过不了自己公司的合规、或者甲方合同里那一句「源代码不得出境、不得上传第三方云平台」。</p>
+
+    <p>这篇文章不谈功能对比，只谈一件具体的事：<strong>怎么让 AI 代码审查在不出网的前提下跑起来</strong>，以及三种方案各自的真实代价。</p>
+
+    <h2>一、先搞清楚数据到底流向了哪里</h2>
+
+    <p>这是绝大多数采购决策里最模糊的一环。同样是「AI 代码审查」，代码的去向可以完全不同：</p>
+
+    <table>
+      <thead><tr><th>形态</th><th>代码流向</th><th>能否签「不出境」</th><th>典型代价</th></tr></thead>
+      <tbody>
+        <tr><td>SaaS 审查（CodeRabbit 等）</td><td>上传到厂商服务器 → 再转发给模型厂商</td><td>不能</td><td>零运维，但合规过不去</td></tr>
+        <tr><td>自托管 + 外部模型 API</td><td>你的机器 → 你选的模型厂商</td><td>看厂商是否在境内</td><td>一台 4G 内存机器</td></tr>
+        <tr><td>自托管 + 本地模型</td><td>全程不出机器</td><td>能，物理断网也可用</td><td>需要 GPU 或接受较慢速度</td></tr>
+      </tbody>
+    </table>
+
+    <p>关键区别在第二行：<strong>「自托管」不等于「不出网」</strong>。很多工具宣传私有化部署，实际部署完还是把代码发给厂商自己的云模型——那不叫私有化，只是换了个上传点。</p>
+
+    <p>真正能满足「代码不出内网」的，只有第三种。但它有个前提：<strong>工具必须支持自带模型（BYOK），并且允许把模型地址指到内网</strong>。这一条把大部分 SaaS 产品直接排除掉了——它们商业模式的基础就是替你托管模型，结构上不可能开放。</p>
+
+    <h2>二、四种部署形态，怎么选</h2>
+
+    <h3>形态 A：全 SaaS</h3>
+    <p>最省事，零运维。适合没有任何代码出境限制的团队。有合规要求的，直接跳过。</p>
+
+    <h3>形态 B：自托管 + 国产模型 API</h3>
+    <p>审查程序跑在你自己的机器上，模型调用走 DeepSeek、通义千问、智谱、Kimi 这类境内 API。代码只发往这一家，可以在合同里写清楚。</p>
+    <p>这是<strong>性价比最高的选择</strong>：一台 4 核 8G 的机器就够，审查速度和效果都接近顶级商用模型，成本按 token 计（一次中等规模 PR 大约几毛到一块钱）。</p>
+
+    <h3>形态 C：自托管 + 本地模型</h3>
+    <p>用 Ollama 之类在本机或内网 GPU 服务器上跑开源模型（Qwen2.5-Coder、DeepSeek-Coder 等）。<strong>可以物理断网</strong>，适合军工、涉密、强监管场景。</p>
+    <p>代价要说实话：14B 级别模型在通用代码审查上能用，但对复杂业务逻辑的推断明显弱于云端大模型；70B 以上效果好，但需要 40G+ 显存。</p>
+
+    <h3>形态 D：混合</h3>
+    <p>敏感仓库走本地模型，公开仓库走 API。实际落地时这种最多——不是所有代码都同等敏感。</p>
+
+    <h2>三、具体怎么搭（可执行配置）</h2>
+
+    <p>下面以开源工具 RevHive 为例（BSL 许可，个人与开源项目免费），因为它的模型接入是纯环境变量，改起来最直接。换成其他支持 BYOK 的工具，思路一样。</p>
+
+    <h3>1. 最小可用配置</h3>
+
+    <pre>services:
+  revhive:
+    build: .
+    env_file: .env
+    volumes:
+      - /path/to/your/repo:/work:ro    # 只读挂载，避免工具改你的代码
+    working_dir: /work
+    # 不发布任何端口——它是 CLI，不监听网络</pre>
+
+    <p>三个环境变量决定一切：</p>
+
+    <pre>LLM_API_KEY=sk-xxxxxxxx
+LLM_BASE_URL=https://api.deepseek.com/v1
+LLM_MODEL=deepseek-chat</pre>
+
+    <p>换模型只改后两行。常用组合：</p>
+
+    <table>
+      <thead><tr><th>模型</th><th>BASE_URL</th><th>MODEL</th></tr></thead>
+      <tbody>
+        <tr><td>DeepSeek</td><td><code>https://api.deepseek.com/v1</code></td><td><code>deepseek-chat</code></td></tr>
+        <tr><td>通义千问</td><td><code>https://dashscope.aliyuncs.com/compatible-mode/v1</code></td><td><code>qwen-plus</code></td></tr>
+        <tr><td>智谱 GLM</td><td><code>https://open.bigmodel.cn/api/paas/v4</code></td><td><code>glm-4</code></td></tr>
+        <tr><td>Kimi</td><td><code>https://api.moonshot.cn/v1</code></td><td><code>kimi</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>2. 完全离线</h3>
+
+    <pre>services:
+  ollama:
+    image: ollama/ollama
+    volumes: [ollama-models:/root/.ollama]
+    # 同样不发布端口，只有审查容器能访问
+
+  revhive:
+    depends_on: [ollama]
+    environment:
+      LLM_API_KEY: ollama
+      LLM_BASE_URL: http://ollama:11434/v1
+      LLM_MODEL: qwen2.5-coder:14b</pre>
+
+    <p>这样配完，把网络出口全关掉，功能不受影响。审核时可以直接演示：拔网线跑一遍。</p>
+
+    <h3>3. 接进 CI</h3>
+
+    <pre># .gitlab-ci.yml
+revhive:
+  stage: test
+  script:
+    - docker compose run --rm revhive review -d "$CI_MERGE_REQUEST_DIFF_BASE_SHA" \
+        --format json -o /reports/mr.json
+  artifacts:
+    paths: [reports/]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"</pre>
+
+    <p>JSON 输出方便接看板或工单系统；<code>--format markdown</code> 则适合直接贴进 MR 评论。</p>
+
+    <h2>四、效果到底怎么样（诚实的部分）</h2>
+
+    <p>AI 代码审查能稳定抓住的，是这几类：</p>
+
+    <ul>
+      <li><strong>注入、越权、密钥硬编码</strong>——规则和模式都很成熟，命中率高</li>
+      <li><strong>并发与事务问题</strong>——读改写竞态、锁粒度、事务边界</li>
+      <li><strong>缺失的错误处理与边界条件</strong>——空值、超时、重试</li>
+      <li><strong>测试覆盖缺口</strong>——新增的资金/权限路径没有用例</li>
+    </ul>
+
+    <p>抓不住的，也要说清楚：</p>
+
+    <ul>
+      <li><strong>业务逻辑错误</strong>——它不知道你的业务规则，只能猜意图</li>
+      <li><strong>架构级问题</strong>——模块划分、依赖方向，需要人判断</li>
+      <li><strong>性能的量化结论</strong>——能看出 N+1，但给不出真实压测数据</li>
+    </ul>
+
+    <blockquote>最实际的定位：把它当成一个永不疲倦、不嫌你烦的第一道 reviewer，而不是替代人。它的价值在于把「明显有问题的代码」挡在人工 review 之前，让人的时间花在真正需要判断的地方。</blockquote>
+
+    <h2>五、落地清单</h2>
+
+    <p>如果准备在内网推这件事，按这个顺序走，不要反过来：</p>
+
+    <ol>
+      <li><strong>先确认数据流向能签</strong>——拿形态 B 或 C 的数据流图给安全/合规确认，这一关不过，后面全白做</li>
+      <li><strong>选一个非核心仓库试点</strong>——不要一开始就上主力仓库，团队对误报的容忍度需要建立</li>
+      <li><strong>跑两周再定门槛</strong>——先用「只提示不阻断」，统计误报率，再决定哪些级别设为合并阻断</li>
+      <li><strong>把规则写进配置</strong>——哪些目录忽略、哪些 Agent 关掉、严重度阈值多少，这些要落到版本控制里</li>
+      <li><strong>再接 CI 阻断</strong>——这一步放最后。先阻断后调优，团队会直接抵触</li>
+    </ol>
+
+    <h2>六、一句话总结</h2>
+
+    <p>「代码不出内网」不是功能问题，是架构选择问题。<strong>选一个支持自带模型、允许你把模型地址指到内网的工具</strong>，剩下的都是配置工作。反过来，选了一个必须托管模型的 SaaS，再怎么谈也谈不出合规。</p>
+
+    <p>这也是为什么在这个场景里，工具的可配置性比功能列表重要得多。</p>
+
+  </article>
+
+  <div class="mt-14 pt-8 border-t border-white/5">
+    <p class="text-sm text-gray-400 mb-4">想在自己的仓库上看到实际效果？</p>
+    <div class="flex flex-wrap gap-3">
+      <a href="/RevHive/sample-report.html" class="bg-accent hover:bg-accent-dark text-black font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors">看一份真实报告</a>
+      <a href="/RevHive/zh.html#price" class="bg-surface-3 hover:bg-white/10 text-white text-sm font-medium px-5 py-2.5 rounded-lg border border-white/10 transition-colors">查看报价</a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="border-t border-white/5 py-8 px-6 mt-10">
+  <div class="max-w-3xl mx-auto text-xs text-gray-600">RevHive · BSL 1.1 · 源码可审计</div>
+</footer>
+
+</body>
+</html>
