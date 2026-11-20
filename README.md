@@ -225,6 +225,7 @@ Want something else? [Open an issue](https://github.com/jovian-zhibai/RevHive/is
 | Qwen (Alibaba) | `qwen-plus` | ~$0.05–0.10 | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (Zhipu) | `glm-4` | ~$0.05–0.15 | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
 | Kimi (Moonshot) | `kimi` | ~$0.05–0.15 | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| SenseNova (商汤日日新) | `deepseek-v4-flash` | free token-plan quota | `LLM_BASE_URL=https://token.sensenova.cn/v1` |
 | Anthropic | `claude-sonnet-4-20250514` | ~$0.15–0.40 | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
 
 **Presets:** set `LLM_MODEL` to `deepseek` / `openai` / `qwen` … and RevHive auto-configures the base URL. CLI default: MiMo. GitHub App dashboard default: DeepSeek (cheapest).

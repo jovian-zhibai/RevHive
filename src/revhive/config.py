@@ -32,6 +32,11 @@ MODEL_PRESETS: dict[str, dict[str, str]] = {
     "qwen": {"base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"},
     "glm": {"base_url": "https://open.bigmodel.cn/api/paas/v4", "model": "glm-4"},
     "kimi": {"base_url": "https://api.moonshot.cn/v1", "model": "kimi"},
+    # SenseNova (商汤日日新) — OpenAI-compatible gateway, free token-plan quota.
+    # Note: the base URL is token.sensenova.cn, NOT api.sensenova.cn.
+    "sensenova": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-v4-flash"},
+    "sensenova-flash": {"base_url": "https://token.sensenova.cn/v1", "model": "sensenova-6.8-flash"},
+    "sensenova-glm": {"base_url": "https://token.sensenova.cn/v1", "model": "glm-5.3"},
     "anthropic": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
     "claude": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
 }

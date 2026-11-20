@@ -144,10 +144,17 @@ class CodeReviewWorkflow:
                  api_key: Optional[str] = None, base_url: Optional[str] = None,
                  enabled_agents: Optional[list[str]] = None,
                  allow_plugins: bool = False,
-                 max_concurrent_agents: Optional[int] = None):
+                 max_concurrent_agents: Optional[int] = None,
+                 fallback_models: Optional[list[str]] = None):
         self.config = config or load_config()
         _api_key = api_key or os.getenv("LLM_API_KEY")
         _base_url = base_url or os.getenv("LLM_BASE_URL", "https://api.xiaomimimo.com/v1")
+
+        # Alternate models tried when the primary one is rate-limited. Many
+        # free/low-tier plans limit *per model*, so rotating models keeps a
+        # review moving instead of stalling for minutes.
+        self._fallback_models = [m for m in (fallback_models or []) if m]
+        self._model_cursor = 0
 
         # Concurrency control: config > explicit param > default 3.
         _max_concurrent = max_concurrent_agents or getattr(self.config, "max_concurrent_agents", 3) or 3
@@ -216,36 +223,80 @@ class CodeReviewWorkflow:
     async def _safe_review(self, agent, state: ReviewState) -> AgentResult:
         """Run a single agent review with concurrency control and retry logic.
 
-        Uses an asyncio.Semaphore to limit concurrent LLM calls, and
-        implements exponential backoff with jitter on transient failures.
+        Uses an asyncio.Semaphore to limit concurrent LLM calls. Note that
+        ``agent.review()`` catches its own LLM exceptions and returns an
+        ``AgentResult`` with ``failed=True`` — so we must inspect the result,
+        not just catch exceptions, or the retry path would never fire.
+
+        Rate limits get a much larger retry budget than other errors: free and
+        low-tier keys are commonly limited to a few requests / minute, and a
+        review that takes three minutes is still far better than one that
+        reports nothing.
         """
-        max_retries = 3
+        max_transient_retries = 3
+        max_rate_limit_retries = 8
         base_delay = 1.0
+        rate_limit_delay = 45.0
+
+        transient_attempts = 0
+        rate_limit_attempts = 0
+        model_switches = 0
+        max_model_switches = max(1, len(self._fallback_models)) * 2
 
         async with self._semaphore:
-            for attempt in range(max_retries):
+            while True:
                 try:
-                    return await agent.review(state.code, state.file_path)
-                except Exception as exc:
+                    result = await agent.review(state.code, state.file_path)
+                except Exception as exc:  # defensive: review() should not raise
                     exc_str = str(exc).lower()
-                    is_transient = any(kw in exc_str for kw in (
-                        "rate limit", "timeout", "429", "503", "502", "500",
-                        "connection", "temporary", "overloaded",
-                    ))
-                    if is_transient and attempt < max_retries - 1:
-                        delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    result = AgentResult(agent_name=agent.name, summary=f"Agent error: {exc}",
+                                         failed=True, error=str(exc))
+                else:
+                    if not result.failed:
+                        return result
+                    exc_str = (result.error or result.summary).lower()
+
+                is_rate_limit = any(kw in exc_str for kw in ("429", "rpm", "tpm", "quota", "rate limit"))
+                is_transient = is_rate_limit or any(kw in exc_str for kw in (
+                    "timeout", "503", "502", "500", "connection", "temporary", "overloaded",
+                ))
+
+                if is_rate_limit and self._fallback_models and model_switches < max_model_switches:
+                    next_model = self._fallback_models[self._model_cursor % len(self._fallback_models)]
+                    self._model_cursor += 1
+                    current = getattr(agent, "_model", None)
+                    if next_model != current and hasattr(agent, "switch_model"):
+                        model_switches += 1
+                        agent.switch_model(next_model)
                         logger.warning(
-                            "%s transient error (attempt %d/%d), retrying in %.1fs: %s",
-                            agent.name, attempt + 1, max_retries, delay, exc,
+                            "%s rate-limited on %s — switched to %s and retrying",
+                            agent.name, current, next_model,
                         )
-                        await asyncio.sleep(delay)
+                        await asyncio.sleep(2)
                         continue
 
-                    logger.exception("%s failed: %s", agent.name, exc)
-                    return AgentResult(
-                        agent_name=agent.name,
-                        summary=f"Agent error: {exc}",
+                if is_rate_limit and rate_limit_attempts < max_rate_limit_retries:
+                    rate_limit_attempts += 1
+                    delay = min(rate_limit_delay * rate_limit_attempts, 120.0) + random.uniform(0, 5)
+                    logger.warning(
+                        "%s rate-limited (attempt %d/%d), retrying in %.1fs",
+                        agent.name, rate_limit_attempts, max_rate_limit_retries, delay,
                     )
+                    await asyncio.sleep(delay)
+                    continue
+
+                if is_transient and not is_rate_limit and transient_attempts < max_transient_retries - 1:
+                    transient_attempts += 1
+                    delay = base_delay * (2 ** transient_attempts) + random.uniform(0, 1)
+                    logger.warning(
+                        "%s transient error (attempt %d/%d), retrying in %.1fs",
+                        agent.name, transient_attempts + 1, max_transient_retries, delay,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+
+                logger.error("%s failed: %s", agent.name, exc_str[:300])
+                return result
 
     async def _run_coordinate(self, state: ReviewState) -> dict:
         """Collect results from all enabled agents and synthesize."""
@@ -260,6 +311,25 @@ class CodeReviewWorkflow:
             if r is not None:
                 results.append(r)
         final = await self.coordinator.synthesize(results)
+
+        # If no agent actually completed, the synthesized "0 findings / low
+        # risk" report is a lie — surface it as a failure instead, so callers
+        # never publish a clean bill of health for unreviewed code.
+        if results and all(r.failed for r in results):
+            final.failed = True
+            final.error = next((r.error or r.summary for r in results if r.error or r.summary), "all agents failed")
+            final.summary = (
+                f"⚠️ Review could not run — all {len(results)} agents failed. "
+                f"Last error: {final.error}"
+            )
+        elif any(r.failed for r in results):
+            # Partial coverage: be explicit about what was NOT checked.
+            failed_names = ", ".join(r.agent_name for r in results if r.failed)
+            ok_count = sum(1 for r in results if not r.failed)
+            final.summary += (
+                f"\n\n⚠️ **Partial review** — {ok_count}/{len(results)} agents completed. "
+                f"Not checked: {failed_names}."
+            )
         return {"final_result": final}
 
     async def run(self, code: str, file_path: str = "") -> AgentResult:

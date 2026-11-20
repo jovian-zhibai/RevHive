@@ -30,6 +30,18 @@ def _estimate_token_count(text: str) -> int:
     return int(cjk_count * 2 + word_count * 1.3)
 
 
+_RATE_LIMIT_MARKERS = (
+    "429", "rate limit", "ratelimit", "rpm", "tpm", "quota",
+    "too many requests", "resource_exhausted", "exceeded",
+)
+
+
+def _is_rate_limit_error(exc: BaseException) -> bool:
+    """Return True if *exc* looks like a provider rate-limit / quota error."""
+    msg = str(exc).lower()
+    return any(marker in msg for marker in _RATE_LIMIT_MARKERS)
+
+
 class Severity(Enum):
     """Ordered severity levels for review findings."""
 
@@ -68,6 +80,11 @@ class AgentResult:
     summary: str = ""
     token_usage: int = 0
     risk_score: Optional[int] = None
+    # True when the agent never actually produced a review (LLM error, rate
+    # limit, auth failure). Findings are meaningless in that case and callers
+    # must not report "0 findings" as if the code were clean.
+    failed: bool = False
+    error: str = ""
 
 
 class BaseReviewAgent(ABC):
@@ -87,16 +104,26 @@ class BaseReviewAgent(ABC):
         self.name = name
         self.description = description
         self._api_key = api_key or os.getenv("LLM_API_KEY", "")
+        self._base_url = base_url
+        self._model = model
+        self._provider = provider
+        self._max_retries = max_retries
+        self._request_timeout = request_timeout
         self._use_structured_output = False
 
+        self._build_client()
+
+    def _build_client(self) -> None:
+        """Create the LLM client (and structured-output wrapper) for the current model."""
         from revhive.utils.llm_client import create_llm_client
+
         self.llm = create_llm_client(
             api_key=self._api_key,
-            base_url=base_url,
-            model=model,
-            provider=provider,
-            max_retries=max_retries,
-            request_timeout=request_timeout,
+            base_url=self._base_url,
+            model=self._model,
+            provider=self._provider,
+            max_retries=self._max_retries,
+            request_timeout=self._request_timeout,
         )
 
         # Try to enable structured output
@@ -108,6 +135,19 @@ class BaseReviewAgent(ABC):
         except Exception:
             self._structured_llm = None
             logger.debug("%s: structured output not available, using regex fallback", self.name)
+
+    def switch_model(self, model: str) -> None:
+        """Rebuild the client against a different model on the same provider.
+
+        Used when a provider rate-limits one model but still serves others
+        (common on free tiers). Keeping the same base_url/api_key means the
+        user's key and cost profile are unchanged.
+        """
+        if model == self._model:
+            return
+        self._model = model
+        self._build_client()
+        logger.info("%s: switched model to %s", self.name, model)
 
     @abstractmethod
     def get_system_prompt(self) -> str:
@@ -158,6 +198,16 @@ class BaseReviewAgent(ABC):
                     token_usage=estimated_tokens,
                 )
             except Exception as exc:
+                # A rate-limited call must be retried, not downgraded: the
+                # regex fallback loses structured severities and produces
+                # misleadingly low risk scores. Let the workflow retry with
+                # a long backoff instead.
+                if _is_rate_limit_error(exc):
+                    logger.warning(
+                        "%s: rate-limited by provider for %s, retrying: %s",
+                        self.name, file_path, exc,
+                    )
+                    raise
                 logger.warning("%s: structured output failed for %s, falling back to regex: %s",
                               self.name, file_path, exc)
 
@@ -173,6 +223,8 @@ class BaseReviewAgent(ABC):
             return AgentResult(
                 agent_name=self.name,
                 summary=f"Review failed: {safe_msg}",
+                failed=True,
+                error=safe_msg,
             )
 
         findings = self._parse_findings(response.content)
@@ -203,7 +255,7 @@ class BaseReviewAgent(ABC):
 Focus on: {self.get_review_focus()}
 
 Output format for each finding:
-- Severity: [LOW/MEDIUM/HIGH/CRITICAL]
+- Severity: [CRITICAL/HIGH/MEDIUM/LOW]
 - Title: [Brief title]
 - File: {file_path}
 - Line: [Line number if applicable]
@@ -231,11 +283,17 @@ End with a brief summary of your review."""
                 if current:
                     findings.append(self._dict_to_finding(current))
                 current = {"agent": self.name}
-                sev = sev_match.group(1).strip().strip("[]")
+                sev = sev_match.group(1).strip()
+                # Models often answer "**CRITICAL**" or "CRITICAL (RCE)" —
+                # strip markdown/decoration before matching, otherwise every
+                # finding silently degrades to the default severity.
+                sev_clean = re.sub(r"[^A-Za-z]", "", sev).lower()
                 try:
-                    current["severity"] = Severity(sev.lower())
+                    current["severity"] = Severity(sev_clean)
                 except ValueError:
-                    current["severity"] = Severity.LOW
+                    # Unknown severity: assume MEDIUM, never LOW — silently
+                    # under-rating a finding is worse than over-rating it.
+                    current["severity"] = Severity.MEDIUM
                 continue
 
             if not current:
@@ -287,7 +345,7 @@ End with a brief summary of your review."""
                     if isinstance(item, dict):
                         findings.append(ReviewFinding(
                             agent=self.name,
-                            severity=Severity(item.get("severity", "low").lower()),
+                            severity=Severity(str(item.get("severity", "medium")).strip().lower()),
                             title=item.get("title", "Unknown"),
                             description=item.get("description", ""),
                             file_path=item.get("file", item.get("file_path")),

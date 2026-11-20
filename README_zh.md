@@ -226,6 +226,7 @@ pip install pip-audit bandit && pip-audit && bandit -r src/ -ll --skip B101
 | Qwen (通义) | `qwen-plus` | ~$0.05–0.10 | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (智谱) | `glm-4` | ~$0.05–0.15 | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
 | Kimi (月之暗面) | `kimi` | ~$0.05–0.15 | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
+| 商汤日日新 (SenseNova) | `deepseek-v4-flash` | 免费 token-plan 额度 | `LLM_BASE_URL=https://token.sensenova.cn/v1` |
 | Anthropic | `claude-sonnet-4-20250514` | ~$0.15–0.40 | `pip install -e ".[anthropic]"`，设置 `ANTHROPIC_API_KEY` |
 
 **快速预设：** `LLM_MODEL` 设为 `deepseek` / `openai` / `qwen` 等预设名即自动配置 base URL。CLI 默认 MiMo；GitHub App dashboard 默认 DeepSeek（最便宜）。
