@@ -453,6 +453,16 @@ class ReviewReport:
         Critical/High findings are shown in full. Medium are listed by title.
         Low are summarized as a count. Full details are in a collapsed section.
         """
+        # A failed run must never be rendered as a clean report.
+        if getattr(self.result, "failed", False):
+            return (
+                "# RevHive Review Report\n\n"
+                "## ⚠️ Review could not run\n\n"
+                f"{self.result.summary}\n\n"
+                "**No code was reviewed.** Fix the error above (usually an "
+                "invalid key, exhausted quota, or rate limit) and re-run.\n"
+            )
+
         lines = [
             "# RevHive Review Report\n",
             "## 📊 Overview\n",
@@ -514,6 +524,8 @@ class ReviewReport:
     def to_json(self) -> str:
         """Render the review result as a JSON string."""
         data = {
+            "failed": bool(getattr(self.result, "failed", False)),
+            "error": getattr(self.result, "error", ""),
             "summary": self.result.summary,
             "total_findings": len(self.result.findings),
             "findings": [

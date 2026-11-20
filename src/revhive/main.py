@@ -28,7 +28,13 @@ def _run_with_timeout(coro, timeout: int = 600):
     try:
         return asyncio.run(asyncio.wait_for(coro, timeout=timeout))
     except asyncio.TimeoutError:
-        click.echo("Error: Review timed out after 10 minutes.", err=True)
+        click.echo(
+            f"Error: Review timed out after {timeout} seconds.\n\n"
+            "  Slow providers are usually rate limits, not model latency. Try:\n"
+            "    revhive review --file <path> --agents security,logic   # fewer agents\n"
+            "    revhive review --file <path> --timeout 1800           # wait longer\n",
+            err=True,
+        )
         sys.exit(1)
 
 
@@ -73,11 +79,29 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
               help="Allow reading files outside the current working directory.")
 @click.option("--allow-plugins", is_flag=True, default=False,
               help="Allow loading plugin agents from the plugins directory.")
+@click.option("--agents", default=None,
+              help="Comma-separated agents to run, e.g. security,logic. Default: all enabled agents.")
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int,
-           max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool):
+           max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool, agents: str):
     """Run code review on a file or git diff."""
     cfg = load_config()
     file_size_limit = max_file_size or _DEFAULT_MAX_FILE_SIZE
+
+    enabled_agents = None
+    if agents:
+        enabled_agents = [a.strip() for a in agents.split(",") if a.strip()]
+        try:
+            from revhive.graph.workflow import _AGENT_CLASSES
+        except Exception:  # pragma: no cover - defensive
+            _AGENT_CLASSES = {}
+        unknown = [a for a in enabled_agents if _AGENT_CLASSES and a not in _AGENT_CLASSES]
+        if unknown:
+            click.echo(
+                f"Error: unknown agent(s): {', '.join(unknown)}. "
+                f"Available: {', '.join(sorted(_AGENT_CLASSES))}",
+                err=True,
+            )
+            sys.exit(2)
 
     try:
         if file:
@@ -99,10 +123,12 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
             except (PermissionError, OSError) as exc:
                 click.echo(f"Error: cannot read {file}: {exc}", err=True)
                 sys.exit(1)
-            workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins)
+            workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
+                                          enabled_agents=enabled_agents)
             result = _run_with_timeout(workflow.run(code=code, file_path=str(file_path)), timeout=timeout)
         elif diff_ref:
-            workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins)
+            workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
+                                          enabled_agents=enabled_agents)
             result = _run_with_timeout(workflow.run_from_diff(diff_ref), timeout=timeout)
         else:
             click.echo("Please specify --file or --diff to review.")
@@ -133,6 +159,11 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
         click.echo(f"Report saved to {output}")
     else:
         click.echo(report)
+
+    # Fail the process, not just the report: CI pipelines must not go green
+    # on code that was never actually reviewed.
+    if getattr(result, "failed", False):
+        sys.exit(1)
 
 
 def _render_demo_rich(result) -> None:
