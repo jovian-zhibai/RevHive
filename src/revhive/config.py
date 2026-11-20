@@ -37,6 +37,9 @@ MODEL_PRESETS: dict[str, dict[str, str]] = {
     "sensenova": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-v4-flash"},
     "sensenova-flash": {"base_url": "https://token.sensenova.cn/v1", "model": "sensenova-6.8-flash"},
     "sensenova-glm": {"base_url": "https://token.sensenova.cn/v1", "model": "glm-5.3"},
+    # Ollama (or any OpenAI-compatible local server). This is the option that
+    # keeps code inside the network: no request ever leaves the machine.
+    "ollama": {"base_url": "http://127.0.0.1:11434/v1", "model": "qwen2.5-coder:7b"},
     "anthropic": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
     "claude": {"base_url": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514", "provider": "anthropic"},
 }
