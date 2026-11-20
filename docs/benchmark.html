@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RevHive benchmark: 10 real vulnerabilities, re-introduced | RevHive</title>
+<meta name="description" content="We reverted ten real security fixes in Django, axios and lodash, then asked RevHive to review the patch. All ten were localised, and the benchmark is too easy because of how it is built.">
+<link rel="canonical" href="https://revhive.souljian.cn/benchmark.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body{background:#0a0a0b} code{background:#1a1a1d;padding:.1rem .35rem;border-radius:.25rem}</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <a href="https://github.com/apps/revhive-review/installations/new" class="text-sm bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+</nav>
+
+<main class="max-w-4xl mx-auto px-6 pb-24">
+  <h1 class="text-4xl font-extrabold text-white mb-4">Does it catch the bug, or just talk?</h1>
+  <p class="text-lg text-gray-400 mb-8">Every AI review tool shows a demo where it finds something. The useful question is whether it finds <em>your</em> bug. So we took ten patches that are known to be dangerous, because they are the exact code maintainers had to fix, and asked RevHive to review them with no hints.</p>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+    <div class="bg-[#111113] border border-white/5 rounded-xl p-5">
+      <div class="text-3xl font-extrabold text-emerald-400">10/10</div>
+      <div class="text-gray-500 text-xs mt-1">vulnerabilities localised</div>
+    </div>
+    <div class="bg-[#111113] border border-white/5 rounded-xl p-5">
+      <div class="text-3xl font-extrabold text-white">1</div>
+      <div class="text-gray-500 text-xs mt-1">severity under-called (c02 rated low, fix was high)</div>
+    </div>
+    <div class="bg-[#111113] border border-white/5 rounded-xl p-5">
+      <div class="text-3xl font-extrabold text-orange-400">too easy</div>
+      <div class="text-gray-500 text-xs mt-1">see what this does not prove, below</div>
+    </div>
+  </div>
+
+  <h2 class="text-2xl font-bold text-white mb-4">Method</h2>
+  <ol class="list-decimal list-inside space-y-2 text-gray-400 mb-4">
+    <li>Take a commit that fixed a real vulnerability in a widely used project.</li>
+    <li>Revert it, so the working tree contains the vulnerable code and the diff looks like someone just introduced it.</li>
+    <li>Strip documentation and test changes from the patch. Those files name the CVE, and a reviewer that reads them is reading the answer key, not the code.</li>
+    <li>Run <code>revhive review -d HEAD~1</code> with the security agent only. No repository context, no PR description, no hints.</li>
+    <li>A case counts as caught when a finding names the vulnerable file and describes the right class of bug. Severity is recorded but not scored.</li>
+  </ol>
+  <p class="text-sm text-gray-500 mb-10">Ten cases, one pass each, security agent alone, small free model (SenseNova Flash). Run on 2026-11-20.</p>
+
+  <h2 class="text-2xl font-bold text-white mb-4">Results</h2>
+  <table class="w-full mb-3">
+    <thead><tr class="text-left text-xs uppercase tracking-wide text-gray-500">
+      <th class="pb-2">Project</th><th class="pb-2">Vulnerability re-introduced</th><th class="pb-2">Severity reported</th><th class="pb-2 text-center">Caught</th>
+    </tr></thead>
+    <tbody>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Server-side request forgery through a GDAL spatial reference string<div class="text-xs text-gray-500 mt-1">GDAL file/network access restrictions removed</div></td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Password hash disclosure to view-only admin users<div class="text-xs text-gray-500 mt-1">Flagged the exposure but rated it low; the real fix rated it high</div></td>
+            <td class="py-3 pr-4 text-sm text-gray-400">low</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Cache key collision between absent and empty Vary headers</td>
+            <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Log injection through unescaped widget input</td>
+            <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion through unbounded multipart uploads</td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Forged actions in model formsets</td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion in language tag parsing</td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Stored XSS through an unvalidated URL scheme in admin</td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">axios/axios</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">SSRF and credential leak through a redirect</td>
+            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+          <tr class="border-t border-white/5 align-top">
+            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">lodash/lodash</td>
+            <td class="py-3 pr-4 text-gray-200 text-sm">Command injection through the template variable option</td>
+            <td class="py-3 pr-4 text-sm text-red-400">critical</td>
+            <td class="py-3 text-center text-emerald-400">yes</td>
+          </tr>
+    </tbody>
+  </table>
+  <p class="text-xs text-gray-600 mb-10">Two of the ten cases had to be re-run: the first attempt left the release notes in the patch, and the reviewer simply quoted the CVE from them. Those runs were discarded.</p>
+
+  <h2 class="text-2xl font-bold text-white mb-4">What this does not prove</h2>
+  <p class="text-gray-400 mb-3">A perfect score here is a sign that the benchmark is weak, not that the tool is perfect. Specifically:</p>
+  <ul class="list-disc list-inside space-y-2 text-gray-400 mb-10">
+    <li><strong class="text-gray-200">A reverted fix is suspicious by construction.</strong> The patch removes a length check, a validation call, a sanitizer. Almost any reviewer that looks at the diff will notice. Real bugs are introduced by accident, inside a 400-line feature, and that is much harder.</li>
+    <li><strong class="text-gray-200">It measures recall, never precision.</strong> Nothing here says how often it flags clean code. The next version of this page needs twenty ordinary pull requests and a false positive count, and until it has them, treat this as a floor, not a rate.</li>
+    <li><strong class="text-gray-200">Ten cases is an anecdote with a table.</strong> Adding or removing two cases moves the number by twenty points.</li>
+    <li><strong class="text-gray-200">Severity is unreliable.</strong> The password-hash disclosure was called <em>low</em>; Django shipped it as a security release. Read the finding, not just the colour.</li>
+  </ul>
+
+  <div class="bg-[#111113] border border-white/5 rounded-xl p-6">
+    <p class="text-white font-semibold mb-2">Reproduce it</p>
+    <p class="text-gray-400 text-sm mb-3">The harness is a shell script: fetch the fix commit, revert it, strip docs and tests, run the CLI, compare against the files the fix touched. It is not pretty and it is not peer reviewed, which is exactly why the method is written down here.</p>
+    <p class="text-gray-400 text-sm">Source: <a class="text-emerald-400 underline" href="https://github.com/jovian-zhibai/RevHive">github.com/jovian-zhibai/RevHive</a>. Raw JSON for all ten runs on request.</p>
+  </div>
+</main>
+
+<footer class="border-t border-white/5 py-8 text-center text-sm text-gray-600">
+  <a href="/" class="hover:text-gray-400">RevHive</a> · <a href="/terms.html" class="hover:text-gray-400">Terms</a> · <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+</footer>
+</body>
+</html>
