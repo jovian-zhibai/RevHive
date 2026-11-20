@@ -1,5 +1,6 @@
 """Coordinator agent that orchestrates the review process and synthesizes results."""
 
+import asyncio
 import logging
 import re
 
@@ -41,6 +42,13 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
 
         # Resolve conflicts via LLM
         resolved, conflicts_resolved = await self._resolve_conflicts(deduplicated)
+
+        # Word-level dedup cannot see that "Unhandled None from fetchone" and
+        # "Handle missing user record" are one defect — they share one word out
+        # of twelve. A customer reading 15 comments about 4 problems cancels,
+        # so ask the model which findings are the same defect.
+        resolved, merged_groups = await self._consolidate(resolved)
+        conflicts_resolved += merged_groups
 
         risk_score = self._calculate_risk_score(resolved)
         summary = self._generate_summary(resolved, results, risk_score, conflicts_resolved)
@@ -110,6 +118,208 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
                 parts.append(f"{counts[sev]} {sev.capitalize()}")
         breakdown = " · ".join(parts)
         return f"{emoji} Risk Score: {level} ({score}/100)\n\n{breakdown}"
+
+    #: Below a handful of findings there is nothing worth a model round-trip.
+    _CONSOLIDATE_MIN_FINDINGS = 4
+
+    #: Merging is cosmetic next to the review itself: a slow provider must not
+    #: add minutes to a run that already finished.
+    _CONSOLIDATE_TIMEOUT = 60.0
+
+    async def _consolidate(self, findings: list[ReviewFinding]) -> tuple[list[ReviewFinding], int]:
+        """Merge findings that different agents wrote up as the same defect.
+
+        Returns the surviving findings and how many duplicates were absorbed.
+        Any answer that does not parse cleanly leaves the list untouched: a
+        missed merge is noise, a bad merge is a defect the customer never sees.
+        """
+        # Free and always safe: same-or-adjacent line is one defect.
+        collapsed = self._collapse_same_line(findings)
+        absorbed = len(findings) - len(collapsed)
+        if len(collapsed) < self._CONSOLIDATE_MIN_FINDINGS:
+            return collapsed, absorbed
+
+        # Titles and lines carry the signal; full descriptions triple the
+        # prompt and the model answered too slowly to be useful.
+        listing = "\n".join(
+            f"{i}. [L{f.line_number or '?'}, {f.agent}] {f.title} — {(f.description or '')[:110]}"
+            for i, f in enumerate(collapsed)
+        )
+        prompt = (
+            "Reviewers below reported on the same code. Several describe the SAME defect "
+            "in different words; others are genuinely different problems that happen to sit "
+            "on nearby lines.\n\n"
+            f"{listing}\n\n"
+            "Group the entries that describe one and the same defect. Rules:\n"
+            "- Two entries belong together only if fixing one fixes the other.\n"
+            "- Never group different kinds of problems (a SQL injection and a missing "
+            "authentication check are different, even on the same line).\n"
+            "- Every index appears exactly once.\n\n"
+            "Reply with JSON only: {\"groups\": [[0, 3], [1], [2, 5]]}"
+        )
+
+        groups = await self._request_groups(prompt, len(collapsed))
+        if not groups:
+            return collapsed, absorbed
+
+        out: list[ReviewFinding] = []
+        for group in groups:
+            members = [collapsed[i] for i in group]
+            if len(members) == 1:
+                out.append(members[0])
+                continue
+            primary = min(
+                members, key=lambda f: (SEVERITY_ORDER.get(f.severity.value, 99), f.line_number or 0)
+            )
+            agents = [primary.agent]
+            for member in members:
+                for name in (member.agent or "").split(" + "):
+                    if name and name not in agents:
+                        agents.append(name)
+            extra = [
+                f"_{m.agent}:_ {m.description}"
+                for m in members
+                if m is not primary and m.description and m.description not in (primary.description or "")
+            ]
+            description = primary.description or ""
+            if extra:
+                description = "\n\n".join([description, *extra]) if description else "\n\n".join(extra)
+            out.append(
+                ReviewFinding(
+                    agent=" + ".join(agents),
+                    severity=primary.severity,
+                    title=primary.title,
+                    description=description,
+                    file_path=primary.file_path,
+                    line_number=min(f.line_number or 0 for f in members) or primary.line_number,
+                    code_snippet=primary.code_snippet,
+                    suggestion=primary.suggestion
+                    or next((f.suggestion for f in members if f.suggestion), None),
+                )
+            )
+
+        absorbed += len(collapsed) - len(out)
+        if absorbed:
+            logger.info("Consolidated %d duplicate findings into %d", absorbed, len(out))
+        return out, absorbed
+
+    @staticmethod
+    def _collapse_same_line(findings: list[ReviewFinding]) -> list[ReviewFinding]:
+        """Merge findings that share a line or sit one line apart."""
+        kept: list[ReviewFinding] = []
+        for finding in findings:
+            target = None
+            for idx, existing in enumerate(kept):
+                if (
+                    finding.file_path
+                    and finding.file_path == existing.file_path
+                    and finding.line_number
+                    and existing.line_number
+                    and abs(finding.line_number - existing.line_number) <= 1
+                ):
+                    target = idx
+                    break
+            if target is None:
+                kept.append(finding)
+                continue
+            current = kept[target]
+            primary = (
+                finding
+                if SEVERITY_ORDER.get(finding.severity.value, 99)
+                < SEVERITY_ORDER.get(current.severity.value, 99)
+                else current
+            )
+            other = current if primary is finding else finding
+            agents = [primary.agent]
+            for name in (other.agent or "").split(" + "):
+                if name and name not in agents:
+                    agents.append(name)
+            description = primary.description or ""
+            if other.description and other.description not in description:
+                description = f"{description}\n\n_{other.agent}:_ {other.description}".strip()
+            kept[target] = ReviewFinding(
+                agent=" + ".join(agents),
+                severity=primary.severity,
+                title=primary.title,
+                description=description,
+                file_path=primary.file_path,
+                line_number=min(finding.line_number or 0, current.line_number or 0)
+                or primary.line_number,
+                code_snippet=primary.code_snippet or other.code_snippet,
+                suggestion=primary.suggestion or other.suggestion,
+            )
+        return kept
+
+    async def _request_groups(self, prompt: str, count: int) -> list[list[int]] | None:
+        """Ask the model for a partition, retrying once.
+
+        Runs after every agent has finished, when a throttled key is usually
+        recovering, so a single retry is worth the wall clock; the second
+        failure is treated as "no answer" rather than blocking the report.
+        """
+        from langchain_core.messages import HumanMessage
+
+        for attempt in range(2):
+            try:
+                response = await asyncio.wait_for(
+                    self.llm.ainvoke([HumanMessage(content=prompt)]),
+                    timeout=self._CONSOLIDATE_TIMEOUT,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Consolidation attempt %d/2 failed: %s: %s",
+                    attempt + 1,
+                    type(exc).__name__,
+                    exc,
+                )
+                if attempt == 0:
+                    await asyncio.sleep(10)
+                continue
+            groups = self._parse_groups(getattr(response, "content", ""), count)
+            if groups:
+                return groups
+            logger.warning("Consolidation returned an unusable grouping: %r", getattr(response, "content", "")[:120])
+            return None
+        return None
+
+    @staticmethod
+    def _parse_groups(content: str, count: int) -> list[list[int]] | None:
+        """Parse ``{"groups": [[0, 3], [1]]}`` into a complete, valid partition."""
+        import json
+
+        text = content or ""
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end <= start:
+            return None
+        try:
+            payload = json.loads(text[start : end + 1])
+        except ValueError:
+            return None
+
+        raw = payload.get("groups") if isinstance(payload, dict) else None
+        if not isinstance(raw, list) or not raw:
+            return None
+
+        seen: set[int] = set()
+        groups: list[list[int]] = []
+        for group in raw:
+            if not isinstance(group, list) or not group:
+                return None
+            clean: list[int] = []
+            for idx in group:
+                if not isinstance(idx, int) or isinstance(idx, bool):
+                    return None
+                if idx < 0 or idx >= count or idx in seen:
+                    return None
+                seen.add(idx)
+                clean.append(idx)
+            groups.append(clean)
+
+        # A partition that drops findings would silently hide defects.
+        if len(seen) != count:
+            return None
+        return groups
 
     async def _resolve_conflicts(
         self, findings: list[ReviewFinding]
@@ -259,12 +469,24 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
             if severity_counts.get(sev)
         )
 
+        # A failed agent contributes nothing, so counting it as a reviewer
+        # overstates coverage; say how many really ran and flag the gap.
+        completed = [r for r in agent_results if not r.failed]
+        incomplete = len(agent_results) - len(completed)
+
         lines = [
             self._risk_score_block(findings, risk_score),
             "",
             f"Review completed with {len(findings)} findings across "
-            f"{len(agent_results)} agents" + (f" ({tally})" if tally else "") + ".",
+            f"{len(completed)} agents" + (f" ({tally})" if tally else "") + ".",
         ]
+
+        if incomplete:
+            lines.append(
+                f"\n⚠️ {incomplete} of {len(agent_results)} agents did not finish — "
+                "the LLM provider kept throttling until the review budget ran out. "
+                "This report covers what completed; re-run for full coverage."
+            )
 
         if conflicts_resolved > 0:
             lines.append(f"\n✅ AI analysis resolved {conflicts_resolved} conflicting assessment(s).")

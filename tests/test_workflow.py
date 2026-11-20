@@ -186,3 +186,112 @@ async def test_coordinator_with_mock_llm():
     result = await coordinator.synthesize(results)
     assert result.agent_name == "CoordinatorAgent"
     assert len(result.findings) == 1
+
+
+# ---------------------------------------------------------------------------
+# Review budget — a hosted run must return *something* before the caller gives up
+# ---------------------------------------------------------------------------
+
+
+class _SlowAgent:
+    """Stands in for a real agent; records whether it was asked to review."""
+
+    name = "SlowAgent"
+
+    def __init__(self):
+        self.calls = 0
+
+    async def review(self, code, file_path):
+        self.calls += 1
+        return AgentResult(agent_name=self.name, summary="done")
+
+
+@pytest.mark.asyncio
+async def test_agent_is_skipped_when_the_budget_is_already_gone():
+    from revhive.graph.workflow import CodeReviewWorkflow
+
+    workflow = CodeReviewWorkflow.__new__(CodeReviewWorkflow)
+    workflow._deadline = 0.0  # long past
+    workflow._cooldown_until = 0.0
+    workflow.agents = {}
+
+    agent = _SlowAgent()
+    result = await workflow._safe_review(agent, ReviewState(code="x = 1", file_path="a.py"))
+
+    assert result.failed is True
+    assert result.error == "budget_exhausted"
+    assert agent.calls == 0, "a skipped agent must not spend a request"
+
+
+@pytest.mark.asyncio
+async def test_agent_runs_when_there_is_no_budget(monkeypatch):
+    import asyncio
+
+    from revhive.graph.workflow import CodeReviewWorkflow
+
+    workflow = CodeReviewWorkflow.__new__(CodeReviewWorkflow)
+    workflow._deadline = None
+    workflow._cooldown_until = 0.0
+    workflow.agents = {}
+    workflow._semaphore = asyncio.Semaphore(1)
+    workflow._fallback_models = []
+
+    agent = _SlowAgent()
+    result = await workflow._safe_review(agent, ReviewState(code="x = 1", file_path="a.py"))
+
+    assert result.failed is False
+    assert agent.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_puts_every_agent_on_one_cooldown():
+    """Nine agents each retrying alone keep the provider throttled for minutes.
+
+    Only the bookkeeping is asserted here; the sleeps are stubbed so the test
+    does not take the four minutes the real backoff would.
+    """
+    import asyncio
+    import time
+    from unittest.mock import AsyncMock, patch
+
+    from revhive.graph.workflow import CodeReviewWorkflow
+
+    workflow = CodeReviewWorkflow.__new__(CodeReviewWorkflow)
+    workflow._deadline = None
+    workflow._cooldown_until = 0.0
+    workflow.agents = {}
+    workflow._semaphore = asyncio.Semaphore(1)
+    workflow._fallback_models = []
+
+    waits = []
+
+    async def recording_wait():
+        waits.append(workflow._cooldown_until)
+
+    class ThrottledAgent:
+        name = "ThrottledAgent"
+
+        def __init__(self):
+            self.calls = 0
+
+        async def review(self, code, file_path):
+            self.calls += 1
+            return AgentResult(
+                agent_name=self.name,
+                summary="429 rate limit exceeded",
+                failed=True,
+                error="429 rate limit exceeded",
+            )
+
+    agent = ThrottledAgent()
+    started = time.monotonic()
+    with patch.object(workflow, "_wait_for_cooldown", recording_wait), \
+         patch("revhive.graph.workflow.asyncio.sleep", AsyncMock()):
+        result = await workflow._safe_review(agent, ReviewState(code="x = 1", file_path="a.py"))
+    elapsed = time.monotonic() - started
+
+    assert result.failed is True
+    assert agent.calls == 5, "one try plus four retries — the old budget was nine"
+    assert workflow._cooldown_until > started, "other agents must wait out the same window"
+    assert elapsed < 5
+    assert waits and waits[0] == 0.0, "the first agent did not wait before its first call"

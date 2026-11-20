@@ -48,8 +48,8 @@ def create_llm_client(
     model: str | None = None,
     provider: str | None = None,
     temperature: float = 0.1,
-    max_retries: int = 3,
-    request_timeout: int = 120,
+    max_retries: int = 0,
+    request_timeout: int = 90,
 ):
     """Create and return a LangChain chat model instance.
 

@@ -97,8 +97,13 @@ class BaseReviewAgent(ABC):
         model: str | None = None,
         api_key: str | None = None,
         base_url: str | None = None,
-        max_retries: int = 3,
-        request_timeout: int = 120,
+        # The client's own retries multiply latency: a hanging provider was
+        # measured spending 120s per attempt and 8 minutes per agent before
+        # the workflow's own backoff even saw the failure. Retrying is the
+        # caller's job here, because it knows the budget and can share one
+        # cooldown across agents.
+        max_retries: int = 0,
+        request_timeout: int = 90,
         provider: str | None = None,
     ):
         self.name = name

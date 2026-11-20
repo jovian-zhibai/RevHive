@@ -240,8 +240,14 @@ def test_coordinator_empty_input():
 def test_coordinator_risk_score():
     """Verify risk score calculation for various severity combinations."""
     import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
 
     coordinator = CoordinatorAgent(model="mimo-v2.5-pro", api_key="test-key")
+    # This test is about the score, not about the model: a real client here
+    # would try to reach a provider with a fake key and retry for minutes.
+    coordinator.llm = AsyncMock()
+    coordinator.llm.ainvoke = AsyncMock(return_value=SimpleNamespace(content='{"groups": []}'))
 
     def _make_findings(severities):
         descs = [

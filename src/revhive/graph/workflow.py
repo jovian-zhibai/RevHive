@@ -11,6 +11,7 @@ import logging
 import os
 import random
 import re
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -32,6 +33,9 @@ from revhive.agents.base import SEVERITY_ORDER, AgentResult, BaseReviewAgent
 from revhive.config import RevHiveConfig, load_config
 
 logger = logging.getLogger(__name__)
+
+#: Below this many seconds left, an agent cannot finish a useful pass.
+_MIN_AGENT_SECONDS = 25.0
 
 # Agent class registry — maps YAML agent names to their class.
 # To add a new agent: (1) add entry here, (2) add a state field below.
@@ -144,7 +148,8 @@ class CodeReviewWorkflow:
                  enabled_agents: list[str] | None = None,
                  allow_plugins: bool = False,
                  max_concurrent_agents: int | None = None,
-                 fallback_models: list[str] | None = None):
+                 fallback_models: list[str] | None = None,
+                 budget_seconds: float | None = None):
         self.config = config or load_config()
         _api_key = api_key or os.getenv("LLM_API_KEY")
         # A preset name (e.g. --model ollama) implies its endpoint. Falling
@@ -162,6 +167,15 @@ class CodeReviewWorkflow:
         self._fallback_models = [m for m in (fallback_models or []) if m]
         self._model_cursor = 0
 
+        # Wall-clock budget. A rate-limited provider can retry for the better
+        # part of an hour; a hosted run has to return something before the
+        # caller gives up, so agents that cannot start in time are skipped and
+        # the report says it is partial. Unset means no limit (CLI usage).
+        self._deadline = time.monotonic() + budget_seconds if budget_seconds else None
+        self._cooldown_until = 0.0
+        if self._deadline:
+            logger.info("Review budget: %.0fs", budget_seconds)
+
         # Concurrency control: config > explicit param > default 3.
         _max_concurrent = max_concurrent_agents or getattr(self.config, "max_concurrent_agents", 3) or 3
         self._semaphore = asyncio.Semaphore(_max_concurrent)
@@ -175,7 +189,7 @@ class CodeReviewWorkflow:
             all_agents.update(plugins)
         _model = model or self.config.model or os.getenv("LLM_MODEL", "mimo-v2.5-pro")
 
-        common_kwargs = {"model": _model, "api_key": _api_key, "base_url": _base_url, "request_timeout": 120}
+        common_kwargs = {"model": _model, "api_key": _api_key, "base_url": _base_url, "request_timeout": 90}
 
         # Apply agent filter: explicit list > config > all agents.
         self.agents: dict[str, object] = {}
@@ -239,17 +253,40 @@ class CodeReviewWorkflow:
         review that takes three minutes is still far better than one that
         reports nothing.
         """
+        if self._remaining() is not None and self._remaining() < _MIN_AGENT_SECONDS:
+            return AgentResult(
+                agent_name=agent.name,
+                summary="Skipped — the review time budget ran out before this agent started.",
+                failed=True,
+                error="budget_exhausted",
+            )
+
         max_transient_retries = 3
-        max_rate_limit_retries = 8
+        # Nine agents hitting one low-quota key: each retrying on its own
+        # backoff keeps the provider throttled forever (measured: a Pro review
+        # took nine minutes and still came back partial). Fewer, shorter
+        # retries plus a shared cooldown gives the quota room to recover.
+        max_rate_limit_retries = 4
         base_delay = 1.0
-        rate_limit_delay = 45.0
+        rate_limit_delay = 20.0
 
         transient_attempts = 0
         rate_limit_attempts = 0
         model_switches = 0
         max_model_switches = max(1, len(self._fallback_models)) * 2
 
+        await self._wait_for_cooldown()
+
         async with self._semaphore:
+            # Re-check after the queue: an agent may have waited minutes for
+            # a slot while earlier agents burned the budget on retries.
+            if self._remaining() is not None and self._remaining() < _MIN_AGENT_SECONDS:
+                return AgentResult(
+                    agent_name=agent.name,
+                    summary="Skipped — the review time budget ran out before this agent started.",
+                    failed=True,
+                    error="budget_exhausted",
+                )
             while True:
                 try:
                     result = await agent.review(state.code, state.file_path)
@@ -283,7 +320,20 @@ class CodeReviewWorkflow:
 
                 if is_rate_limit and rate_limit_attempts < max_rate_limit_retries:
                     rate_limit_attempts += 1
-                    delay = min(rate_limit_delay * rate_limit_attempts, 120.0) + random.uniform(0, 5)
+                    delay = min(rate_limit_delay * rate_limit_attempts, 75.0) + random.uniform(0, 3)
+                    # Every agent waits out the same window instead of each
+                    # burning its own retries against a provider that is
+                    # throttling all of them for the same reason.
+                    self._start_cooldown(delay)
+                    if self._remaining() is not None and delay > self._remaining() - 10:
+                        # Sleeping past the deadline only delays the report; the
+                        # customer learns nothing new from the wait.
+                        logger.warning(
+                            "%s rate-limited with %.0fs left — reporting partial results",
+                            agent.name, self._remaining(),
+                        )
+                        result.error = "rate_limited: provider kept throttling until the review budget ran out"
+                        return result
                     logger.warning(
                         "%s rate-limited (attempt %d/%d), retrying in %.1fs",
                         agent.name, rate_limit_attempts, max_rate_limit_retries, delay,
@@ -303,6 +353,29 @@ class CodeReviewWorkflow:
 
                 logger.error("%s failed: %s", agent.name, exc_str[:300])
                 return result
+
+    def _start_cooldown(self, seconds: float) -> None:
+        """Hold every agent back for ``seconds`` (rate limits are per key)."""
+        until = time.monotonic() + seconds
+        if until > self._cooldown_until:
+            self._cooldown_until = until
+
+    async def _wait_for_cooldown(self) -> None:
+        while True:
+            remaining = self._cooldown_until - time.monotonic()
+            if remaining <= 0:
+                return
+            # Never sleep past the review budget just to respect a cooldown.
+            budget_left = self._remaining()
+            if budget_left is not None and remaining > budget_left - 10:
+                return
+            await asyncio.sleep(remaining)
+
+    def _remaining(self) -> float | None:
+        """Seconds left in the review budget, or None when there is no budget."""
+        if self._deadline is None:
+            return None
+        return self._deadline - time.monotonic()
 
     async def _run_coordinate(self, state: ReviewState) -> dict:
         """Collect results from all enabled agents and synthesize."""
