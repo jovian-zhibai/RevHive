@@ -5,13 +5,13 @@ from pathlib import Path
 
 import yaml
 
+from revhive.agents.base import Severity
 from revhive.config import (
+    MODEL_PRESETS,
     AgentConfig,
     RevHiveConfig,
-    MODEL_PRESETS,
     load_config,
 )
-from revhive.agents.base import Severity
 
 
 class TestAgentConfig:

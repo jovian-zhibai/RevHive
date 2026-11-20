@@ -1,14 +1,14 @@
 """Base agent class for all review agents."""
 
+import contextlib
 import logging
 import os
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +66,10 @@ class ReviewFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    code_snippet: Optional[str] = None
-    suggestion: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    code_snippet: str | None = None
+    suggestion: str | None = None
 
 
 @dataclass
@@ -79,7 +79,7 @@ class AgentResult:
     findings: list[ReviewFinding] = field(default_factory=list)
     summary: str = ""
     token_usage: int = 0
-    risk_score: Optional[int] = None
+    risk_score: int | None = None
     # True when the agent never actually produced a review (LLM error, rate
     # limit, auth failure). Findings are meaningless in that case and callers
     # must not report "0 findings" as if the code were clean.
@@ -94,12 +94,12 @@ class BaseReviewAgent(ABC):
         self,
         name: str,
         description: str,
-        model: Optional[str] = None,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        model: str | None = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         max_retries: int = 3,
         request_timeout: int = 120,
-        provider: Optional[str] = None,
+        provider: str | None = None,
     ):
         self.name = name
         self.description = description
@@ -310,10 +310,8 @@ End with a brief summary of your review."""
                     case "line":
                         digits = "".join(filter(str.isdigit, value))
                         if digits:
-                            try:
+                            with contextlib.suppress(ValueError):
                                 current["line_number"] = int(digits)
-                            except ValueError:
-                                pass
                     case "description":
                         current["description"] = value
                     case "suggestion":

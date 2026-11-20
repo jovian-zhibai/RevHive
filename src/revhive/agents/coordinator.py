@@ -3,8 +3,8 @@
 import logging
 import re
 
-from revhive.agents.base import BaseReviewAgent, AgentResult, ReviewFinding, Severity, SEVERITY_ORDER
-from revhive.utils.dedup import deduplicate_and_sort, _extract_keywords, _jaccard_similarity
+from revhive.agents.base import SEVERITY_ORDER, AgentResult, BaseReviewAgent, ReviewFinding, Severity
+from revhive.utils.dedup import _extract_keywords, _jaccard_similarity, deduplicate_and_sort
 
 logger = logging.getLogger(__name__)
 

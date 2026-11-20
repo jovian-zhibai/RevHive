@@ -19,7 +19,6 @@ from revhive.agents.base import AgentResult, ReviewFinding, Severity
 from revhive.agents.coordinator import CoordinatorAgent
 from revhive.utils.dedup import deduplicate_and_sort
 
-
 # ---------------------------------------------------------------------------
 # Pre-seeded realistic mock findings per agent
 # ---------------------------------------------------------------------------

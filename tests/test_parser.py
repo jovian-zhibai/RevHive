@@ -1,14 +1,15 @@
 """Tests for code parsing utilities."""
 
 import pytest
+
 from revhive.utils.parser import (
+    EXT_LANG,
+    SUPPORTED_EXTENSIONS,
     CodeStructure,
     _detect_language,
     _parse_with_regex,
     _parse_with_tree_sitter,
     parse_code,
-    EXT_LANG,
-    SUPPORTED_EXTENSIONS,
 )
 
 

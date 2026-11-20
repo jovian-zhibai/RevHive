@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from revhive.agents.base import ReviewFinding, SEVERITY_ORDER
+from revhive.agents.base import SEVERITY_ORDER, ReviewFinding
 
 # Common English stop words for keyword extraction
 _STOP_WORDS = frozenset({
@@ -84,7 +84,7 @@ def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
     # Keep findings with unique locations + findings without file_path
     layer1: list[ReviewFinding] = []
     seen_locations = set()
-    for i, f in enumerate(findings):
+    for f in findings:
         if f.file_path and f.line_number:
             key = f"{f.file_path}:{f.line_number}"
             if key in seen_locations:

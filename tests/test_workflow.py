@@ -1,8 +1,9 @@
 """Tests for the LangGraph review workflow."""
 
 import pytest
-from revhive.graph.workflow import ReviewReport, ReviewState
+
 from revhive.agents.base import AgentResult, ReviewFinding, Severity
+from revhive.graph.workflow import ReviewReport, ReviewState
 
 
 def test_review_state_defaults():
@@ -105,8 +106,9 @@ def test_report_json():
 def test_workflow_graph_structure():
     """Verify the LangGraph workflow can be built without errors."""
     import os
-    from revhive.graph.workflow import CodeReviewWorkflow
+
     from revhive.config import RevHiveConfig
+    from revhive.graph.workflow import CodeReviewWorkflow
 
     # Use empty config (all agents enabled) to verify full graph.
     cfg = RevHiveConfig()

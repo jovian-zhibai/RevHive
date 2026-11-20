@@ -7,7 +7,6 @@ ChatOpenAI / ChatAnthropic instantiation used by both
 
 from __future__ import annotations
 
-from typing import Optional
 from urllib.parse import urlparse
 
 from langchain_openai import ChatOpenAI
@@ -32,19 +31,22 @@ def _mask_api_key(api_key: str) -> str:
     return api_key[:4] + "****"
 
 
-def _is_local_endpoint(base_url: Optional[str]) -> bool:
+def _is_local_endpoint(base_url: str | None) -> bool:
     """True when *base_url* points at this machine (a self-hosted model server)."""
     if not base_url:
         return False
     host = (urlparse(base_url).hostname or "").lower()
-    return host in ("localhost", "127.0.0.1", "0.0.0.0", "::1") or host.endswith(".local")
+    # A comparison against loopback literals, not a bind. Bandit flags the
+    # "0.0.0.0" string on sight and cannot tell the two apart.
+    loopback = ("localhost", "127.0.0.1", "0.0.0.0", "::1")  # nosec B104
+    return host in loopback or host.endswith(".local")
 
 
 def create_llm_client(
     api_key: str,
-    base_url: Optional[str] = None,
-    model: Optional[str] = None,
-    provider: Optional[str] = None,
+    base_url: str | None = None,
+    model: str | None = None,
+    provider: str | None = None,
     temperature: float = 0.1,
     max_retries: int = 3,
     request_timeout: int = 120,

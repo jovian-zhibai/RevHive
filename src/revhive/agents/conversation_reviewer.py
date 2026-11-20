@@ -9,9 +9,8 @@ alternative solutions. This is the highest token consumption mode.
 
 import logging
 import warnings
-from typing import Optional
 
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from revhive.agents.base import AgentResult, ReviewFinding
 
@@ -37,8 +36,8 @@ class ConversationReviewer:
     DEFAULT_TIMEOUT = 180       # seconds
     LARGE_FILE_THRESHOLD = 4000 # characters — scale timeout above this
 
-    def __init__(self, model: Optional[str] = None, api_key: Optional[str] = None,
-                 base_url: Optional[str] = None, provider: Optional[str] = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None,
+                 base_url: str | None = None, provider: str | None = None):
         warnings.warn("ConversationReviewer is EXPERIMENTAL and may be removed or redesigned.", FutureWarning, stacklevel=2)
         from revhive.utils.llm_client import create_llm_client
         self.llm = create_llm_client(

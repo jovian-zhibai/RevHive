@@ -1,7 +1,8 @@
 """Tests for LLM client factory."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from revhive.utils.llm_client import create_llm_client
 
@@ -52,9 +53,9 @@ class TestCreateLlmClient:
         assert isinstance(client, ChatOpenAI)
 
     def test_anthropic_provider_without_package_raises(self):
-        with patch("revhive.utils.llm_client.HAS_ANTHROPIC", False):
-            with pytest.raises(ImportError, match="langchain-anthropic"):
-                create_llm_client(api_key="test-key", provider="anthropic")
+        with patch("revhive.utils.llm_client.HAS_ANTHROPIC", False), \
+             pytest.raises(ImportError, match="langchain-anthropic"):
+            create_llm_client(api_key="test-key", provider="anthropic")
 
     def test_temperature_setting(self):
         client = create_llm_client(api_key="test-key", temperature=0.5)

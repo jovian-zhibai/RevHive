@@ -1,9 +1,9 @@
 """Tests for deduplication and sorting utilities."""
 
 import pytest
+
 from revhive.agents.base import ReviewFinding, Severity
 from revhive.utils.dedup import _extract_keywords, _jaccard_similarity, deduplicate_and_sort
-
 
 # ---------------------------------------------------------------------------
 # _extract_keywords

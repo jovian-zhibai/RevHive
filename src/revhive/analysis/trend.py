@@ -9,7 +9,6 @@ import subprocess
 import warnings
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Optional
 
 from revhive.graph.workflow import CodeReviewWorkflow
 
@@ -37,7 +36,7 @@ class TrendAnalyzer:
     - Ongoing daily: ~5 new commits × 1,500,000 = 7,500,000 tokens/day
     """
 
-    def __init__(self, repo_path: str, model: Optional[str] = None):
+    def __init__(self, repo_path: str, model: str | None = None):
         warnings.warn("TrendAnalyzer is EXPERIMENTAL and may be removed or redesigned.", FutureWarning, stacklevel=2)
         self.repo_path = repo_path
         self.workflow = CodeReviewWorkflow(model=model)

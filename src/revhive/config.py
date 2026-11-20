@@ -13,7 +13,6 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -55,22 +54,22 @@ class AgentConfig:
     """Per-agent configuration read from the YAML file."""
 
     enabled: bool = True
-    severity_threshold: Optional[str] = None
+    severity_threshold: str | None = None
 
 
 @dataclass
 class RevHiveConfig:
     """Top-level configuration object loaded from ``.revhive.yml``."""
 
-    model: Optional[str] = None
+    model: str | None = None
     agents: dict[str, AgentConfig] = field(default_factory=dict)
     ignore: list[str] = field(default_factory=list)
     max_concurrent_agents: int = 3
-    allowed_plugins: Optional[set[str]] = None
+    allowed_plugins: set[str] | None = None
 
     # ---- helpers ----
 
-    def resolve_preset(self, model_name: Optional[str]) -> dict[str, str]:
+    def resolve_preset(self, model_name: str | None) -> dict[str, str]:
         """Resolve a model name against MODEL_PRESETS.
 
         If *model_name* matches a preset key, return the preset dict
@@ -87,7 +86,7 @@ class RevHiveConfig:
         cfg = self.agents.get(agent_name)
         return cfg.enabled if cfg is not None else True
 
-    def get_severity_threshold(self, agent_name: str) -> Optional[Severity]:
+    def get_severity_threshold(self, agent_name: str) -> Severity | None:
         """Return the minimum severity for *agent_name*, or ``None`` if unset."""
         cfg = self.agents.get(agent_name)
         if cfg is None or cfg.severity_threshold is None:
@@ -139,7 +138,7 @@ class RevHiveConfig:
         return False
 
 
-def load_config(path: Optional[str | Path] = None) -> RevHiveConfig:
+def load_config(path: str | Path | None = None) -> RevHiveConfig:
     """Load ``.revhive.yml`` from *path* (or CWD) and return a ``RevHiveConfig``.
 
     Returns a default (empty) config if the file does not exist or cannot
@@ -150,10 +149,7 @@ def load_config(path: Optional[str | Path] = None) -> RevHiveConfig:
     """
     global _config_cache, _config_cache_path
 
-    if path is None:
-        config_path = Path.cwd() / _DEFAULT_CONFIG_FILENAME
-    else:
-        config_path = Path(path)
+    config_path = Path.cwd() / _DEFAULT_CONFIG_FILENAME if path is None else Path(path)
 
     resolved = str(config_path.resolve())
     if _config_cache is not None and _config_cache_path == resolved:
@@ -206,7 +202,7 @@ def load_config(path: Optional[str | Path] = None) -> RevHiveConfig:
     max_concurrent_agents = int(raw.get("max_concurrent_agents", 3))
 
     # Parse allowed plugins whitelist
-    allowed_plugins: Optional[set[str]] = None
+    allowed_plugins: set[str] | None = None
     raw_plugins = raw.get("allowed_plugins")
     if isinstance(raw_plugins, list):
         allowed_plugins = set(raw_plugins)

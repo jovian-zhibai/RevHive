@@ -4,32 +4,31 @@ Default backend: MiMo (https://api.xiaomimimo.com/v1).
 """
 
 import asyncio
+import glob
 import importlib.util
 import json
 import logging
 import os
 import random
 import re
-import glob
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
-from langgraph.graph import StateGraph, END, START
+from langgraph.graph import END, START, StateGraph
 
 from revhive.agents import (
-    StyleAgent,
-    SecurityAgent,
-    PerformanceAgent,
-    LogicAgent,
-    RepoAgent,
-    RefactorAgent,
-    FixAgent,
-    TestAgent,
-    DocAgent,
     CoordinatorAgent,
+    DocAgent,
+    FixAgent,
+    LogicAgent,
+    PerformanceAgent,
+    RefactorAgent,
+    RepoAgent,
+    SecurityAgent,
+    StyleAgent,
+    TestAgent,
 )
-from revhive.agents.base import BaseReviewAgent, AgentResult, SEVERITY_ORDER
+from revhive.agents.base import SEVERITY_ORDER, AgentResult, BaseReviewAgent
 from revhive.config import RevHiveConfig, load_config
 
 logger = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ _AGENT_CLASSES: dict[str, type] = {
 }
 
 
-def load_plugins(plugin_dir: str = "plugins", allowed_plugins: Optional[set[str]] = None) -> dict[str, type]:
+def load_plugins(plugin_dir: str = "plugins", allowed_plugins: set[str] | None = None) -> dict[str, type]:
     """Load custom agent plugins from a directory.
 
     Each .py file in *plugin_dir* can define an agent class that extends
@@ -120,16 +119,16 @@ class ReviewState:
     """
     code: str = ""
     file_path: str = ""
-    style_result: Optional[AgentResult] = None
-    security_result: Optional[AgentResult] = None
-    performance_result: Optional[AgentResult] = None
-    logic_result: Optional[AgentResult] = None
-    repo_result: Optional[AgentResult] = None
-    refactor_result: Optional[AgentResult] = None
-    fix_result: Optional[AgentResult] = None
-    test_result: Optional[AgentResult] = None
-    doc_result: Optional[AgentResult] = None
-    final_result: Optional[AgentResult] = None
+    style_result: AgentResult | None = None
+    security_result: AgentResult | None = None
+    performance_result: AgentResult | None = None
+    logic_result: AgentResult | None = None
+    repo_result: AgentResult | None = None
+    refactor_result: AgentResult | None = None
+    fix_result: AgentResult | None = None
+    test_result: AgentResult | None = None
+    doc_result: AgentResult | None = None
+    final_result: AgentResult | None = None
     plugin_results: dict[str, AgentResult] = field(default_factory=dict)
 
 
@@ -140,12 +139,12 @@ _STATE_ATTR_MAP: dict[str, str] = {name: f"{name}_result" for name in _AGENT_CLA
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
 
-    def __init__(self, model: Optional[str] = None, config: Optional[RevHiveConfig] = None, plugin_dir: str = "plugins",
-                 api_key: Optional[str] = None, base_url: Optional[str] = None,
-                 enabled_agents: Optional[list[str]] = None,
+    def __init__(self, model: str | None = None, config: RevHiveConfig | None = None, plugin_dir: str = "plugins",
+                 api_key: str | None = None, base_url: str | None = None,
+                 enabled_agents: list[str] | None = None,
                  allow_plugins: bool = False,
-                 max_concurrent_agents: Optional[int] = None,
-                 fallback_models: Optional[list[str]] = None):
+                 max_concurrent_agents: int | None = None,
+                 fallback_models: list[str] | None = None):
         self.config = config or load_config()
         _api_key = api_key or os.getenv("LLM_API_KEY")
         # A preset name (e.g. --model ollama) implies its endpoint. Falling

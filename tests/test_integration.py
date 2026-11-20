@@ -4,8 +4,9 @@ Tests the end-to-end flow: code → agents → coordinator → report.
 Uses mock LLM to avoid API calls.
 """
 
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
 
 from revhive.agents.base import AgentResult
 from revhive.demo import DemoReviewWorkflow

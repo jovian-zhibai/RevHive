@@ -12,7 +12,6 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from revhive.graph.workflow import CodeReviewWorkflow
 
@@ -70,7 +69,7 @@ class TeamBatchProcessor:
     └──────────────────────────────────────────────────────────┘
     """
 
-    def __init__(self, config: TeamConfig, model: Optional[str] = None):
+    def __init__(self, config: TeamConfig, model: str | None = None):
         warnings.warn("TeamBatchProcessor is EXPERIMENTAL and may be removed or redesigned.", FutureWarning, stacklevel=2)
         self.config = config
         self.workflow = CodeReviewWorkflow(model=model)
@@ -83,9 +82,9 @@ class TeamBatchProcessor:
             "api_key": os.getenv("LLM_API_KEY"),
             "base_url": os.getenv("LLM_BASE_URL"),
         }
+        from revhive.agents.doc_agent import DocAgent
         from revhive.agents.fix_agent import FixAgent
         from revhive.agents.test_agent import TestAgent
-        from revhive.agents.doc_agent import DocAgent
         self._fix_agent = FixAgent(**common_kwargs)
         self._test_agent = TestAgent(**common_kwargs)
         self._doc_agent = DocAgent(**common_kwargs)

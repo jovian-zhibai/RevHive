@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -17,9 +17,9 @@ class Finding(BaseModel):
         description="Severity level"
     )
     description: str = Field(description="What's wrong")
-    file_path: Optional[str] = Field(default=None, description="File path if applicable")
-    line_number: Optional[int] = Field(default=None, description="Line number if applicable")
-    code_snippet: Optional[str] = Field(default=None, description="Relevant code snippet")
+    file_path: str | None = Field(default=None, description="File path if applicable")
+    line_number: int | None = Field(default=None, description="Line number if applicable")
+    code_snippet: str | None = Field(default=None, description="Relevant code snippet")
     suggestion: str = Field(default="", description="How to fix")
 
     @model_validator(mode="before")

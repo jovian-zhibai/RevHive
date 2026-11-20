@@ -1,6 +1,7 @@
 """Tests for Pydantic schemas (Finding and ReviewResult)."""
 
 import pytest
+
 from revhive.models.schemas import Finding, ReviewResult
 
 

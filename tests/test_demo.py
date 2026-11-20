@@ -1,12 +1,13 @@
 """Tests for the demo / dry-run mode."""
 
 import json
-from revhive.demo import (
-    DemoReviewWorkflow,
-    DemoConfig,
-    _MOCK_FINDINGS,
-)
+
 from revhive.agents.base import Severity
+from revhive.demo import (
+    _MOCK_FINDINGS,
+    DemoConfig,
+    DemoReviewWorkflow,
+)
 from revhive.graph.workflow import ReviewReport
 
 
@@ -81,7 +82,7 @@ def test_demo_without_token_simulation():
 
 def test_mock_findings_all_valid():
     """Every mock finding should have required fields."""
-    for agent_name, findings_list in _MOCK_FINDINGS.items():
+    for findings_list in _MOCK_FINDINGS.values():
         for f in findings_list:
             assert "title" in f
             assert "description" in f

@@ -62,7 +62,7 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
                 f"Access denied: '{file_path}' is outside the current working directory. "
                 f"Use --allow-outside-cwd to override.",
                 param_hint="--file",
-            )
+            ) from None
     return resolved
 
 
@@ -162,10 +162,7 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
         raise
 
     report_obj = ReviewReport(result)
-    if fmt == "json":
-        report = report_obj.to_json()
-    else:
-        report = report_obj.to_markdown()
+    report = report_obj.to_json() if fmt == "json" else report_obj.to_markdown()
 
     if output:
         Path(output).write_text(report, encoding="utf-8")
@@ -181,10 +178,10 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
 
 def _render_demo_rich(result) -> None:
     """Render demo review as a rich terminal panel."""
+    from rich import box
     from rich.console import Console
     from rich.panel import Panel
     from rich.text import Text
-    from rich import box
 
     from revhive.agents.base import Severity
 
