@@ -454,6 +454,77 @@
 
       <p class="fade-in fade-in-d4 text-gray-500 text-center text-sm mt-8">All plans require your own LLM API key. You only pay your LLM provider for tokens — no markup from RevHive.</p>
       <p class="fade-in fade-in-d4 text-gray-600 text-center text-xs mt-2">Typical cost per PR review: ~$0.05 with DeepSeek · ~$0.05–0.15 with MiMo · ~$0.10–0.30 with GPT-4o. You control spend.</p>
+
+      <!-- Buyer-facing FAQ. These are the six questions that show up before
+           anyone enters a card number; keep the answers literal. -->
+      <div class="max-w-3xl mx-auto mt-16">
+        <h3 class="fade-in text-2xl font-bold text-white text-center mb-8">Before you pay</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">Who actually charges my card?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">Creem, our merchant of record, is the legal seller on every order. It charges you, collects and remits any VAT or sales tax your country requires, and emails the invoice. You do not file anything yourself.</p>
+          </div>
+          <div class="fade-in fade-in-d1 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">Can I cancel whenever I want?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">Yes, one click in your dashboard. No email, no retention call. The plan stays active until the end of the period you already paid for, then drops back to Free.</p>
+          </div>
+          <div class="fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">What if it is not useful to me?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">Email us within 7 days of the charge and we refund it, no questions asked. No forms, no back-and-forth.</p>
+          </div>
+          <div class="fade-in fade-in-d2 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">Do I need my own LLM key?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">Yes, and that is the point. You pay your provider for tokens, at their price, with zero markup from us. A free plan is included, so you can measure the token cost on your own repos before paying us anything.</p>
+          </div>
+          <div class="fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">What does &ldquo;per installation&rdquo; mean?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">One subscription covers one GitHub App installation, meaning every repository that installation can reach. Adding repositories or teammates to that installation does not change the price.</p>
+          </div>
+          <div class="fade-in fade-in-d3 bg-surface-2 border border-white/5 rounded-xl p-5">
+            <div class="text-white font-semibold text-sm mb-2">How can I pay?</div>
+            <p class="text-gray-400 text-sm leading-relaxed">Card, PayPal, Apple Pay, Google Pay and Alipay. Checkout shows the price in your local currency, converted at the day&rsquo;s rate, so the amount on your statement is the one you saw.</p>
+          </div>
+        </div>
+      </div>
+
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Who actually charges my card?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Creem, our merchant of record, is the legal seller on every order. It charges you, collects and remits any VAT or sales tax your country requires, and emails the invoice." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I cancel whenever I want?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes, one click in your dashboard. The plan stays active until the end of the paid period, then drops back to Free." }
+          },
+          {
+            "@type": "Question",
+            "name": "What if it is not useful to me?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Email within 7 days of the charge and we refund it, no questions asked." }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need my own LLM key?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. You pay your LLM provider for tokens at their price with zero markup from us. A free plan is included so you can measure token cost before paying." }
+          },
+          {
+            "@type": "Question",
+            "name": "What does per installation mean?",
+            "acceptedAnswer": { "@type": "Answer", "text": "One subscription covers one GitHub App installation and every repository that installation can reach. Adding repositories or teammates does not change the price." }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I pay?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Card, PayPal, Apple Pay, Google Pay and Alipay. Checkout shows the price in your local currency." }
+          }
+        ]
+      }
+      </script>
     </div>
   </section>
 
@@ -641,10 +712,14 @@
     });
   </script>
 
-  <!-- Creem checkout wiring.
-       Paste the payment links from Creem dashboard > Products into the two
-       slots below. While a slot is empty the button falls back to the free
-       GitHub App install, so the page never ships a dead CTA. -->
+  <!-- Checkout wiring — LEAVE BOTH SLOTS EMPTY.
+       A bare Creem payment link cannot carry installation_id, so a payment made
+       through it arrives with no way to tell which GitHub App install paid:
+       the money lands, the plan does not change, and the customer gets nothing.
+       Upgrades are sold inside the dashboard instead, where
+       POST /api/user/checkout attaches the installation to the checkout.
+       If a slot is filled the CTA silently switches to that link, which is
+       exactly the failure this comment exists to prevent. -->
   <script>
     var REVHIVE_CHECKOUT = {
       pro: "",
