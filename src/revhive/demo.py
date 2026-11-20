@@ -329,7 +329,7 @@ def _build_coordinator_summary(findings: list[ReviewFinding], risk_score: int = 
     lines.append("revhive review --file src/main.py  # real multi-agent review")
     lines.append("```")
     lines.append("")
-    lines.append("🖥️ **Automate on every PR** → [Install GitHub App](https://github.com/apps/revhive-bot)")
+    lines.append("🖥️ **Automate on every PR** → [Install GitHub App](https://github.com/apps/revhive-review)")
     lines.append("")
     lines.append("⭐ **Like RevHive?** [Star us on GitHub](https://github.com/jovian-zhibai/RevHive) — helps more developers find this tool!")
 

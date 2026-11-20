@@ -253,7 +253,7 @@ def _render_demo_rich(result) -> None:
     body.append("⚡ Demo mode — no API key required", style="dim cyan")
     body.append("\n")
     body.append("🖥️ Automate on every PR → ", style="cyan")
-    body.append("https://github.com/apps/revhive-bot", style="cyan link https://github.com/apps/revhive-bot")
+    body.append("https://github.com/apps/revhive-review", style="cyan link https://github.com/apps/revhive-review")
 
     panel = Panel(body, title="[bold]🛡️ RevHive Review Report[/bold]", box=box.ROUNDED)
     console.print(panel)
