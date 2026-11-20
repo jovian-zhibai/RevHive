@@ -16,7 +16,7 @@ pip install revhive-ai && revhive demo   # 30 秒体验——无需 API Key、�
 
 **两种用法：**
 - **CLI / CI** — 自己跑，数据不出你的机器。BSL 许可下永久免费。
-- **[GitHub App](https://github.com/apps/revhive-bot)** — 每个 PR 自动审查。每月免费 50 次，无需绑卡。
+- **[GitHub App](https://github.com/apps/revhive-review)** — 每个 PR 自动审查。每月免费 50 次，无需绑卡。
 
 **需要代码完全不出内网？** 见[中文方案页](https://jovian-zhibai.github.io/RevHive/zh.html)：BYOK + 国产模型 + 内网自托管，团队授权与私有化交付。也可以直接给一个仓库地址，我们免费出一份完整审查报告给你看效果。
 
@@ -75,7 +75,7 @@ revhive review --file src/main.py      # 或：revhive review --diff HEAD~1
 
 **B. GitHub App — 每个 PR 自动审查**
 
-1. 在目标仓库上[安装 GitHub App](https://github.com/apps/revhive-bot)
+1. 在目标仓库上[安装 GitHub App](https://github.com/apps/revhive-review)
 2. 在自动创建的 dashboard 里粘贴 LLM Key（默认已选 DeepSeek——约 $0.05/次审查）
 3. 完成。每个新 PR 都会自动收到带风险评分的审查评论。
 

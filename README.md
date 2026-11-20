@@ -16,7 +16,7 @@ pip install revhive-ai && revhive demo   # 30-second taste — no API key, no se
 
 **Two ways to use it:**
 - **CLI / CI** — run it yourself, data never leaves your machine. Free forever under BSL.
-- **[GitHub App](https://github.com/apps/revhive-bot)** — every PR gets auto-reviewed. Free for 50 reviews/month, no credit card.
+- **[GitHub App](https://github.com/apps/revhive-review)** — every PR gets auto-reviewed. Free for 50 reviews/month, no credit card.
 
 > **Status:** early-stage and solo-built. We run RevHive on every PR we open in our own repos. False positives are the #1 thing we care about — if a finding is noise, [tell us](https://github.com/jovian-zhibai/RevHive/issues) and we'll fix the agent, not the symptom.
 
@@ -73,7 +73,7 @@ revhive review --file src/main.py      # or: revhive review --diff HEAD~1
 
 **B. GitHub App — automatic review on every PR**
 
-1. [Install the GitHub App](https://github.com/apps/revhive-bot) on the repos you care about
+1. [Install the GitHub App](https://github.com/apps/revhive-review) on the repos you care about
 2. Paste your LLM key in the auto-created dashboard (DeepSeek is pre-selected — ~$0.05/review)
 3. Done. Every new PR gets a review comment with the risk score.
 
