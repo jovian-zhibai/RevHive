@@ -118,7 +118,7 @@
   <p class="text-gray-400 mb-3">A perfect score here is a sign that the benchmark is weak, not that the tool is perfect. Specifically:</p>
   <ul class="list-disc list-inside space-y-2 text-gray-400 mb-10">
     <li><strong class="text-gray-200">A reverted fix is suspicious by construction.</strong> The patch removes a length check, a validation call, a sanitizer. Almost any reviewer that looks at the diff will notice. Real bugs are introduced by accident, inside a 400-line feature, and that is much harder.</li>
-    <li><strong class="text-gray-200">It measures recall, never precision.</strong> Nothing here says how often it flags clean code. The next version of this page needs twenty ordinary pull requests and a false positive count, and until it has them, treat this as a floor, not a rate.</li>
+    <li><strong class="text-gray-200">It measures recall, never precision.</strong> Nothing here says how often it flags clean code. We ran the other half separately: twenty ordinary merged commits, seventeen with no comment, four comments in total. Every one is written up in <a class="text-emerald-400 underline" href="/blog/ordinary-prs-noise.html">the noise measurement</a>.</li>
     <li><strong class="text-gray-200">Ten cases is an anecdote with a table.</strong> Adding or removing two cases moves the number by twenty points.</li>
     <li><strong class="text-gray-200">Severity is unreliable.</strong> The password-hash disclosure was called <em>low</em>; Django shipped it as a security release. Read the finding, not just the colour.</li>
   </ul>

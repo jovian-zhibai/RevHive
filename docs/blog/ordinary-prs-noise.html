@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>20 ordinary merged commits, 4 comments: measuring an AI reviewer's noise | RevHive</title>
+<meta name="description" content="We ran our AI code reviewer on twenty real, already-merged commits from psf/requests with nothing planted. It commented on three of them. We read all four comments and graded them by hand.">
+<meta name="keywords" content="AI code review, false positive rate, code review noise, LLM code review, precision">
+<meta property="og:title" content="We ran our AI reviewer on 20 ordinary merged commits. It commented 4 times.">
+<meta property="og:description" content="Seventeen commits got complete silence. Three got four comments. We read every one.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/ordinary-prs-noise.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+  article table{width:100%;margin:1.4rem 0;font-size:.9rem;border-collapse:collapse}
+  article th{text-align:left;padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+  article td{padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);color:#b4b4bb}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11-21 &middot; Evaluation notes</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">We ran our AI reviewer on 20 ordinary merged commits. It commented 4 times.</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">The precision half of the benchmark. Nothing planted, every comment read by hand.</p>
+
+  <article>
+
+    <p>Last week I published a <a href="/benchmark.html" class="text-emerald-400 hover:underline">benchmark</a> where our reviewer caught 10 out of 10 re-introduced vulnerabilities, and then spent four paragraphs explaining why that number is close to worthless. The main reason: it measured recall and never precision. A tool that finds every planted bug and also comments on clean code is not half-good, it is unusable.</p>
+
+    <p>So here is the missing half. Twenty ordinary commits, nothing planted, and every comment read by hand.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8">
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-emerald-400">17/20</div>
+        <div class="text-gray-500 text-xs mt-1">commits got complete silence</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-white">4</div>
+        <div class="text-gray-500 text-xs mt-1">comments in total</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-orange-400">3</div>
+        <div class="text-gray-500 text-xs mt-1">of those 4 were noise</div>
+      </div>
+    </div>
+
+    <h2>The samples</h2>
+
+    <p>Twenty commits from <code>psf/requests</code>, filtered to those touching <code>src/requests/**.py</code> and excluding pure type-annotation and CI churn. All twenty were merged by maintainers. None re-introduces a vulnerability.</p>
+
+    <p>For each one: check out the commit, run the security agent against <code>HEAD~1</code> with no PR description and no hints, record what it says. One pass each, twenty out of twenty completed.</p>
+
+    <h2>The result</h2>
+
+    <table>
+      <thead><tr><th>Commit</th><th>Change</th><th>Comments</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="font-mono text-xs whitespace-nowrap">a044b02</td><td>DigestAuth hashes: add <code>usedforsecurity=False</code> (5 lines)</td><td>2 (high, medium)</td><td class="text-orange-400">noise</td></tr>
+        <tr><td class="font-mono text-xs whitespace-nowrap">fd62809</td><td>Preserve leading slashes in <code>path_url</code> (2 lines)</td><td>1 (high)</td><td class="text-orange-400">overstated</td></tr>
+        <tr><td class="font-mono text-xs whitespace-nowrap">a4f9a59</td><td>Port bpo-39057 (proxy bypass fix)</td><td>1 (low)</td><td class="text-gray-400">real but marginal</td></tr>
+        <tr><td class="font-mono text-xs whitespace-nowrap">17 others</td><td>small refactors, typing, parsing fixes</td><td class="text-emerald-400">0</td><td class="text-gray-500">silent</td></tr>
+      </tbody>
+    </table>
+
+    <p>Seventeen of twenty got complete silence. That is the part that matters most: on most real changes the reviewer has nothing to say, which is the correct answer.</p>
+
+    <h2>What it said when it did speak</h2>
+
+    <h3><code>a044b02</code> &mdash; two comments, both noise</h3>
+    <p>The commit adds <code>usedforsecurity=False</code> to the <code>hashlib</code> calls in HTTP Digest auth. That flag exists so the code keeps working under FIPS restrictions, where MD5 and SHA1 are otherwise blocked. It is a deliberate annotation meaning <em>this hash is part of a wire protocol, not a security primitive</em>.</p>
+    <p>The reviewer reported a <strong>high</strong> finding titled &ldquo;FIPS security bypass via usedforsecurity=False&rdquo;, plus a <strong>medium</strong> one about weak hashing for cnonce generation. Both restart from &ldquo;MD5 is weak&rdquo;, which has been true since 2004, and neither engages with what the diff does. The maintainers added the flag <em>because</em> the hash is not a security control. The reviewer read the flag as a security control being switched off.</p>
+
+    <h3><code>fd62809</code> &mdash; one comment, overstated</h3>
+    <p>Reported <strong>high</strong>: removing the <code>//</code>-to-<code>/</code> normalization may enable request smuggling, since some proxies treat <code>//evil.com/path</code> as a network-path reference. There is a real debate in that area and the finding is not stupid. But the change was made on purpose, after discussion, and &ldquo;may enable request smuggling&rdquo; is a much stronger claim than two lines of diff support.</p>
+
+    <h3><code>a4f9a59</code> &mdash; one comment, real but marginal</h3>
+    <p>If <code>no_proxy</code> contains an entry consisting only of dots, <code>host.lstrip(".")</code> produces an empty string and the suffix match degenerates. Genuine edge case, rated low, will never happen in a real deployment.</p>
+
+    <h2>The failure mode is one thing, repeated</h2>
+
+    <p>All three false positives have the same shape: <strong>the diff contains something that looks like a security control being removed or disabled, and the reviewer reacts to the shape without recovering the intent.</strong></p>
+
+    <p><code>usedforsecurity=False</code> reads as &ldquo;we are telling the crypto library to skip security&rdquo;. Removing <code>//</code> normalization reads as &ldquo;we stopped sanitising the path&rdquo;. Both are locally true about the text and both are wrong about the change, because the reason lives outside the diff: in the FIPS requirement, in the linked issue, in the discussion that decided the trade-off.</p>
+
+    <p>This is the mirror image of the recall problem. A reverted security fix is easy to catch precisely because the reason <em>is</em> visible in the diff: a guard clause disappeared and nothing replaced it. Real commits that touch security surfaces are hard because the reason is usually absent and the shape looks identical to a regression.</p>
+
+    <blockquote>An LLM reviewer with no PR description is being asked to tell those two apart from the patch alone. Most of the time it cannot, so the honest design goal is not &ldquo;understand intent&rdquo;, it is &ldquo;say less when intent is missing&rdquo;.</blockquote>
+
+    <h2>What this does and does not support</h2>
+
+    <p><strong>Supports:</strong> on ordinary changes this reviewer is quiet. Fifteen percent of commits got a comment, and the absolute cost is low &mdash; one extra thing to read per five PRs, not a wall of noise.</p>
+
+    <p><strong>Does not support:</strong> a precision <em>rate</em>. Four comments is not a sample, and I graded &ldquo;noise&rdquo; myself, knowing what each diff was supposed to do &mdash; which a reviewer in CI does not.</p>
+
+    <ul>
+      <li><strong>One project, one language.</strong> <code>requests</code> is Python, small, and unusually well reviewed. A codebase with more security surface will produce more comments, not fewer.</li>
+      <li><strong>No PR description, by design.</strong> That is the harshest setting. In CI the reviewer usually gets a title and description, which should reduce these false positives &mdash; and could increase them, if the description hands the model a thesis to confirm.</li>
+      <li><strong>Security agent only.</strong> A full review is noisier, and I have no honest number for it yet.</li>
+    </ul>
+
+    <h2>What changed in the product</h2>
+
+    <p>These findings are why the reviewer now has a confidence floor and only reports findings anchored to a specific line with a concrete failure path. &ldquo;MD5 is weak&rdquo; has no failure path, so it does not get to speak. &ldquo;This path is used for auth, therefore disabling FIPS checks on it is a bypass&rdquo; has no failure path either, because the premise is wrong.</p>
+
+    <p>Recall went down when we added that. On the twenty commits it cost nothing, since none of the four comments was actionable. On the ten vulnerability cases it cost nothing either. That is the trade I want: wrong less often, at the price of being quiet more often.</p>
+
+    <p>The next version needs a hundred commits across three or four projects, PR descriptions included, and two people labelling comments independently. Four comments is an anecdote with a table, and I would rather say so than round it into a percentage.</p>
+
+    <hr class="border-white/10 my-10">
+    <p class="text-sm text-gray-500">
+      The recall side, and why it is too easy:
+      <a href="/blog/evaluating-ai-code-review.html" class="text-emerald-400 hover:underline">10/10 and why it does not count</a>.
+      Run it yourself:
+      <a href="https://github.com/apps/revhive-review/installations/new" class="text-emerald-400 hover:underline">GitHub App</a>.
+    </p>
+
+  </article>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+</body>
+</html>
