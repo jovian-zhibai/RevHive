@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive vs CodeRabbit — Cost and Honest Comparison (2026)</title>
+  <meta name="description" content="CodeRabbit charges $24–30 per developer per month and includes the model. RevHive charges $9 per installation and you bring the key. Side-by-side cost for 1, 5 and 20 developers, plus where each one wins.">
+  <link rel="canonical" href="https://revhive.souljian.cn/vs/coderabbit.html">
+  <meta property="og:title" content="RevHive vs CodeRabbit — Cost and Honest Comparison">
+  <meta property="og:description" content="Per-developer pricing versus per-installation pricing, with the LLM token cost included so the comparison holds up.">
+  <meta property="og:url" content="https://revhive.souljian.cn/vs/coderabbit.html">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="RevHive vs CodeRabbit — Cost and Honest Comparison">
+  <meta name="twitter:description" content="Per-developer pricing versus per-installation pricing, with LLM token cost included.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            accent: '#10B981',
+            'accent-dark': '#059669',
+            surface: '#111113',
+            'surface-2': '#1a1a1e',
+            'surface-3': '#222228',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+  <nav class="border-b border-white/5 px-6 py-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-2 text-white font-semibold">
+        <span class="w-2 h-2 rounded-full bg-accent"></span> RevHive
+      </a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="../index.html#pricing" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+        <a href="https://github.com/apps/revhive-review/installations/new" class="bg-accent hover:bg-accent-dark text-white font-medium px-4 py-1.5 rounded-lg transition-colors">Install</a>
+      </div>
+    </div>
+  </nav>
+
+  <article class="max-w-4xl mx-auto px-6 py-14">
+
+    <p class="text-accent text-sm font-medium mb-3">Comparison</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white leading-tight mb-5">RevHive vs CodeRabbit</h1>
+    <p class="text-gray-400 text-lg leading-relaxed mb-10 max-w-2xl">
+      These two charge for code review in fundamentally different ways. CodeRabbit charges per developer and includes the model. RevHive charges per installation and you bring your own key. The pricing tables below include the token cost, because a comparison that leaves it out is not a comparison.
+    </p>
+
+    <!-- Verdict -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-14">
+      <div class="bg-surface-2 border border-accent/30 rounded-xl p-6">
+        <div class="text-accent font-semibold text-sm mb-2">Pick RevHive if</div>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li class="flex gap-2"><span class="text-accent shrink-0">→</span> You already pay for an LLM API and would rather not pay a second markup on tokens.</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">→</span> Your team is bigger than one person, so per-seat pricing is what hurts.</li>
+          <li class="flex gap-2"><span class="text-accent shrink-0">→</span> Code cannot leave your network — you need a local model or a self-hosted CLI.</li>
+        </ul>
+      </div>
+      <div class="bg-surface-2 border border-white/5 rounded-xl p-6">
+        <div class="text-white font-semibold text-sm mb-2">Pick CodeRabbit if</div>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li class="flex gap-2"><span class="text-gray-500 shrink-0">→</span> You want the model included and nothing to configure. No key, no provider account, no token budget to watch.</li>
+          <li class="flex gap-2"><span class="text-gray-500 shrink-0">→</span> Your repos are open source — its free tier gives public repos full team features.</li>
+          <li class="flex gap-2"><span class="text-gray-500 shrink-0">→</span> You need linter and SAST integration, autofix, PR chat, or SOC 2 paperwork for procurement.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-3">What each one actually costs</h2>
+    <p class="text-gray-400 text-sm leading-relaxed mb-4 max-w-2xl">
+      CodeRabbit Essentials is $30 per developer per month month-to-month, or $24 billed annually. RevHive Pro is $9 per installation per month, with no per-seat charge. RevHive then also bills your LLM provider for tokens, so the third column adds those at two realistic prices.
+    </p>
+
+    <div class="overflow-x-auto mb-3">
+      <table class="w-full text-sm border border-white/10 rounded-lg overflow-hidden">
+        <thead class="bg-surface-3 text-white">
+          <tr>
+            <th class="text-left px-4 py-3 font-semibold">Team size</th>
+            <th class="text-left px-4 py-3 font-semibold">CodeRabbit<br><span class="font-normal text-gray-400 text-xs">$30/dev/mo</span></th>
+            <th class="text-left px-4 py-3 font-semibold">RevHive Pro<br><span class="font-normal text-gray-400 text-xs">$9 flat + tokens</span></th>
+            <th class="text-left px-4 py-3 font-semibold">RevHive, GPT-4o-class<br><span class="font-normal text-gray-400 text-xs">$9 + ~$0.30/review</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          <tr>
+            <td class="px-4 py-3 text-white">1 developer</td>
+            <td class="px-4 py-3">$30</td>
+            <td class="px-4 py-3 text-accent">$11</td>
+            <td class="px-4 py-3">$15</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">5 developers</td>
+            <td class="px-4 py-3">$150</td>
+            <td class="px-4 py-3 text-accent">$19</td>
+            <td class="px-4 py-3">$39</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">20 developers</td>
+            <td class="px-4 py-3">$600</td>
+            <td class="px-4 py-3 text-accent">$49</td>
+            <td class="px-4 py-3">$129</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-gray-600 text-xs leading-relaxed mb-14">
+      Assumes 20 pull requests per developer per month. The third column uses ~$0.10 per review, a DeepSeek-class price; the fourth uses ~$0.30, a GPT-4o-class price. Token cost is measured on real reviews, not estimated from line count, and it moves with the model you choose. If you run a local model through Ollama, the token cost is your own hardware. Prices read from each vendor's public pricing page in November 2026 — check them before you buy, they change.
+    </p>
+
+    <h2 class="text-2xl font-bold text-white mb-5">Feature by feature</h2>
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full text-sm border border-white/10 rounded-lg overflow-hidden">
+        <thead class="bg-surface-3 text-white">
+          <tr>
+            <th class="text-left px-4 py-3 font-semibold w-1/3"> </th>
+            <th class="text-left px-4 py-3 font-semibold">RevHive</th>
+            <th class="text-left px-4 py-3 font-semibold">CodeRabbit</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          <tr>
+            <td class="px-4 py-3 text-white">Billing unit</td>
+            <td class="px-4 py-3 text-accent">Per installation</td>
+            <td class="px-4 py-3">Per developer</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">LLM</td>
+            <td class="px-4 py-3">Yours — any OpenAI-compatible endpoint, including a local one</td>
+            <td class="px-4 py-3">Included in the price</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Self-hosted</td>
+            <td class="px-4 py-3 text-accent">Yes — MIT-licensed CLI, runs entirely inside your network</td>
+            <td class="px-4 py-3">Enterprise plan only</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Review agents</td>
+            <td class="px-4 py-3">9 specialists + 1 coordinator</td>
+            <td class="px-4 py-3">Single engine over 40+ linters and static analysis tools</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Inline PR annotations</td>
+            <td class="px-4 py-3">Pro and above</td>
+            <td class="px-4 py-3">Yes</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Commit status gate</td>
+            <td class="px-4 py-3">Yes, risk-score based</td>
+            <td class="px-4 py-3">Yes, via pre-merge checks</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Linters / SAST</td>
+            <td class="px-4 py-3 text-gray-500">No — LLM review only</td>
+            <td class="px-4 py-3 text-white">Yes, 40+ tools</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">One-click autofix</td>
+            <td class="px-4 py-3 text-gray-500">No</td>
+            <td class="px-4 py-3 text-white">Yes</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Chat with the bot on a PR</td>
+            <td class="px-4 py-3 text-gray-500">No</td>
+            <td class="px-4 py-3 text-white">Yes</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">SOC 2</td>
+            <td class="px-4 py-3 text-gray-500">Not yet</td>
+            <td class="px-4 py-3 text-white">Yes</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 text-white">Free tier</td>
+            <td class="px-4 py-3">4 agents, 50 reviews/mo</td>
+            <td class="px-4 py-3">Public repos get team features free</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-gray-600 text-xs mb-14">Feature rows reflect each vendor's published documentation as of November 2026. Where RevHive does not have something, it says so.</p>
+
+    <h2 class="text-2xl font-bold text-white mb-4">Where CodeRabbit is genuinely better</h2>
+    <p class="text-gray-400 leading-relaxed mb-4">
+      It is a mature product and pretending otherwise would waste your time. Its free tier gives open-source repositories full team features, which is close to unbeatable if you maintain a popular OSS project. It bundles 40+ linters, one-click fixes, PR chat, autofix and SOC 2 — RevHive has none of those. It is also the most-installed review app on GitHub, so it has been through far more real repositories than a product this young.
+    </p>
+    <p class="text-gray-400 leading-relaxed mb-14">
+      If your main line is open source, or if a security questionnaire will ask about SOC 2, CodeRabbit is the safer buy. We would rather say that here than have you find out after paying.
+    </p>
+
+    <h2 class="text-2xl font-bold text-white mb-4">Where RevHive is better</h2>
+    <p class="text-gray-400 leading-relaxed mb-4">
+      Cost per team, not per person. Nine dollars covers every repository an installation can reach, so the price does not grow when you hire. At twenty developers that is the difference between $600 and $49 a month.
+    </p>
+    <p class="text-gray-400 leading-relaxed mb-4">
+      No token markup, and no token ceiling. You point RevHive at any OpenAI-compatible endpoint — DeepSeek, Qwen, GLM, Kimi, OpenAI, or a model running on your own machine through Ollama. That last one matters if your code is not allowed to leave the building: a local review has no network egress at all, which no hosted reviewer can offer at this price.
+    </p>
+    <p class="text-gray-400 leading-relaxed mb-14">
+      And the CLI is MIT-licensed, so the review engine itself can be read, forked and run in your own CI without the GitHub App.
+    </p>
+
+    <h2 class="text-2xl font-bold text-white mb-4">The honest caveat</h2>
+    <p class="text-gray-400 leading-relaxed mb-14">
+      RevHive is new. It has one maintainer, no SOC 2, and a much smaller install base than CodeRabbit. Review quality depends on the model you bring — point it at a cheap model and you get cheap reviews. If you need a vendor with a support contract and a compliance folder today, this is not it yet.
+    </p>
+
+    <div class="bg-surface-2 border border-white/5 rounded-xl p-8 text-center mb-14">
+      <h2 class="text-xl font-bold text-white mb-2">Measure it on your own repos</h2>
+      <p class="text-gray-400 text-sm mb-6 max-w-md mx-auto">The free plan runs 4 agents for 50 reviews a month. That is enough to see what it finds and what your tokens actually cost before you pay anything.</p>
+      <a href="https://github.com/apps/revhive-review/installations/new" class="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-3 rounded-lg transition-colors">Install the GitHub App</a>
+    </div>
+
+    <h2 class="text-2xl font-bold text-white mb-5">Questions</h2>
+    <div class="space-y-5 mb-12">
+      <div>
+        <div class="text-white font-semibold text-sm mb-1.5">Is RevHive really cheaper if I have to pay for tokens?</div>
+        <p class="text-gray-400 text-sm leading-relaxed">Usually, yes, and the gap widens with team size. Token cost scales with the number of reviews, not the number of people. At $0.10 a review and 20 PRs per developer per month, twenty developers cost about $49 a month all in, against $600 for per-seat pricing.</p>
+      </div>
+      <div>
+        <div class="text-white font-semibold text-sm mb-1.5">Can I use it without sending code to anyone?</div>
+        <p class="text-gray-400 text-sm leading-relaxed">Yes. Point it at a local model through Ollama. The GitHub App still needs to receive webhooks, but the code being reviewed goes to your own endpoint, not to a third party. For a fully offline workflow, use the CLI in your own CI.</p>
+      </div>
+      <div>
+        <div class="text-white font-semibold text-sm mb-1.5">Does it work on open-source repositories?</div>
+        <p class="text-gray-400 text-sm leading-relaxed">It does, and the free plan covers them. But CodeRabbit gives public repos its full team feature set for free, which is a better deal for OSS maintainers. Being straight about that is cheaper for both of us than a refund.</p>
+      </div>
+      <div>
+        <div class="text-white font-semibold text-sm mb-1.5">Can I switch later?</div>
+        <p class="text-gray-400 text-sm leading-relaxed">Any time. RevHive is a GitHub App installation — remove it and nothing is left behind. There is no contract and no minimum term.</p>
+      </div>
+    </div>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is RevHive really cheaper than CodeRabbit if I have to pay for tokens?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Usually yes, and the gap widens with team size. Token cost scales with the number of reviews, not the number of people. At $0.10 per review and 20 PRs per developer per month, twenty developers cost about $49 a month all in, against $600 for per-seat pricing." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can RevHive review code without sending it to a third party?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Point it at a local model through Ollama, or run the MIT-licensed CLI in your own CI for a fully offline workflow." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does RevHive work on open-source repositories?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, the free plan covers public repositories, but CodeRabbit gives public repositories its full team feature set for free, which is a better deal for OSS maintainers." }
+        }
+      ]
+    }
+    </script>
+
+  </article>
+
+  <footer class="border-t border-white/5 px-6 py-8">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-600">
+      <div>RevHive — AI code review on your own key.</div>
+      <div class="flex gap-5">
+        <a href="../index.html" class="hover:text-gray-400">Home</a>
+        <a href="../terms.html" class="hover:text-gray-400">Terms</a>
+        <a href="../privacy.html" class="hover:text-gray-400">Privacy</a>
+        <a href="mailto:souljian67@gmail.com" class="hover:text-gray-400">souljian67@gmail.com</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
