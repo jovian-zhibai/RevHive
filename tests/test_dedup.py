@@ -187,3 +187,90 @@ class TestDeduplicateAndSort:
         assert len(result) == 2
         assert result[0].severity == Severity.HIGH
         assert result[1].severity == Severity.MEDIUM
+
+
+class TestAdjacentLineMerge:
+    """Nine agents report one defect at slightly different line numbers.
+
+    Observed on a real pull request: the same SQL injection arrived as
+    "SQL Injection in get_order()" (SecurityAgent, line 8) and as the same
+    injection (FixAgent, line 7). Both were posted as inline comments, so the
+    customer saw duplicate comments on consecutive lines.
+    """
+
+    def test_same_defect_one_line_apart_merges(self):
+        findings = [
+            ReviewFinding(
+                agent="SecurityAgent", severity=Severity.CRITICAL,
+                title="SQL Injection in get_order()",
+                description="order_id is interpolated into the query.",
+                file_path="orders.py", line_number=8,
+            ),
+            ReviewFinding(
+                agent="FixAgent", severity=Severity.CRITICAL,
+                title="SQL injection vulnerability",
+                description="The query uses % string formatting.",
+                file_path="orders.py", line_number=7,
+            ),
+        ]
+        result = deduplicate_and_sort(findings)
+        assert len(result) == 1
+        assert result[0].line_number == 7
+        assert "SecurityAgent" in result[0].agent
+        assert "FixAgent" in result[0].agent
+
+    def test_unrelated_defects_on_adjacent_lines_stay_separate(self):
+        findings = [
+            ReviewFinding(
+                agent="SecurityAgent", severity=Severity.CRITICAL,
+                title="SQL injection in get_order()",
+                description="Interpolated query.",
+                file_path="orders.py", line_number=8,
+            ),
+            ReviewFinding(
+                agent="StyleAgent", severity=Severity.LOW,
+                title="Variable names are abbreviated",
+                description="conn and cur could be spelled out.",
+                file_path="orders.py", line_number=9,
+            ),
+        ]
+        result = deduplicate_and_sort(findings)
+        assert len(result) == 2
+
+    def test_far_apart_similar_title_not_merged(self):
+        findings = [
+            ReviewFinding(
+                agent="LogicAgent", severity=Severity.HIGH,
+                title="Database connection never closed",
+                description="The connection leaks after every call.",
+                file_path="orders.py", line_number=4,
+            ),
+            ReviewFinding(
+                agent="PerformanceAgent", severity=Severity.HIGH,
+                title="Connection never closed after query",
+                description="A new connection is opened per call.",
+                file_path="orders.py", line_number=40,
+            ),
+        ]
+        result = deduplicate_and_sort(findings)
+        # Similar wording, but 36 lines apart: two call sites, two comments.
+        assert len(result) == 2
+
+
+def test_dedup_is_importable_before_any_agent_module():
+    """The most natural import order used to raise ImportError.
+
+    ``from revhive.agents import *`` at package import time pulled in the
+    coordinator, which imports this module while it was only half defined.
+    A plain ``from revhive.utils.dedup import ...`` in a fresh interpreter is
+    what a library user writes first, so it is the order that has to work.
+    """
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-c",
+         "from revhive.utils.dedup import deduplicate_and_sort; print('ok')"],
+        capture_output=True, text=True, timeout=120,
+    )
+    assert result.returncode == 0, result.stderr

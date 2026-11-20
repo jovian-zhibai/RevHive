@@ -211,5 +211,93 @@ def deduplicate_and_sort(findings: list[ReviewFinding]) -> list[ReviewFinding]:
             unique.append(f)
             unique_keywords.append(f_keywords)
 
-    unique.sort(key=lambda f: SEVERITY_ORDER.get(f.severity.value, 99))
-    return unique
+    return merge_adjacent(unique)
+
+
+#: Two findings this far apart in the same file are close enough to be the
+#: same defect reported twice — an off-by-one in a line estimate is the usual
+#: reason agents disagree on the number.
+_PROXIMITY_LINES = 3
+
+#: Lower than the 0.8 used for a same-line match: at the same spot in the file
+#: a partial title overlap is already strong evidence, because the alternative
+#: explanation would be two unrelated defects within three lines that happen to
+#: share their subject words.
+_PROXIMITY_TITLE_SIMILARITY = 0.34
+
+
+def merge_adjacent(findings: list[ReviewFinding]) -> list[ReviewFinding]:
+    """Collapse findings that describe one defect at nearly the same line.
+
+    Nine agents review the same diff independently, so the same bug is often
+    reported two or three times under different titles and line numbers —
+    "SQL Injection in get_order()" at line 8 from SecurityAgent and the same
+    injection at line 7 from FixAgent. Without this pass the customer sees
+    duplicate inline comments on consecutive lines, which reads as noise and
+    makes a correct finding easier to dismiss.
+
+    Merged findings keep the highest severity, the earliest line and every
+    contributing agent name, so agreement between agents stays visible.
+    """
+    if len(findings) < 2:
+        return findings
+
+    grouped: dict[str, list[ReviewFinding]] = {}
+    passthrough: list[ReviewFinding] = []
+    for f in findings:
+        if f.file_path and f.line_number:
+            grouped.setdefault(f.file_path, []).append(f)
+        else:
+            passthrough.append(f)
+
+    merged_out: list[ReviewFinding] = []
+    for group in grouped.values():
+        group.sort(key=lambda f: (f.line_number, SEVERITY_ORDER.get(f.severity.value, 99)))
+        kept: list[ReviewFinding] = []
+        for f in group:
+            target = None
+            for idx, existing in enumerate(kept):
+                if abs(existing.line_number - f.line_number) > _PROXIMITY_LINES:
+                    continue
+                if (
+                    _jaccard_similarity(
+                        _extract_keywords(existing.title), _extract_keywords(f.title)
+                    )
+                    >= _PROXIMITY_TITLE_SIMILARITY
+                ):
+                    target = idx
+                    break
+
+            if target is None:
+                kept.append(f)
+                continue
+
+            existing = kept[target]
+            primary, other = (
+                (f, existing)
+                if SEVERITY_ORDER.get(f.severity.value, 99)
+                < SEVERITY_ORDER.get(existing.severity.value, 99)
+                else (existing, f)
+            )
+            agents = primary.agent
+            if other.agent and other.agent not in agents:
+                agents = f"{agents} + {other.agent}"
+            description = primary.description
+            if other.description and other.description not in description:
+                description = f"{description}\n\n_Also flagged by {other.agent}:_ {other.description}"
+            kept[target] = ReviewFinding(
+                agent=agents,
+                severity=primary.severity,
+                title=primary.title,
+                description=description,
+                file_path=primary.file_path or other.file_path,
+                line_number=min(primary.line_number, other.line_number),
+                code_snippet=primary.code_snippet or other.code_snippet,
+                suggestion=primary.suggestion or other.suggestion,
+            )
+
+        merged_out.extend(kept)
+
+    merged_out.extend(passthrough)
+    merged_out.sort(key=lambda f: SEVERITY_ORDER.get(f.severity.value, 99))
+    return merged_out

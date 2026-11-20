@@ -503,7 +503,10 @@ class ReviewReport:
         # Low — count only
         if low:
             lines.append(f"\n## 🟢 Low ({len(low)})\n")
-            lines.append(f"{len(low)} low-severity issues found. Expand below for details.\n")
+            lines.append(
+                f"{len(low)} low-severity issue{'s' if len(low) != 1 else ''} found. "
+                "Expand below for details.\n"
+            )
 
         # Full details in collapsed section
         all_findings = self.result.findings
@@ -513,7 +516,8 @@ class ReviewReport:
             for f in all_findings:
                 categories.setdefault(f.agent, []).append(f)
             for agent, findings in categories.items():
-                lines.append(f"\n### {agent} ({len(findings)} issues)\n")
+                count = len(findings)
+                lines.append(f"\n### {agent} ({count} issue{'s' if count != 1 else ''})\n")
                 for f in findings:
                     emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(f.severity.value, "⚪")
                     lines.append(f"#### {emoji} [{f.severity.value.upper()}] {f.title}")

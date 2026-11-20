@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RevHive — Your PR, Reviewed by 9 AI Agents</title>
-  <meta name="description" content="AI code review for GitHub pull requests on your own LLM key. 9 specialist agents run in parallel on every PR. No token markup, MIT-licensed CLI included.">
+  <meta name="description" content="AI code review for GitHub pull requests on your own LLM key. 9 specialist agents run in parallel on every PR. No token markup, source-available CLI included.">
 
   <meta property="og:title" content="RevHive — Your PR, Reviewed by 9 AI Agents">
   <meta property="og:description" content="Bring your own LLM key. 9 specialist agents review every pull request in parallel — security, correctness, performance, tests.">
@@ -102,7 +102,7 @@
       <div>
         <h1 class="fade-in text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
           Your PR, reviewed by<br>
-          <span class="bg-gradient-to-r from-accent to-emerald-400 bg-clip-text text-transparent">specialized AI reviewers.</span>
+          <span class="bg-gradient-to-r from-accent to-emerald-400 bg-clip-text text-transparent">9 specialized AI reviewers.</span>
         </h1>
         <p class="fade-in fade-in-d1 mt-5 text-lg text-gray-400 leading-relaxed max-w-lg">
           9 agents review security, logic, performance, and more &mdash; in parallel, on every PR. You bring the LLM key. RevHive brings the team.
@@ -124,7 +124,7 @@
             Install GitHub App
           </a>
         </div>
-        <p class="fade-in fade-in-d3 mt-4 text-xs text-gray-600">Open source &middot; BYO Key &middot; No vendor lock-in</p>
+        <p class="fade-in fade-in-d3 mt-4 text-xs text-gray-600">Source-available &middot; BYO Key &middot; No vendor lock-in</p>
       </div>
 
       <!-- Right: Review Output Card -->
@@ -405,8 +405,7 @@
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> PR summary comment</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> CLI / CI mode</li>
             <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Inline annotations</li>
-            <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Commit status gate</li>
-            <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Review history</li>
+            <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> 7-day review history</li>
             <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Slack notifications</li>
             <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Priority support</li>
           </ul>
@@ -424,7 +423,6 @@
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Unlimited reviews</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> 10 concurrent reviews</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Inline PR annotations</li>
-            <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Commit status gate</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> CLI / CI mode</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> 30-day review history</li>
             <li class="flex items-start gap-2 text-gray-600"><span class="mt-0.5 shrink-0">&#x2014;</span> Slack notifications</li>
@@ -444,7 +442,6 @@
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Unlimited reviews</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> 100 concurrent reviews</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Inline PR annotations</li>
-            <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Commit status gate</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> CLI / CI mode</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Permanent history</li>
             <li class="flex items-start gap-2"><span class="text-accent mt-0.5 shrink-0">&#x2713;</span> Slack notifications</li>
@@ -586,7 +583,7 @@
           <div class="text-white font-bold text-lg mb-2">Managed integration</div>
           <div class="text-gray-400 text-sm space-y-1.5">
             <p>Install the App. Paste your LLM key in the auto-created dashboard — done. DeepSeek is default (~$0.05/review).</p>
-            <p>Starts free (50 reviews/mo, 4 agents). Pro $9/mo unlocks all 9 agents, inline annotations, and commit status gates.</p>
+            <p>Starts free (50 reviews/mo, 4 agents). Pro $9/mo unlocks all 9 agents and inline annotations on every finding.</p>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
             <a href="https://github.com/apps/revhive-review" class="text-xs text-accent bg-accent/10 px-3 py-1.5 rounded hover:bg-accent/20 transition-colors">Install GitHub App</a>
@@ -640,7 +637,7 @@
       <div class="space-y-6">
         <div class="fade-in fade-in-d1">
           <div class="text-white font-semibold mb-2">If I have to bring my own key, what am I paying RevHive for?</div>
-          <div class="text-gray-400 text-sm">Your key gives you a model. RevHive gives you a system &mdash; 10 specialized agents (9 review + 1 coordinator), semantic deduplication, conflict resolution, risk scoring, and GitHub integration. You pay your LLM provider for tokens. You pay RevHive for the GitHub App: Free for 50 reviews/month (4 agents), <strong>$9/mo Pro</strong> for unlimited reviews with all 9 agents + inline comments + commit status gates, or <strong>$19/mo Business</strong> adding Slack notifications, permanent history, and priority 4h SLA support.</div>
+          <div class="text-gray-400 text-sm">Your key gives you a model. RevHive gives you a system &mdash; 10 specialized agents (9 review + 1 coordinator), semantic deduplication, conflict resolution, risk scoring, and GitHub integration. You pay your LLM provider for tokens. You pay RevHive for the GitHub App: Free for 50 reviews/month (4 agents), <strong>$9/mo Pro</strong> for unlimited reviews with all 9 agents + inline comments, or <strong>$19/mo Business</strong> adding Slack notifications, permanent history, and priority 4h SLA support.</div>
         </div>
         <div class="fade-in fade-in-d2">
           <div class="text-white font-semibold mb-2">Is my code sent to external servers?</div>

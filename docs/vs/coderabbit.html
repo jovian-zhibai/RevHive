@@ -141,7 +141,7 @@
           </tr>
           <tr>
             <td class="px-4 py-3 text-white">Self-hosted</td>
-            <td class="px-4 py-3 text-accent">Yes — MIT-licensed CLI, runs entirely inside your network</td>
+            <td class="px-4 py-3 text-accent">Yes — source-available CLI, runs entirely inside your network</td>
             <td class="px-4 py-3">Enterprise plan only</td>
           </tr>
           <tr>
@@ -153,11 +153,6 @@
             <td class="px-4 py-3 text-white">Inline PR annotations</td>
             <td class="px-4 py-3">Pro and above</td>
             <td class="px-4 py-3">Yes</td>
-          </tr>
-          <tr>
-            <td class="px-4 py-3 text-white">Commit status gate</td>
-            <td class="px-4 py-3">Yes, risk-score based</td>
-            <td class="px-4 py-3">Yes, via pre-merge checks</td>
           </tr>
           <tr>
             <td class="px-4 py-3 text-white">Linters / SAST</td>
@@ -205,7 +200,7 @@
       No token markup, and no token ceiling. You point RevHive at any OpenAI-compatible endpoint — DeepSeek, Qwen, GLM, Kimi, OpenAI, or a model running on your own machine through Ollama. That last one matters if your code is not allowed to leave the building: a local review has no network egress at all, which no hosted reviewer can offer at this price.
     </p>
     <p class="text-gray-400 leading-relaxed mb-14">
-      And the CLI is MIT-licensed, so the review engine itself can be read, forked and run in your own CI without the GitHub App.
+      And the CLI source is published under the BSL 1.1, so the review engine itself can be read, modified and run in your own CI without the GitHub App.
     </p>
 
     <h2 class="text-2xl font-bold text-white mb-4">The honest caveat</h2>
@@ -252,7 +247,7 @@
         {
           "@type": "Question",
           "name": "Can RevHive review code without sending it to a third party?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Point it at a local model through Ollama, or run the MIT-licensed CLI in your own CI for a fully offline workflow." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Point it at a local model through Ollama, or run the source-available CLI in your own CI for a fully offline workflow." }
         },
         {
           "@type": "Question",

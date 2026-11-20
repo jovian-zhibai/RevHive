@@ -26,7 +26,7 @@ pip install revhive-ai && revhive demo   # 30-second taste — no API key, no se
 
 | The problem | What RevHive does about it |
 |---|---|
-| Reviewing a big PR properly takes 1–2 hours of a senior dev's day | 10 agents read it in parallel, report in ~30s |
+| Reviewing a big PR properly takes 1–2 hours of a senior dev's day | 9 specialist agents read it in parallel, report in 1–3 minutes |
 | Bugs ship because "LGTM" and nobody actually looked | Every PR gets a scored, deduplicated audit — no skipped files |
 | Security findings surface in prod, not in review | A dedicated Security agent hunts SQLi, XSS, secrets, weak crypto, auth flaws before merge |
 | Reviewer comments are noisy and ignored | Coordinator dedups findings across agents; you read one score, drill into what matters |
@@ -145,7 +145,7 @@ jobs:
 
 **CLI mode is free forever** — `pip install revhive-ai`, bring your own key, run locally or in CI for non-production use. **Under BSL 1.1, evaluation, testing, personal and open-source use are free; production use (reviewing code that ships in a commercial environment) requires a [commercial license](mailto:souljian67@gmail.com).** The one thing nobody can do: resell RevHive as a competing hosted review service. If you're a team that wants self-hosted production use, tell us what you need — that's the enterprise roadmap, and the license is the reason we can build it.
 
-**Why BYOK?** Because you already pay your LLM provider. We charge for the orchestration that makes 10 agents behave like one disciplined reviewer — no token markup, no model lock-in. Point it at whatever model fits your budget and compliance rules:
+**Why BYOK?** Because you already pay your LLM provider. We charge for the orchestration that makes 9 agents behave like one disciplined reviewer — no token markup, no model lock-in. Point it at whatever model fits your budget and compliance rules:
 
 | Provider | Typical cost / PR review |
 |---|---|
@@ -199,7 +199,7 @@ Want something else? [Open an issue](https://github.com/jovian-zhibai/RevHive/is
 
 ## Reference
 
-### The 10 agents
+### The agents — 9 reviewers plus a coordinator
 
 | Agent | Job |
 |---|---|

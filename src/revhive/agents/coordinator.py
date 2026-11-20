@@ -247,15 +247,23 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         conflicts_resolved: int = 0,
     ) -> str:
         """Build a human-readable summary with risk score and severity breakdown."""
-        severity_counts = {}
+        # The risk block above already prints "3 Critical · 5 High · …", so the
+        # counts belong in the sentence, not on a second line as a raw dict
+        # ("critical: 3, high: 5") which read like leftover debug output.
+        severity_counts: dict[str, int] = {}
         for f in findings:
             severity_counts[f.severity.value] = severity_counts.get(f.severity.value, 0) + 1
+        tally = ", ".join(
+            f"{severity_counts[sev]} {sev}"
+            for sev in ("critical", "high", "medium", "low")
+            if severity_counts.get(sev)
+        )
 
         lines = [
             self._risk_score_block(findings, risk_score),
             "",
-            f"Review completed with {len(findings)} findings across {len(agent_results)} agents.",
-            "Severity breakdown: " + ", ".join(f"{k}: {v}" for k, v in sorted(severity_counts.items())),
+            f"Review completed with {len(findings)} findings across "
+            f"{len(agent_results)} agents" + (f" ({tally})" if tally else "") + ".",
         ]
 
         if conflicts_resolved > 0:
