@@ -8,6 +8,7 @@ ChatOpenAI / ChatAnthropic instantiation used by both
 from __future__ import annotations
 
 from typing import Optional
+from urllib.parse import urlparse
 
 from langchain_openai import ChatOpenAI
 
@@ -31,6 +32,14 @@ def _mask_api_key(api_key: str) -> str:
     return api_key[:4] + "****"
 
 
+def _is_local_endpoint(base_url: Optional[str]) -> bool:
+    """True when *base_url* points at this machine (a self-hosted model server)."""
+    if not base_url:
+        return False
+    host = (urlparse(base_url).hostname or "").lower()
+    return host in ("localhost", "127.0.0.1", "0.0.0.0", "::1") or host.endswith(".local")
+
+
 def create_llm_client(
     api_key: str,
     base_url: Optional[str] = None,
@@ -47,23 +56,32 @@ def create_llm_client(
     and credential validation.
 
     Raises:
-        ValueError: If *api_key* is empty.
+        ValueError: If *api_key* is empty and *base_url* is not local.
         ImportError: If *provider* is ``"anthropic"`` but ``langchain-anthropic``
             is not installed.
     """
-    if not api_key:
-        raise ValueError(
-            "API key is required. Set the LLM_API_KEY environment variable "
-            "or pass api_key to the constructor."
-        )
-
-    # Resolve model presets (e.g. "mimo" -> base_url + model name).
+    # Resolve model presets (e.g. "mimo" -> base_url + model name) before
+    # validating the key: whether a key is needed depends on where the preset
+    # points. A local inference server accepts any credential, including none.
     from revhive.config import MODEL_PRESETS
     _preset = MODEL_PRESETS.get(model, {}) if model else {}
     if _preset:
         base_url = base_url or _preset.get("base_url")
         model = _preset.get("model", model)
         provider = provider or _preset.get("provider")
+
+    if not api_key:
+        if _is_local_endpoint(base_url):
+            # Ollama and friends take no credential. The OpenAI client still
+            # rejects an empty string, so pass a placeholder that is never sent
+            # anywhere but localhost.
+            api_key = "local-model"
+        else:
+            raise ValueError(
+                "API key is required. Set the LLM_API_KEY environment variable "
+                "or pass api_key to the constructor. A local server "
+                "(LLM_BASE_URL=http://127.0.0.1:11434/v1) needs no key."
+            )
 
     kwargs: dict = {
         "api_key": api_key,

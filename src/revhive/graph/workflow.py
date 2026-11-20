@@ -148,7 +148,14 @@ class CodeReviewWorkflow:
                  fallback_models: Optional[list[str]] = None):
         self.config = config or load_config()
         _api_key = api_key or os.getenv("LLM_API_KEY")
-        _base_url = base_url or os.getenv("LLM_BASE_URL", "https://api.xiaomimimo.com/v1")
+        # A preset name (e.g. --model ollama) implies its endpoint. Falling
+        # back to the MiMo default regardless would send a pick like
+        # "ollama" to a remote host and demand a key for it.
+        from revhive.config import MODEL_PRESETS
+        _preset = MODEL_PRESETS.get(model or "", {})
+        _base_url = (base_url or os.getenv("LLM_BASE_URL")
+                     or _preset.get("base_url")
+                     or "https://api.xiaomimimo.com/v1")
 
         # Alternate models tried when the primary one is rate-limited. Many
         # free/low-tier plans limit *per model*, so rotating models keeps a
