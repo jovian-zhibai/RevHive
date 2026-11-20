@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our AI reviewer caught 10/10 known vulnerabilities. Ignore that number. | RevHive</title>
+<meta name="description" content="We reverted ten real CVE fixes and asked our AI reviewer to find them. It got all ten. Then we published four reasons the score is close to meaningless, and what real pull requests actually showed.">
+<meta name="keywords" content="AI code review, code review benchmark, false positive rate, LLM code review evaluation, security review">
+<meta property="og:title" content="Our AI reviewer caught 10/10 known vulnerabilities. Ignore that number.">
+<meta property="og:description" content="A perfect score on a reverted-fix benchmark is a sign the benchmark is weak, not that the tool is good.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/evaluating-ai-code-review.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11-21 &middot; Evaluation notes</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">Our AI reviewer caught 10 out of 10 known vulnerabilities. Here is why I told people to ignore that number.</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">The method, the four reasons the score does not count for much, and what happened when we pointed the same reviewer at ordinary pull requests.</p>
+
+  <article>
+
+    <p>Every AI code review tool has the same demo. Someone opens a pull request with a planted bug, the bot comments on line 42, everyone nods. It is theatre. The only question that matters is whether the thing works on <em>your</em> code, on a Tuesday, when nothing was planted.</p>
+
+    <p>So when we built our own reviewer, we did the obvious thing: took ten commits that fixed real CVEs in widely used projects, reverted each one so the working tree contained the vulnerable code again, and asked the tool to review the diff with no hints. Then we published the result &mdash; including a section explaining why the result is close to meaningless.</p>
+
+    <p>We got 10/10. That is the least interesting sentence in this post.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8">
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-emerald-400">10/10</div>
+        <div class="text-gray-500 text-xs mt-1">vulnerabilities localised</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-white">1</div>
+        <div class="text-gray-500 text-xs mt-1">severity under-called (rated low, shipped as a security release)</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-orange-400">too easy</div>
+        <div class="text-gray-500 text-xs mt-1">four reasons below</div>
+      </div>
+    </div>
+
+    <h2>The method, because a number without a method is marketing</h2>
+
+    <p>For each case:</p>
+    <ol>
+      <li>Take a commit that fixed a real vulnerability in a widely used project (Django, axios, lodash).</li>
+      <li><code>git revert --no-commit</code> it, so the diff looks like somebody just introduced the problem.</li>
+      <li>Strip documentation and test changes from the patch. This matters more than it sounds: the release notes name the CVE, and a reviewer that reads them is reading the answer key, not the code.</li>
+      <li>Run the reviewer on <code>HEAD~1</code> with the security agent only. No repository context, no PR description, no hints.</li>
+      <li>A case counts as caught when a finding names the vulnerable file and describes the right class of bug.</li>
+    </ol>
+
+    <p>Ten cases, one pass each, security agent alone, a small and cheap model, run on 2026-11-20.</p>
+
+    <p>Two of the ten had to be thrown out and re-run. In the first attempt the patch still contained the release notes, and the reviewer quoted the CVE title back at us, verbatim. That is not review, that is OCR with confidence. It was the first hint that our benchmark was measuring something other than what we thought.</p>
+
+    <h2>Why a perfect score is a warning sign</h2>
+
+    <h3>A reverted fix is suspicious by construction</h3>
+    <p>Reverting a security fix removes a length check, a validation call, a sanitizer invocation. The diff says &ldquo;I deleted the guard clause&rdquo; in plain sight. Any reviewer that looks at the hunk will notice, because the shape of a security fix is itself a tell. Real bugs are not introduced by deleting guards. They are introduced by accident, at 11pm, inside a 400-line feature that was mostly about something else. That is a fundamentally harder detection problem.</p>
+
+    <h3>It measures recall and never precision</h3>
+    <p>Nothing in these ten runs says how often the reviewer comments on clean code. Most pull requests are fine. A tool that finds every planted bug and also comments on a third of all normal PRs is not half-good, it is unusable, because every false positive costs a human the minutes it takes to read it, decide it is wrong, and move on.</p>
+
+    <h3>Ten cases is an anecdote with a table</h3>
+    <p>Add two cases and the headline moves twenty points. There is no confidence interval in a sample that size, and no honest way to present one.</p>
+
+    <h3>Severity labels are unreliable</h3>
+    <p>One case &mdash; password hash disclosure to view-only admin users &mdash; was rated <em>low</em> by the model. Django shipped it as a security release. The finding text was correct; the colour was not. If your workflow is &ldquo;only look at critical and high&rdquo;, a mislabelled severity is functionally a miss even though the tool technically saw the bug.</p>
+
+    <blockquote>All four of these are written on the public benchmark page, above the fold, next to the 10/10: &ldquo;A perfect score here is a sign that the benchmark is weak, not that the tool is perfect.&rdquo;</blockquote>
+
+    <h2>What happened on real pull requests</h2>
+
+    <p>Then we ran the same reviewer over ordinary PRs, the kind where nothing is wrong. It produced a confident, plausible-sounding comment on roughly a third of them.</p>
+
+    <p>Some were real. Most were pattern matching on style, or a fabricated failure mode that the surrounding code already handled three lines down. Each one cost a human a few minutes of &ldquo;wait, is this actually broken?&rdquo; &mdash; which is exactly the review time that is supposed to be the thing we are saving.</p>
+
+    <p>That reframes the design problem. The question is not <em>how do we find more bugs</em>. It is <em>when should the reviewer stay quiet</em>. Three things changed as a result:</p>
+
+    <ul>
+      <li><strong>Anchor every finding to a line and a failure path.</strong> If the model cannot name the input that triggers the problem and the consequence that follows, it does not get to speak. This cut findings by more than half and made the remaining ones readable.</li>
+      <li><strong>Treat silence as a correct answer.</strong> &ldquo;No comment&rdquo; is the right output for most diffs, and it needs to be an explicit, cheap, first-class outcome rather than an accident of the prompt.</li>
+      <li><strong>Demote severity to a hint.</strong> The text of the finding is the signal. The label is a sorting convenience that is wrong often enough that no workflow should gate on it.</li>
+    </ul>
+
+    <p>Recall went down. Review time went down more. That trade is the entire product.</p>
+
+    <h2>Why publish the weakness next to the strength</h2>
+
+    <p>Because the failure mode of this category is not bad models. It is a demo culture where every tool shows a screenshot of a planted bug being found, and nobody shows the false positive rate. If we publish only the 10/10 we become another screenshot.</p>
+
+    <p>There is also a selfish reason. A benchmark you are willing to describe &mdash; method written down, harness shipped as a shell script &mdash; is one other people can attack. Ours fetches a fix commit, reverts it, strips docs and tests, runs the CLI, and diffs against the files the fix touched. It is not pretty and it is not peer reviewed. That is precisely why it is written down: so the next version can be better, and so someone can tell us where it is wrong.</p>
+
+    <p>The next version of the page needs twenty ordinary pull requests and a false positive count. Until it has them, treat 10/10 as a floor on capability, not a rate of quality.</p>
+
+    <h2>If you are evaluating a reviewer</h2>
+
+    <p>A short list, whether you use ours or anyone else&rsquo;s:</p>
+    <ul>
+      <li>Ask for the <strong>false positive rate on clean pull requests</strong>, not the number of bugs found. Almost nobody has this number, and the ones who do will tell you an unflattering one.</li>
+      <li>Ask whether the eval <strong>strips the answer key</strong> (release notes, tests, commit messages). If it does not, you are measuring the model&rsquo;s ability to read.</li>
+      <li>Ignore the severity labels in the demo and read the finding text. Ask yourself whether you would have shipped the code after reading it.</li>
+      <li>Ask how many cases. Under thirty is a story, not a benchmark.</li>
+    </ul>
+
+    <p>We published ours at 10/10 with four paragraphs explaining why that does not count for much. If you want to break it, the harness and the raw runs are in the repo, and I would genuinely like the counterexample.</p>
+
+    <hr class="border-white/10 my-10">
+    <p class="text-sm text-gray-500">
+      The raw results, the reproduce steps, and the limitations are on the
+      <a href="/benchmark.html" class="text-emerald-400 hover:underline">benchmark page</a>.
+      RevHive runs as a GitHub App, or in your own network with your own model key:
+      <a href="https://github.com/apps/revhive-review/installations/new" class="text-emerald-400 hover:underline">install it here</a>.
+    </p>
+
+  </article>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+</body>
+</html>
