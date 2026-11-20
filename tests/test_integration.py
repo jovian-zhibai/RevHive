@@ -47,8 +47,9 @@ class _MockLLM:
 
 Summary: 2 critical/high severity issues found."""
 
-            class response_metadata:
-                token_usage = {"total_tokens": 1500}
+            # Must be a dict, not a class: the agent calls
+            # response.response_metadata.get("token_usage", ...).
+            response_metadata = {"token_usage": {"total_tokens": 1500}}
 
         return FakeResponse()
 

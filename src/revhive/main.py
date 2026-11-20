@@ -70,6 +70,8 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
 @click.option("--file", "-f", type=click.Path(exists=True), help="Path to file for review")
 @click.option("--diff", "-d", "diff_ref", help="Git diff reference (e.g., HEAD~1)")
 @click.option("--model", "-m", default=None, help="LLM model to use")
+@click.option("--fallback", default=None,
+              help="Comma-separated models to rotate to when the primary is rate-limited.")
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 @click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
 @click.option("--timeout", "-t", default=600, type=int, help="Review timeout in seconds")
@@ -82,10 +84,19 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
 @click.option("--agents", default=None,
               help="Comma-separated agents to run, e.g. security,logic. Default: all enabled agents.")
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int,
-           max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool, agents: str):
+           max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool, agents: str,
+           fallback: str):
     """Run code review on a file or git diff."""
     cfg = load_config()
     file_size_limit = max_file_size or _DEFAULT_MAX_FILE_SIZE
+
+    # Rotation matters most on free tiers, which throttle per model rather than
+    # per account — a stalled review usually has an idle sibling model sitting
+    # right next to it. SenseNova gets a default because its free token plan
+    # throttles hard enough that a single-model run times out before finishing.
+    fallback_models = [m.strip() for m in (fallback or "").split(",") if m.strip()]
+    if not fallback_models and model and model.startswith("sensenova"):
+        fallback_models = ["sensenova-6.8-flash-lite", "sensenova-6.8-flash", "glm-5.3"]
 
     enabled_agents = None
     if agents:
@@ -124,11 +135,13 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
                 click.echo(f"Error: cannot read {file}: {exc}", err=True)
                 sys.exit(1)
             workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
-                                          enabled_agents=enabled_agents)
+                                          enabled_agents=enabled_agents,
+                                          fallback_models=fallback_models)
             result = _run_with_timeout(workflow.run(code=code, file_path=str(file_path)), timeout=timeout)
         elif diff_ref:
             workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
-                                          enabled_agents=enabled_agents)
+                                          enabled_agents=enabled_agents,
+                                          fallback_models=fallback_models)
             result = _run_with_timeout(workflow.run_from_diff(diff_ref), timeout=timeout)
         else:
             click.echo("Please specify --file or --diff to review.")

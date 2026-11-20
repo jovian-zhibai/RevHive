@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "revhive-ai"
-version = "0.3.17"
+version = "0.3.18"
 description = "10 AI agents review your code in 30 seconds. Security, performance, logic, and more. Supports MiMo, OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic. Try `revhive demo` — no API key needed."
 readme = "README.md"
 license = {text = "BSL-1.1"}
@@ -26,10 +26,17 @@ classifiers = [
 ]
 
 dependencies = [
-    "langgraph>=0.2.0,<0.4.0",
-    "langchain>=0.3.0,<0.4.0",
-    "langchain-core>=0.3.0,<0.4.0",
-    "langchain-openai>=0.2.0,<0.4.0",
+    # Floors, not ceilings. The 0.3.x line carried 20 advisories at the time of
+    # writing (langchain-core, langgraph, langgraph-checkpoint, langgraph-sdk),
+    # and shipping a security-review tool with known-vulnerable dependencies is
+    # a contradiction a customer's own scanner will find in seconds.
+    #
+    # The `langchain` meta-package is deliberately absent: it is a bundle we
+    # never import, and it drags in langchain-text-splitters, which is one of
+    # the advisories. We use core, openai and (optionally) anthropic only.
+    "langgraph>=1.0.10",
+    "langchain-core>=1.2.22",
+    "langchain-openai>=1.1.14",
     "openai>=1.30.0",
     "click>=8.1.0",
     "pydantic>=2.0.0",
@@ -39,7 +46,7 @@ dependencies = [
 
 [project.optional-dependencies]
 anthropic = [
-    "langchain-anthropic>=0.1.0",
+    "langchain-anthropic>=1.0.0",
 ]
 tree-sitter = [
     "tree-sitter>=0.22.0",
