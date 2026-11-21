@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (35/100)\n\n1 Critical · 2 Medium\n\nReview completed with 3 findings across 1 agents (1 critical, 2 medium).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Reintroduction of SSRF/Local File Read via SpatialReference (CVE-2026-114582) (SecurityAgent)\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "critical",
+      "title": "Reintroduction of SSRF/Local File Read via SpatialReference (CVE-2026-114582)",
+      "file_path": "django/contrib/gis/gdal/srs.py",
+      "line": 314,
+      "description": "This diff reverts the security fix for CVE-2026-114582. The changes remove all protections that prevented GDAL from resolving URLs and reading local files when parsing user-supplied spatial reference strings:\n\n1. **Removal of `PAPSZ_OPTIONS`** (ALLOW_FILE_ACCESS=NO, ALLOW_NETWORK_ACCESS=NO): Without these options, GDAL's `OSRSetFromUserInput` will freely resolve URLs (SSRF) and read local files when a user-controlled string is passed to `SpatialReference()`.\n\n2. **Removal of `OSRSetFromUserInputEx` call**: The code now unconditionally uses `OSRSetFromUserInput` (which has no options parameter) instead of `OSRSetFromUserInputEx` (which accepts the blocking options on GDAL ≥ 3.9).\n\n3. **Removal of DICT: prefix rejection**: The dictionary parser bypass in GDAL (which ignores file access restrictions) is no longer blocked. An attacker can use `DICT:` or `ESRI::DICT:` prefixed strings to read arbitrary files regardless of GDAL version.\n\n4. **Removal of `gis.W001` security check**: Operators will no longer be warned when running a vulnerable GDAL version.\n\n5. **Removal of all regression tests**: The tests that verified file access blocking, network access blocking, and dictionary rejection are deleted.\n\n**Attack vector**: Any application that passes user-controlled input to `SpatialReference(string)`, `GEOSGeometry.transform(srs=string)`, `OGRGeometry.transform(srs=string)`, `GDALRaster.transform(srs=string)`, or the `.srs`/`.srid` setters is vulnerable. An attacker supplying `https://attacker.com/evil` triggers an outbound SSRF request; supplying `/etc/passwd` or a `.prj` file path reads local files; supplying `DICT:/path/to/file,4326` bypasses all GDAL file-access restrictions on any version.",
+      "suggestion": "Restore the security mitigations that were removed:\n\n```python\nfrom django.contrib.gis.gdal.error import GDALException, SRSException\nfrom django.contrib.gis.gdal.libgdal import GDAL_VERSION\nfrom ctypes import c_char_p, byref\n\n# Create null terminated gdal options array.\npapsz_options = [\n    b\"ALLOW_FILE_ACCESS=NO\",\n    b\"ALLOW_NETWORK_ACCESS=NO\",\n    None,\n]\nPAPSZ_OPTIONS = (c_char_p * len(papsz_options))(*papsz_options)\n\ndef import_user_input(self, user_input):\n    \"Import the Spatial Reference from the given user input string.\"\n    user_input = force_bytes(user_input)\n    # GDAL's dictionary parser bypasses its file access restrictions.\n    if user_input.lstrip().lower().removeprefix(b\"esri::\").startswith(b\"dict:\"):\n        msg = \"Spatial references from dictionaries are not supported.\"\n        raise GDALException(msg)\n    if GDAL_VERSION < (3, 9):\n        capi.from_user_input(self.ptr, user_input)\n    else:\n        capi.from_user_input_ex(self.ptr, user_input, byref(PAPSZ_OPTIONS))\n```\n\nAlso restore `checks.py`, the `gis.W001` check registration, and the regression tests. If this reversion is intentional (e.g., the CVE was false-positive), the release notes and documentation should explicitly explain why the SSRF risk is now accepted and what compensating controls operators must apply."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Removal of security system check (gis.W001) eliminates operator visibility into vulnerable GDAL versions",
+      "file_path": "django/contrib/gis/apps.py",
+      "line": 14,
+      "description": "The `check_gdal_39` check and its `gis` tag are deleted from `django/contrib/gis/apps.py`, `django/contrib/gis/checks.py`, and `django/core/checks/registry.py`. This check warned operators when their installed GDAL version (< 3.9) could not enforce file/network access restrictions. Without this check, operators running GDAL < 3.9 have no indication they are exposed to SSRF via `SpatialReference` string inputs.",
+      "suggestion": "If the SSRF mitigation is being intentionally reverted, retain the `gis.W001` check (or an equivalent) so operators are still informed when their GDAL version lacks native access-restriction support. Alternatively, document a clear upgrade requirement in the installation guide."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Deletion of regression tests for SSRF/file-read protections",
+      "file_path": "tests/gis_tests/gdal_tests/test_srs.py",
+      "line": 397,
+      "description": "All tests validating the security behavior (`test_no_dictionary_access`, `test_no_file_access`, `test_no_network_access`, `test_esri_prefixed_wkt`) are removed from `tests/gis_tests/gdal_tests/test_srs.py`, and `tests/gis_tests/test_checks.py` is deleted entirely. This removes the safety net that would catch future regressions of the SSRF fix.",
+      "suggestion": "If the protections are restored (see CRITICAL finding), restore these tests. If the revert is intentional, add tests that document the now-accepted behavior and any compensating input validation that applications must perform."
+    }
+  ]
+}

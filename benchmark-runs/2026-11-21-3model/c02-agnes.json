@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (31/100)\n\n1 Critical · 1 Medium · 1 Low\n\nReview completed with 3 findings across 2 agents (1 critical, 1 medium, 1 low).\n\n✅ AI analysis resolved 1 conflicting assessment(s).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Reintroduction of password hash disclosure via inheritance check removal (LogicAgent + SecurityAgent)",
+  "risk_score": 31,
+  "risk_score_withheld": false,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "LogicAgent + SecurityAgent",
+      "severity": "critical",
+      "title": "Reintroduction of password hash disclosure via inheritance check removal",
+      "file_path": "django/contrib/admin/utils.py",
+      "line": 435,
+      "description": "The security check for password display now only triggers if `field.model` is strictly identical to `get_user_model()`. For models that inherit from the user model (Multi-Table Inheritance) or have a `password` field defined on a concrete parent class, `field.model` will be the base class, not the inheriting subclass. This means that for `ChildUser` inheriting from `ParentUser` (which has the `password` field), `field.model` will be `ParentUser` (or `User` depending on the hierarchy), while `get_user_model()` returns `ChildUser`. The check `field.model == get_user_model()` will evaluate to `False`, causing the password field to be displayed as raw text (via `display_for_value`) instead of being masked by `render_password_as_hash`. This re-exposes the CVE-2026-113733 vulnerability for custom user models using inheritance.\n\n_SecurityAgent:_ The change narrows the condition under which password hashes are masked. Previously, any model inheriting from AbstractBaseUser or the active user model had its password masked. Now, only models strictly equal to `get_user_model()` are masked. This introduces a regression where password hashes for custom user models using multi-table inheritance (where `field.model` points to the concrete parent, not the child class used in `AUTH_USER_MODEL`) or non-standard user models will be displayed in plaintext to admin users with view permissions. This violates the security intent of the original CVE fix and effectively re-introduces the vulnerability of password hash disclosure.",
+      "suggestion": "Revert the logic to use `issubclass(field.model, get_user_model())` to ensure that any model in the inheritance chain of the user model is treated as a user model, thereby masking password fields appropriately."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Security gap in password masking for non-primary user models",
+      "file_path": "tests/admin_utils/models.py",
+      "line": 105,
+      "description": "The removed test model `MinimalPasswordUser` defined a password field that was just a CharField. The test `test_password_display_for_field_user_model_not_abstract_base_user` expected this to be masked. Since the code change removed the logic that would mask passwords for models not strictly equal to `get_user_model()`, this test (and similar ones for `ParentUser`) were removed. This confirms that the new code no longer protects against password disclosure for models that have a password field but are not the active `AUTH_USER_MODEL`. This is a security gap for applications that might use multiple user-like models.",
+      "suggestion": "Ensure that any model containing a `password` field that is intended to store sensitive credentials is either strictly the `AUTH_USER_MODEL` or that the admin display logic is updated to handle all potential user models securely. Do not rely solely on `field.model == get_user_model()`."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Hardcoded MD5 hash in test data",
+      "file_path": "tests/admin_utils/tests.py",
+      "line": 312,
+      "description": "The test code uses a hardcoded MD5 password hash string. While this is in test code and likely intended for a specific scenario (testing legacy hash display), it is bad practice to hardcode cryptographic material, even for tests. It can lead to confusion and potential security issues if these tests are run in a production-like environment or if the hash is reused.",
+      "suggestion": "Use `django.contrib.auth.hashers` to generate a valid hash for a known test password dynamically within the test setup, or use a clearly labeled fake/invalid hash that is known to be safe for testing purposes without relying on a specific MD5 string."
+    }
+  ]
+}

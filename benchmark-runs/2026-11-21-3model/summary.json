@@ -1,0 +1,242 @@
+[
+ {
+  "run": "c01-agnes-pro",
+  "n": 4,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 36
+ },
+ {
+  "run": "c01-agnes",
+  "n": 3,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 35
+ },
+ {
+  "run": "c01-sensenova-ds",
+  "n": 3,
+  "crit": 1,
+  "high": 0,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c02-agnes-pro",
+  "n": 3,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 21
+ },
+ {
+  "run": "c02-agnes",
+  "n": 3,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 31
+ },
+ {
+  "run": "c02-sensenova-ds",
+  "n": 1,
+  "crit": 1,
+  "high": 0,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c03-agnes-pro",
+  "n": 1,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 15
+ },
+ {
+  "run": "c03-agnes",
+  "n": 2,
+  "crit": 1,
+  "high": 1,
+  "withheld": false,
+  "risk": 40
+ },
+ {
+  "run": "c03-sensenova-ds",
+  "n": 1,
+  "crit": 0,
+  "high": 1,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c04-agnes-pro",
+  "n": 2,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 20
+ },
+ {
+  "run": "c04-agnes",
+  "n": 3,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 17
+ },
+ {
+  "run": "c04-sensenova-ds",
+  "n": 2,
+  "crit": 0,
+  "high": 0,
+  "withheld": false,
+  "risk": 10
+ },
+ {
+  "run": "c05-agnes-pro",
+  "n": 2,
+  "crit": 0,
+  "high": 0,
+  "withheld": false,
+  "risk": 2
+ },
+ {
+  "run": "c05-agnes",
+  "n": 4,
+  "crit": 0,
+  "high": 0,
+  "withheld": false,
+  "risk": 16
+ },
+ {
+  "run": "c05-sensenova-ds",
+  "n": 3,
+  "crit": 0,
+  "high": 1,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c06-agnes-pro",
+  "n": 2,
+  "crit": 0,
+  "high": 0,
+  "withheld": false,
+  "risk": 2
+ },
+ {
+  "run": "c06-agnes",
+  "n": 2,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 26
+ },
+ {
+  "run": "c06-sensenova-ds",
+  "n": 3,
+  "crit": 0,
+  "high": 1,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c07-agnes-pro",
+  "n": 1,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 25
+ },
+ {
+  "run": "c07-agnes",
+  "n": 4,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 32
+ },
+ {
+  "run": "c07-sensenova-ds",
+  "n": 0,
+  "crit": 0,
+  "high": 0,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c08-agnes-pro",
+  "n": 1,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 15
+ },
+ {
+  "run": "c08-agnes",
+  "n": 3,
+  "crit": 1,
+  "high": 1,
+  "withheld": false,
+  "risk": 45
+ },
+ {
+  "run": "c08-sensenova-ds",
+  "n": 3,
+  "crit": 1,
+  "high": 1,
+  "withheld": false,
+  "risk": 45
+ },
+ {
+  "run": "c09-agnes-pro",
+  "n": 0,
+  "crit": 0,
+  "high": 0,
+  "withheld": false,
+  "risk": 0
+ },
+ {
+  "run": "c09-agnes",
+  "n": 2,
+  "crit": 0,
+  "high": 1,
+  "withheld": false,
+  "risk": 20
+ },
+ {
+  "run": "c09-sensenova-ds",
+  "n": 3,
+  "crit": 1,
+  "high": 1,
+  "withheld": false,
+  "risk": 45
+ },
+ {
+  "run": "c10-agnes-pro",
+  "n": 1,
+  "crit": 0,
+  "high": 0,
+  "withheld": true,
+  "risk": null
+ },
+ {
+  "run": "c10-agnes",
+  "n": 1,
+  "crit": 1,
+  "high": 0,
+  "withheld": false,
+  "risk": 25
+ },
+ {
+  "run": "c10-sensenova-ds",
+  "n": 3,
+  "crit": 1,
+  "high": 1,
+  "withheld": false,
+  "risk": 41
+ }
+]

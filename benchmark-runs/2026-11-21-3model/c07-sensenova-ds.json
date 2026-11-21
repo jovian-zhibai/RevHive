@@ -1,0 +1,9 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (0/100)\n\n\n\nReview completed with 0 findings across 1 agents.\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 0,
+  "findings": []
+}

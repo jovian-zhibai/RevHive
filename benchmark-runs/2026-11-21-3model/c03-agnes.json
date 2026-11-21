@@ -1,0 +1,28 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (40/100)\n\n1 Critical · 1 High\n\nReview completed with 2 findings across 2 agents (1 critical, 1 high).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] Regression re-introduces CVE-2026-113593: Cache key collision between missing and empty Vary headers (LogicAgent)\n  - [HIGH] Cache key collision allows data exposure via Vary headers (SecurityAgent)",
+  "risk_score": 40,
+  "risk_score_withheld": false,
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "critical",
+      "title": "Regression re-introduces CVE-2026-113593: Cache key collision between missing and empty Vary headers",
+      "file_path": "django/utils/cache.py",
+      "line": 360,
+      "description": "The diff reverts the fix for CVE-2026-113593. By assigning `value = \"\"` when a header is missing (`None`), a request with an omitted header now generates the exact same cache key as a request that explicitly includes that header with an empty string. This violates RFC 9111 Section 4.1 (which requires that a response not be served to a request if the field value differs, including its absence) and re-introduces a vulnerability where private data cached for an empty header could be served to a user whose request omitted that header entirely. The accompanying test removals confirm that the regression check for this specific collision has been dropped.",
+      "suggestion": "Restore the CVE-2026-113593 fix. Distinguish between absent and empty header values. For example, keep the previous logic that updates the context with a unique marker (like `b\"-,\"`) when `value is None`, and only use the empty string `\"\"` when the header is actually present but empty. Re-add the corresponding tests in `tests/cache/tests.py` to ensure this regression is caught in CI."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Cache key collision allows data exposure via Vary headers",
+      "file_path": "django/utils/cache.py",
+      "line": 357,
+      "description": "The diff introduces a cache key collision by treating absent headers and empty headers identically. Specifically, when a header is missing (`value is None`), the code sets `value = \"\"`. This results in the same netstring encoding (`0:,` or similar depending on the final format, though the diff shows `value.encode()` follows) for both an explicitly empty header and a missing header. The original code explicitly used a distinct marker (`b\"-,\"`) to prevent this. Since Django's `UpdateCacheMiddleware` relies on this key to determine which cached response to serve, an attacker who controls or can influence the presence of a specific HTTP header (listed in `Vary`) could potentially poison the cache. For instance, if `Vary` includes a header like `X-Custom`, an attacker could send a request without `X-Custom` to cache a response intended for public or low-privilege contexts (if the missing header defaults to public). Subsequently, a legitimate user sending `X-Custom: \"\"` (empty) would receive the cached response intended for the missing header scenario, potentially bypassing authentication or authorization checks that rely on distinguishing these two states. This is a Data Exposure vulnerability.",
+      "suggestion": "Revert the change that sets `value = \"\"` for missing headers. Instead, retain the distinct marker for absent headers as shown in the removed lines. For example:\n```python\nif value is None:\n    ctx.update(b\"-,\")\n    continue\nvalue = value.encode()\nctx.update(b\"%d:%s,\" % (len(value), value))\n```\nEnsure that absent and empty headers generate different cache keys to prevent cache poisoning and data exposure."
+    }
+  ]
+}

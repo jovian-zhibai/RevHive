@@ -1,0 +1,46 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (36/100)\n\n1 Critical · 2 Medium · 1 Low\n\nReview completed with 4 findings across 2 agents (1 critical, 2 medium, 1 low).\n\n✅ AI analysis resolved 3 conflicting assessment(s).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Unconditional use of insecure GDAL binding OSRSetFromUserInput (SecurityAgent + LogicAgent)\n🛡️ 1 severity cap(s) applied by deterministic post-processing:\n  - capped CRITICAL->MEDIUM (no code anchor): `import_user_input` performs unbounded I/O with no error checking, lea",
+  "risk_score": 36,
+  "risk_score_withheld": false,
+  "total_findings": 4,
+  "findings": [
+    {
+      "agent": "SecurityAgent + LogicAgent",
+      "severity": "critical",
+      "title": "Unconditional use of insecure GDAL binding OSRSetFromUserInput",
+      "file_path": "django/contrib/gis/gdal/prototypes/srs.py",
+      "line": 53,
+      "description": "The conditional that selected `OSRSetFromUserInputEx` (the secure variant accepting a `papszOptions` parameter) on GDAL 3.9+ has been removed. The code now unconditionally binds to `OSRSetFromUserInput`, which does not accept security options and therefore cannot restrict file or network access. This is the C-level binding that makes the vulnerability in `srs.py` exploitable.\n\n_SecurityAgent:_ Reverts the security fix for CVE-2026-114582. The `import_user_input` method now passes user-controlled strings directly to GDAL's `OSRSetFromUserInput` without any restrictions. Previously, the code (1) rejected `DICT:`-prefixed inputs to block dictionary file access, and (2) on GDAL 3.9+, used `OSRSetFromUserInputEx` with `ALLOW_FILE_ACCESS=NO` and `ALLOW_NETWORK_ACCESS=NO` options to prevent SSRF and local file read. Both protections are now removed. An attacker who can control the string passed to `SpatialReference()` (or any of the calling methods: `GEOSGeometry.transform()`, `OGRGeometry.transform()`, `GDALRaster.transform()`, `OGRGeometry.srs` setter, `GDALRaster.srs`/`srid` setters) can: (a) supply a URL (e.g., `https://attacker.com/...`) causing an outbound HTTP request (SSRF), (b) supply a local file path causing GDAL to read it, or (c) supply a `DICT:` reference to read arbitrary files. Combining SSRF with file read allows exfiltration of local file contents via observable outbound requests.\n\n_LogicAgent:_ The old code explicitly rejected inputs matching `DICT:` (case-insensitive, with optional `ESRI::` prefix and leading whitespace) by raising `GDALException`. The new code passes all inputs directly to `OSRSetFromUserInput`, which invokes GDAL's dictionary parser. This parser resolves file paths relative to the working directory. An attacker who controls the `user_input` string (e.g., via a user-facing API that accepts a CRS name) can read arbitrary files whose content is then embedded in the SRS WKT output, leaking file contents to the attacker. Reproduction: Create a file `./srs.wkt` containing `4326,<WKT>`. Call `SpatialReference(\"DICT:./srs.wkt,4326\")`. The file is read and its WKT content is returned. No exception is raised.",
+      "suggestion": "Restore the version-conditional binding: use `OSRSetFromUserInputEx` when `GDAL_VERSION >= (3, 9)` and fall back to `OSRSetFromUserInput` only for older versions (with the understanding that older versions remain vulnerable and should trigger the `gis.W001` warning)."
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "medium",
+      "title": "`import_user_input` performs unbounded I/O with no error checking, leaving SRS in undefined state on failure",
+      "file_path": "diff:HEAD~1",
+      "line": null,
+      "description": "The reverted `import_user_input` calls `capi.from_user_input(self.ptr, force_bytes(user_input))` where `from_user_input` is wrapped with `void_output`. This means: 1. **No error is ever checked.** If GDAL fails to parse the input (malformed string, unreachable URL, missing file), the internal SRS handle is left in an undefined/error state. All subsequent calls on the object (`.wkt`, `.srid`, `.attr()`, etc.) will either segfault or return garbage. 2. **Unbounded network I/O.** Passing a URL (e.g., `\"https://slow-server.example/srs\"`) causes GDAL to issue an outbound HTTP request with no timeout. In a web request handler, this can hang the worker indefinitely. 3. **Arbitrary file read.** Passing a local file path (e.g., `\"/etc/passwd\"`) causes GDAL to open and read that file as the Django process user. 4. **Dictionary file access.** Inputs like `\"DICT:./srs.wkt,4326\"` cause GDAL to read a local dictionary file, bypassing any intended access restrictions. Reproduction: `SpatialReference(\"https://10.0.0.1/nonexistent\")` in a production web app will block the request thread until the TCP connection times out (potentially 2+ minutes), then leave the SRS object in a corrupted state. A subsequent `srs.wkt` call will segfault the process.\n\n_LogicAgent:_ `from_user_input` is defined as `void_output(std_call(\"OSRSetFromUserInput\"), [c_void_p, c_char_p])`. The `void_output` generation helper returns `None` unconditionally and never inspects the GDAL error log or the SRS handle validity. If `OSRSetFromUserInput` fails internally (invalid string, unsupported format), the caller receives `None` with no indication of failure. The `SpatialReference` object's C pointer still exists but points to an SRS in an error state. Any subsequent method call (e.g., `srs.wkt`, `srs.srid`) will invoke GDAL on a corrupted handle, risking a segfault or undefined behavior. Reproduction: `srs = SpatialReference(\"not_a_valid_crs_string_xyz\"); srs.wkt` → potential segfault or `SRSException` with no useful context.",
+      "suggestion": "At minimum, wrap the GDAL call in a try/except and validate the SRS handle is valid afterward (e.g., call `OSRIsGeographic` or check the return of a known-safe query). For the I/O concern, the `OSRSetFromUserInputEx` path with `ALLOW_FILE_ACCESS=NO` / `ALLOW_NETWORK_ACCESS=NO` (GDAL ≥ 3.9) should be retained, with a fallback that rejects non-numeric, non-WKT, non-PROJ inputs on older GDAL versions. ---"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Removal of gis.W001 system check for vulnerable GDAL versions",
+      "file_path": "django/contrib/gis/checks.py",
+      "line": 0,
+      "description": "The `gis.W001` system check that warned operators when GDAL < 3.9 was installed (and therefore file/network access could not be blocked) has been deleted, along with its registration in `GISConfig.ready()` and the `gis` tag from the checks registry. Operators deploying with a vulnerable GDAL version will no longer receive any warning at startup or during `manage.py check`.",
+      "suggestion": "Restore `django/contrib/gis/checks.py` with the `check_gdal_39` function, re-register it in `GISConfig.ready()`, and re-add the `gis` tag to `django.core.checks.registry.Tags`. This provides defense-in-depth by alerting operators to the residual risk on older GDAL versions."
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "low",
+      "title": "Unused `GDALException` import removed but `SRSException` may be insufficient for all failure paths",
+      "file_path": "diff:HEAD~1",
+      "line": null,
+      "description": "The import was changed from `from django.contrib.gis.gdal.error import GDALException, SRSException` to `from django.contrib.gis.gdal.error import SRSException`. This is correct for the current code since `GDALException` is no longer raised in this file. However, if any other method in `SpatialReference` (not shown in this diff) still references `GDALException`, it would raise a `NameError` at runtime. This is a theoretical risk only if other parts of the file (outside the diff) use that name.",
+      "suggestion": "Verify no other method in `SpatialReference` references `GDALException`. If any do, restore the import. --- ## Summary This diff **reverts a security fix (CVE-2026-114582)** that protected `SpatialReference` against SSRF, local file read, and dictionary-based file access. The primary"
+    }
+  ]
+}

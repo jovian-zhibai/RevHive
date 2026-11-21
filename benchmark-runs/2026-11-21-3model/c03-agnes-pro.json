@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (15/100)\n\n1 High\n\nReview completed with 1 findings across 2 agents (1 high).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Cache key collision: absent and empty Vary headers produce identical keys (CVE-2026-113593 regression) (LogicAgent)",
+  "risk_score": 15,
+  "risk_score_withheld": false,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "high",
+      "title": "Cache key collision: absent and empty Vary headers produce identical keys (CVE-2026-113593 regression)",
+      "file_path": "django/utils/cache.py",
+      "line": 360,
+      "description": "This change reverts the CVE-2026-113593 fix. When a header listed in the response's `Vary` is **absent** from the request, `request.META.get(header)` returns `None`, which is now coerced to `\"\"`. This produces the identical netstring `b\"0:,\"` as a header that is **present but empty**. Two requests that should have distinct cache keys (one omitting the header, one sending it with an empty value) now collide, meaning a response cached for one can be served to the other — a potential exposure of private data. The path is fully traceable within the changed code: `_generate_cache_key` → loop over `headerlist` → `None` and `\"\"` both yield `b\"0:,\"` → identical SHA-1 hash → cache hit on the wrong entry. The corresponding regression tests (`test_cache_key_blank_header`, and the two absent-vs-empty cases in `test_learn_cache_key_no_header_collision`) are also removed, so the build will not catch this.",
+      "suggestion": "Restore the original fix: emit a distinct marker for absent headers so they cannot collide with empty ones. For example:\n\n```python\nfor header in headerlist:\n    value = request.META.get(header)\n    if value is None:\n        ctx.update(b\"-,\")\n        continue\n    data = value.encode()\n    ctx.update(b\"%d:%s,\" % (len(data), data))\n```\n\nAlso restore the removed tests (`test_cache_key_blank_header` and the two absent-vs-empty sub-cases in `test_learn_cache_key_no_header_collision`) and the CVE release notes so the regression is documented and guarded."
+    }
+  ]
+}

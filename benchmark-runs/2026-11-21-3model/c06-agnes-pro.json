@@ -1,0 +1,28 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (2/100)\n\n2 Low\n\nReview completed with 2 findings across 2 agents (2 low).",
+  "risk_score": 2,
+  "risk_score_withheld": false,
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Removal of security regression tests without visible replacement",
+      "file_path": "diff:HEAD~1",
+      "line": 16120821902212,
+      "description": "Three security regression tests are removed: `test_deletion_not_allowed_outside_formset_queryset`, `test_deletion_not_allowed_outside_formset_queryset_editable_pk`, and `test_edit_only_editable_pk`. These tests verified that forged POST data with a custom/UUID primary key could not delete objects outside the formset's queryset or create objects through edit-only formsets. The fix in `django/forms/models.py` changes the guard from `if not obj._is_pk_set() or obj._state.adding:` to `if not obj._is_pk_set():`, which alters the code path so these specific assertions (e.g., `formset.is_valid() is True` followed by a no-op save) no longer hold. However, no replacement tests are visible in this diff that confirm the new validation behavior (e.g., that the formset now rejects the forged PK at validation time, or that the queryset boundary is enforced through a different mechanism). Without regression coverage, a future refactor could silently reintroduce the vulnerability.",
+      "suggestion": "Add new tests that exercise the fixed behavior end-to-end: (1) submit a forged PK outside the queryset with `DELETE=on` and assert the formset is invalid or the object is not deleted; (2) submit a forged PK to an edit-only formset and assert no object is created. Place these in `tests/model_formsets/tests.py` alongside the existing deletion tests. ---"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "CVE documentation removed from release notes without archival",
+      "file_path": "diff:HEAD~1",
+      "line": 65845218609612,
+      "description": "The CVE-2026-87975 advisory text is removed from three release-note files. While the code fix is applied, removing the disclosure from release notes reduces auditability for downstream consumers who rely on Django's changelog to track which security fixes are included in a given patch version. This is not a code vulnerability but a supply-chain/transparency concern: a consumer upgrading from 5.2.17 → 5.2.18 would no longer see the CVE entry and might not realize the security-relevant behavior change.",
+      "suggestion": "Retain the CVE entry in the release notes (or move it to a consolidated security-advisory page) so that patch-level consumers can confirm the fix is present. If the CVE is being retracted or renumbered, add a cross-reference note. --- ### Summary The core code change in `django/forms/models.py` is a **security improvement**: it narrows the skip condition so that instances with a set-but-forged primary key are no longer silently excluded from the `deleted_objects` tracking path, forcing them through the queryset-boundary validation that was previously bypassed. No injection, authentication bypass, data exposure, or cryptographic weakness is introduced by this diff. The two LOW findings are process-level concerns (missing replacement regression tests and removed CVE documentation) that reduce long-term security assurance but do not represent an exploitable vulnerability in the changed code itself."
+    }
+  ]
+}

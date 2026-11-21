@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (5/100)\n\n1 Medium\n\nReview completed with 1 findings across 1 agents (1 medium).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: SecurityAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; SecurityAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "medium",
+      "title": "Removed validation causes delayed, confusing SyntaxError for invalid `variable` option in `_.template`",
+      "file_path": "lodash.js",
+      "line": 14866,
+      "description": "The diff removes the only runtime validation on the `variable` option of `_.template`. Previously, if a caller passed a string containing characters like `(`, `)`, `=`, `,`, `{`, `}`, `[`, `]`, `/`, or whitespace, a descriptive `Error` was thrown immediately at template-creation time. After this change, such a value is interpolated directly into the generated function source (e.g. `function(my var) { … }`), producing a `SyntaxError` that only surfaces later when the returned template function is *invoked*. This shifts the failure from a clear, actionable error at the call site of `_.template` to a confusing `SyntaxError` at an unrelated call site of the generated function, making debugging significantly harder. Reproduction: `_.template('hello', { variable: 'my var' })` now returns a function that throws `SyntaxError: Unexpected identifier` when called, instead of throwing `Error: Invalid 'variable' option passed into _.template` at creation time.",
+      "suggestion": "Restore input validation for the `variable` parameter. At minimum, check that the value is a valid JavaScript identifier (e.g. `/^[A-Za-z_$][A-Za-z0-9_$]*$/`) and throw a descriptive error if it is not. This preserves fail-fast behavior and gives callers a clear, actionable message at the point of the mistake rather than a delayed `SyntaxError`."
+    }
+  ]
+}

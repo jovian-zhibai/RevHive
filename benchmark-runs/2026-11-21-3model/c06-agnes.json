@@ -1,0 +1,28 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (26/100)\n\n1 Critical · 1 Low\n\nReview completed with 2 findings across 2 agents (1 critical, 1 low).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Removed authorization check enables formset privilege escalation and data deletion (SecurityAgent)",
+  "risk_score": 26,
+  "risk_score_withheld": false,
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "critical",
+      "title": "Removed authorization check enables formset privilege escalation and data deletion",
+      "file_path": "django/forms/models.py",
+      "line": 963,
+      "description": "The code removes a critical authorization check for model formsets. By removing the `obj._state.adding` condition, the `save()` logic now treats any form instance with an unset primary key as a candidate for deletion, even if that instance is entirely new (unsaved) rather than an existing object fetched from the database. Combined with the deletion of the corresponding regression tests (`test_deletion_not_allowed_outside_formset_queryset_editable_pk` and `test_edit_only_editable_pk`), this re-introduces a high-severity authorization bypass (CVE-2026-87975). An attacker can forge POST data with arbitrary or forged primary keys. Because the object will be treated as 'existing' or 'to be deleted' without verifying it was properly fetched from the restricted queryset, they can bypass `queryset` limits to delete unauthorized records or create malicious instances via `edit_only` formsets, effectively escalating privileges and destroying data outside their authorized scope.",
+      "suggestion": "Revert the change to `django/forms/models.py`. Restore the condition to `if not obj._is_pk_set() or obj._state.adding:` to ensure that completely new, unsaved instances are safely skipped during the deletion and creation logic. Additionally, restore the removed regression tests in `tests/model_formsets/tests.py` to enforce that formsets correctly prevent deletion or creation of objects that fall outside the explicitly provided `queryset` limit when primary keys are editable or forged."
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "low",
+      "title": "static files were not loaded",
+      "file_path": "diff:HEAD~1",
+      "line": null,
+      "description": "static files were not loaded",
+      "suggestion": null
+    }
+  ]
+}

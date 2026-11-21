@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (25/100)\n\n1 Critical\n\nReview completed with 1 findings across 2 agents (1 critical).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] AttributeError: calling cache_clear() on a function without lru_cache decorator (LogicAgent)",
+  "risk_score": 25,
+  "risk_score_withheld": false,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "critical",
+      "title": "AttributeError: calling cache_clear() on a function without lru_cache decorator",
+      "file_path": "django/utils/translation/trans_real.py",
+      "line": 71,
+      "description": "The `reset_cache` function calls `get_supported_language_variant.cache_clear()`, but the refactored `get_supported_language_variant` is no longer decorated with `@functools.lru_cache`. A plain Python function does not have a `cache_clear` attribute, so this call will raise `AttributeError: 'function' object has no attribute 'cache_clear'` every time `reset_cache` is invoked with `setting` in `(\"LANGUAGES\", \"LANGUAGE_CODE\")`. This is triggered whenever Django's language settings are changed at runtime (e.g., via `override_settings` in tests, or dynamic configuration), causing a hard crash in the cache-reset path.",
+      "suggestion": "Since the `lru_cache` decorator has been removed from the language-variant lookup, the `cache_clear()` call is no longer needed. Remove the line `get_supported_language_variant.cache_clear()` from `reset_cache`. If you still want to clear any internal caching, ensure the function actually has a cache (re-add `@functools.lru_cache` with a bounded `maxsize`) or remove the call entirely."
+    }
+  ]
+}

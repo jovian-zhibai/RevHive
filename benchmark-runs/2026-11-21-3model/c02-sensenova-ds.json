@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (25/100)\n\n1 Critical\n\nReview completed with 1 findings across 1 agents (1 critical).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Reintroduction of CVE-2026-113733: Password hash disclosure to view-only admin users with custom user models (SecurityAgent)\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "critical",
+      "title": "Reintroduction of CVE-2026-113733: Password hash disclosure to view-only admin users with custom user models",
+      "file_path": "django/contrib/admin/utils.py",
+      "line": 437,
+      "description": "This diff reverts the fix for CVE-2026-113733. The original code in `django/contrib/admin/utils.py` checked whether a `password` field belonged to any `AbstractBaseUser` subclass (or a model related to the auth user model via inheritance), ensuring password hashes were rendered as masked hashes (`render_password_as_hash`) for all user-like models. The new code narrows the check to `field.model == get_user_model()`, which only matches the exact `AUTH_USER_MODEL` class. As documented in the removed CVE text, this reintroduces the vulnerability: admin users with view-only permission to a custom user model (not set as `AUTH_USER_MODEL`, or inheriting `password` via multi-table inheritance from a concrete parent) will again be shown the full password hash. The accompanying tests (`test_password_display_for_field_inherited_user_model`, `test_password_display_for_field_user_model_not_abstract_base_user`, `test_password_display_for_field_other_user_model`) and test models (`ParentUser`, `ChildUser`, `MinimalPasswordUser`) that validated the fix are also deleted, removing regression coverage. This is a direct security regression that exposes sensitive credential material (password hashes) to users who should not see them, enabling offline cracking attacks.",
+      "suggestion": "Restore the original, broader check that covers all `AbstractBaseUser` subclasses and models related to the auth user model through inheritance:\n\n```python\nfrom django.contrib.auth.base_user import AbstractBaseUser\n\nif field.name == \"password\" and (\n    issubclass(field.model, AbstractBaseUser)\n    or issubclass(get_user_model(), field.model)\n):\n    return render_password_as_hash(value)\n```\n\nAlso restore the deleted test cases and test models to maintain regression coverage for CVE-2026-113733. If this revert is intentional (e.g., the CVE was rescinded), the release-notes removal should be accompanied by a clear justification; otherwise this change must not be merged as it re-exposes a known credential-disclosure vulnerability."
+    }
+  ]
+}

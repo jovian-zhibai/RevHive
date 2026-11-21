@@ -1,0 +1,28 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (10/100)\n\n2 Medium\n\nReview completed with 2 findings across 2 agents (2 medium).",
+  "risk_score": 10,
+  "risk_score_withheld": false,
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Reintroduction of log injection via unescaped geometry form values (CVE-2026-111211 regression)",
+      "file_path": "django/contrib/gis/forms/widgets.py",
+      "line": 43,
+      "description": "The diff reverts the fix for CVE-2026-111211. `BaseGeometryWidget.deserialize()` now passes the raw, attacker-controlled submitted value straight into the log formatter: `logger.error(\"Error creating geometry from value '%s' (%s)\", value, err)`. Any request that submits an invalid geometry string to a `GeometryField` (e.g. a public form, an API endpoint bound to a `ModelForm`) reaches this line, so the attacker fully controls the log payload. Because the value is no longer escaped via `log_message()`/`trim_value()`, newlines (CRLF), ANSI escape sequences, and Unicode line separators (U+2028/U+2029) are written verbatim, permitting log-entry forgery (fabricated audit lines, fake severity prefixes, `[ERROR]` spoofing), terminal escape injection in operators' consoles, and corruption of downstream log parsers/SIEM ingestion. The exception text `err` (GEOS/GDAL parser messages) is likewise interpolated unescaped and may echo a fragment of the input. Severity is capped at MEDIUM rather than HIGH because exploitation requires the deployment to surface raw log files to terminals or to security tooling that trusts log structure; the injection path itself (form value -> log record) is fully traceable in the changed code.",
+      "suggestion": "Restore the escaping helper and do not log the raw value:\n\n```python\nfrom django.utils.log import log_message\nfrom django.utils.text import trim_value\n...\nexcept (GEOSException, GDALException, ValueError, TypeError) as err:\n    # Trim large values, keeping the suffix out of the escaped args.\n    trimmed, suffix = trim_value(value)\n    log_message(\n        logger,\n        \"Error creating geometry from value '%s\" + suffix + \"' (%s)\",\n        trimmed,\n        err,\n        level=\"error\",\n    )\n    return None\n```\n\nIf the helper is being removed for other reasons, at minimum sanitize before logging, e.g. `value = value.replace(\"\\r\", \"\\\\r\").replace(\"\\n\", \"\\\\n\")` and strip other C0/C1 control characters (`\"\".join(c for c in value if c.isprintable() or c == \" \")`) and truncate to a fixed length. Never use `%r`-less raw interpolation of request data into log messages."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Security advisory entries for CVE-2026-111211 removed from release notes",
+      "file_path": "docs/releases/5.2.19.txt",
+      "line": 20,
+      "description": "The diff deletes the `CVE-2026-111211` section from `docs/releases/5.2.19.txt`, `docs/releases/6.0.10.txt`, and `docs/releases/6.1.3.txt`, while simultaneously reintroducing the vulnerability in the code. Downstream users reading these release notes rely on them as the authoritative list of security fixes: an operator upgrading to 5.2.19 / 6.0.10 / 6.1.3 is told the release is patched for log injection when it no longer is. This is a supply-chain/transparency failure, not merely a documentation nit — it suppresses the disclosure that would prompt a compensating control (log sanitization at the shipper, or pinning a non-vulnerable release). The corresponding regression test `test_deserialize_logs_escaped_value` / `test_deserialize_logs_trimmed_value` was deleted too, so CI will not detect the reintroduction.",
+      "suggestion": "Revert the documentation deletions in all three release-note files and restore the tests in `tests/gis_tests/test_geoforms.py` (`test_deserialize_logs_escaped_value`, `test_deserialize_logs_trimmed_value`) so the escaping and trimming behavior is enforced by CI. If a genuine change to the logging helper is intended, ship it as a new documented change with its own advisory, not by removing the existing CVE record."
+    }
+  ]
+}

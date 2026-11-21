@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (15/100)\n\n1 High\n\nReview completed with 1 findings across 1 agents (1 high).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Reintroduction of CVE-2026-113593: Cache key collision between absent and empty Vary headers (SecurityAgent)\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Reintroduction of CVE-2026-113593: Cache key collision between absent and empty Vary headers",
+      "file_path": "django/utils/cache.py",
+      "line": 360,
+      "description": "This diff reverts the fix for CVE-2026-113593, a known cache-poisoning vulnerability in Django's cache key generation. The change in `django/utils/cache.py` removes the `b\"-,\"` marker that distinguished an absent header from a present-but-empty header. After this change, a request that omits a header listed in the response's `Vary` header and a request that sends that header with an empty value (`\"\"`) will produce the same cache key. An attacker who can induce a victim to send a request with an empty `Vary`-listed header can poison the cache entry, causing subsequent requests that omit that header to be served the poisoned response. This can lead to exposure of private data across users/tenants. The diff also removes the regression test (`test_cache_key_blank_header`) and the corresponding release-note entries, confirming this is a deliberate revert of a security fix.",
+      "suggestion": "Do not merge this revert. Restore the absent-header marker so that missing and empty `Vary` header values generate distinct cache keys:\n\n```python\nfor header in headerlist:\n    value = request.META.get(header)\n    if value is None:\n        # An absent field must not share a cache key with a field that is\n        # present but empty (RFC 9111, Section 4.1).\n        ctx.update(b\"-,\" )\n        continue\n    data = value.encode()\n    ctx.update(b\"%d:%s,\" % (len(data), data))\n```\n\nAlso restore the `test_cache_key_blank_header` regression test and the CVE-2026-113593 release-note entries. If the revert is intentional for an unrelated reason, it must not ship without an alternative mitigation for the cache-collision vector."
+    }
+  ]
+}

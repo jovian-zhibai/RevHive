@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (21/100)\n\n1 High · 1 Medium · 1 Low\n\nReview completed with 3 findings across 2 agents (1 high, 1 medium, 1 low).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] MTI user model regression: password hash not masked when AUTH_USER_MODEL inherits password from concrete parent (LogicAgent)",
+  "risk_score": 21,
+  "risk_score_withheld": false,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "high",
+      "title": "MTI user model regression: password hash not masked when AUTH_USER_MODEL inherits password from concrete parent",
+      "file_path": "django/contrib/admin/utils.py",
+      "line": 435,
+      "description": "The new condition uses strict equality (`==`) between `field.model` and `get_user_model()`. In Django's multi-table inheritance (MTI), when `AUTH_USER_MODEL` inherits its `password` field from a concrete parent model, `field.model` is the parent class (where the field is defined), not the child class (the actual `AUTH_USER_MODEL`). For example, with `class BaseUser(AbstractBaseUser)` and `class CustomUser(BaseUser)` where `AUTH_USER_MODEL=\"app.CustomUser\"`, `CustomUser._meta.get_field(\"password\").model` is `BaseUser`, so `BaseUser == CustomUser` is `False`. The password hash will NOT be masked, re-introducing the exact CVE-2026-113733 vulnerability for MTI user models. The removed test `test_password_display_for_field_inherited_user_model` confirms this was a known case.",
+      "suggestion": "Use `issubclass(get_user_model(), field.model)` instead of `field.model == get_user_model()`. This correctly handles both the direct case (where `field.model` IS the user model, since `issubclass(X, X)` is True) and the MTI case (where the user model is a subclass of the model where the field is defined), while still excluding unrelated models that merely inherit from `AbstractBaseUser`:\n\n```python\nif field.name == \"password\" and issubclass(get_user_model(), field.model):\n    return render_password_as_hash(value)\n```"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "** Security Regression – Password Hash Disclosure Re-introduced (CVE-2026-113733)",
+      "file_path": "** `django/contrib/admin/utils.py`",
+      "line": 435,
+      "description": "** The diff replaces the previous two-pronged guard: ```python if field.name == \"password\" and ( issubclass(field.model, AbstractBaseUser) or issubclass(get_user_model(), field.model) ): ``` with a strict equality check: ```python if field.name == \"password\" and field.model == get_user_model(): ``` This **re-introduces** the exact vulnerability documented as CVE-2026-113733 in two scenarios: 1. **Non-AUTH_USER_MODEL AbstractBaseUser subclass.** A model like `OtherUser(AbstractBaseUser)` that is *not* set as `AUTH_USER_MODEL` will no longer have its password field masked. `field.model` (`OtherUser`) ≠ `get_user_model()` (default `User`), so the raw hash is returned to any admin with view-only permission. 2. **Multi-table inheritance.** When `AUTH_USER_MODEL` is a child class (e.g., `ChildUser(ParentUser)`) and the `password` field is defined on the concrete parent (`ParentUser`), `field.model` resolves to `ParentUser`, which is not equal to `get_user_model()` (`ChildUser`). The hash is again displayed unmasked. In both cases, a low-privilege admin (view permission only, no change permission) can read full password hashes from the admin changelist/detail views, enabling offline credential cracking. The diff also **removes the corresponding test cases** (`test_password_display_for_field_inherited_user_model`, `test_password_display_for_field_user_model_not_abstract_base_user`, `test_password_display_for_field_other_user_model`) and **strips the CVE entry from the release notes**, eliminating regression coverage and audit trail.",
+      "suggestion": "** Restore the broader guard while keeping the fix for the original CVE. The condition should mask the password whenever the field belongs to *any* model in the authentication user-model hierarchy: ```python from django.contrib.auth.base_user import AbstractBaseUser from django.contrib.auth import get_user_model if field.name == \"password\" and ( issubclass(field.model, AbstractBaseUser) or issubclass(get_user_model(), field.model) or field.model == get_user_model() ): return render_password_as_hash(value) ``` Alternatively, if the intent is to restrict masking to only the active `AUTH_USER_MODEL`, the multi-table-inheritance case must still be handled: ```python if field.name == \"password\": user_model = get_user_model() if field.model == user_model or issubclass(user_model, field.model): return render_password_as_hash(value) ``` Re-add the removed test cases and restore the CVE documentation in the release notes. ---"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "** Removal of Security Regression Tests and CVE Documentation",
+      "file_path": "** `tests/admin_utils/tests.py`, `docs/releases/6.0.10.txt`, `docs/releases/6.1.3.txt`",
+      "line": null,
+      "description": "** Three test methods that specifically exercised the password-masking edge cases (inherited user model, non-AbstractBaseUser model, isolated app model) are deleted, and the CVE-2026-113733 entries are removed from two release-note files. This eliminates the safety net that would catch a future regression of the masking logic and removes the security-relevant audit trail from the project's public changelog.",
+      "suggestion": "** Retain the test cases (at minimum the multi-table-inheritance and non-AUTH_USER_MODEL scenarios) and keep the CVE entries in the release notes. If the behavior is intentionally changed, document the new security posture and the rationale in the release notes rather than silently removing the CVE record. --- ## Summary This diff **reverts the security fix for CVE-2026-113733** by narrowing the password-masking condition in `display_for_field` from a broad `issubclass` check to a strict `==` comparison against `get_user_model()`. The result is that password hashes will be displayed unmasked to view-only admin users for any custom user model that is not the exact `AUTH_USER_MODEL`, including the multi-table-inheritance case. The accompanying removal of regression tests and CVE documentation compounds the risk by eliminating both automated and manual safeguards. The primary finding is rated **MEDIUM** (sensitive data disclosure requiring authenticated admin access, consistent with Django's own \"low\" severity rating for the original CVE, elevated here because it is a *regression* of a previously-patched vulnerability). No injection, command-execution, or cryptographic-weakness issues were identified in the changed code."
+    }
+  ]
+}

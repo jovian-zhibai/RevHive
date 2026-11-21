@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (45/100)\n\n1 Critical · 1 High · 1 Medium\n\nReview completed with 3 findings across 2 agents (1 critical, 1 high, 1 medium).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] Proxy bypass on redirects — SSRF regression (LogicAgent)\n  - [HIGH] SSRF reintroduced: proxy enforcement removed on HTTP redirects (SecurityAgent)",
+  "risk_score": 45,
+  "risk_score_withheld": false,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "critical",
+      "title": "Proxy bypass on redirects — SSRF regression",
+      "file_path": "lib/adapters/http.js",
+      "line": 145,
+      "description": "The `setProxy` function was removed and its logic inlined into the main adapter, but the `options.beforeRedirect` callback that reapplied proxy settings to redirected requests was dropped. As a result, when an HTTP request goes through a proxy and receives a redirect (e.g., 302), the follow-up request is sent directly to the target host, completely bypassing the proxy. This is a security vulnerability (Server-Side Request Forgery) and a functional regression: any proxy-authenticated request that follows a redirect will leak the target URL to the network without proxy protection, and the `Proxy-Authorization` header will not be sent on the redirected request. The deleted regression test `test/unit/regression/SNYK-JS-AXIOS-1038255.js` explicitly verified that proxy settings are obeyed when following redirects; its removal masks this regression. Reproduction: configure a proxy with auth, request a URL that returns a 302 redirect to an internal address, and observe that the redirect request goes directly to the internal address instead of through the proxy.",
+      "suggestion": "Restore the `beforeRedirect` logic. After setting the proxy options, add: ```js options.beforeRedirect = function beforeRedirect(redirection) { redirection.headers.host = redirection.host; redirection.hostname = proxy.host; redirection.host = proxy.host; redirection.port = proxy.port; redirection.path = redirection.href; if (proxy.auth) { var base64 = Buffer.from(proxy.auth.username + ':' + proxy.auth.password, 'utf8').toString('base64'); redirection.headers['Proxy-Authorization'] = 'Basic ' + base64; } }; ``` Alternatively, keep the original `setProxy` helper and call it for both the initial request and redirects. Also restore the deleted regression test to prevent future regressions. Summary: The diff introduces a critical regression by removing the proxy redirect handling, which allows redirects to bypass the proxy and creates an SSRF vulnerability. The deletion of the corresponding regression test is a strong indicator that this regression was not caught. No other code correctness issues were found in the diff."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "SSRF reintroduced: proxy enforcement removed on HTTP redirects",
+      "file_path": "lib/adapters/http.js",
+      "line": 148,
+      "description": "The diff removes the `beforeRedirect` hook (previously in `setProxy`) that re-applied proxy settings when axios followed a 3xx redirect. It also deletes the regression test `test/unit/regression/SNYK-JS-AXIOS-1038255.js` that specifically asserted \"obeys proxy settings when following redirects\" (Snyk SNYK-JS-AXIOS-1038255 / axios issues #3407, #3369). With the hook gone, when a proxied request receives a redirect response, axios will follow the `Location` header by issuing a **direct** connection to the redirect target, bypassing the configured proxy. An attacker who controls (or can poison) any URL that axios is pointed at — e.g. a user-supplied URL, a webhook target, an RSS/OG-metadata fetcher, or a compromised upstream — can return a 302 to an internal address (`http://169.254.169.254/latest/meta-data/`, `http://localhost:8080/admin`, cloud metadata endpoints) and have the server reach it directly, exfiltrating the response. This is a textbook server-side request forgery (SSRF) via redirect, and the removal of the guarding test indicates the protection is being intentionally or accidentally dropped rather than relocated.",
+      "suggestion": "Restore proxy enforcement across redirects. Re-add a `beforeRedirect` handler on the request options that re-applies the proxy host/port/path and Proxy-Authorization to the redirect request, e.g.:\n\n```js\nif (proxy) {\n  options.hostname = proxy.host;\n  options.host = proxy.host;\n  options.port = proxy.port;\n  options.path = protocol + '//' + parsed.hostname + (parsed.port ? ':' + parsed.port : '') + options.path;\n\n  if (proxy.auth) {\n    var base64 = Buffer.from(proxy.auth.username + ':' + proxy.auth.password, 'utf8').toString('base64');\n    options.headers['Proxy-Authorization'] = 'Basic ' + base64;\n  }\n\n  // Keep redirects inside the proxy tunnel\n  options.beforeRedirect = function beforeRedirect(redirection) {\n    redirection.headers.host = redirection.host;\n    redirection.hostname = proxy.host;\n    redirection.host = proxy.host;\n    redirection.port = proxy.port;\n    redirection.path = redirection.href;\n    if (proxy.auth) {\n      var b64 = Buffer.from(proxy.auth.username + ':' + proxy.auth.password, 'utf8').toString('base64');\n      redirection.headers['Proxy-Authorization'] = 'Basic ' + b64;\n    }\n  };\n}\n```\n\nAlso restore the deleted regression test `SNYK-JS-AXIOS-1038255.js` (or an equivalent) so CI fails if this protection regresses again. If the intent is to drop proxy-on-redirect behavior, it must be a documented, opt-in breaking change — not a silent removal of an SSRF guard."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Regression test for known SSRF (SNYK-JS-AXIOS-1038255) deleted",
+      "file_path": "test/unit/regression/SNYK-JS-AXIOS-1038255.js",
+      "line": 1,
+      "description": "The file `test/unit/regression/SNYK-JS-AXIOS-1038255.js` is removed in this diff. This test was the only automated guard verifying that axios honors proxy configuration when following redirects. Deleting a security regression test without replacing it removes the safety net that prevents the underlying SSRF from silently returning, and hides the change from reviewers who rely on the test suite to catch security regressions.",
+      "suggestion": "Do not delete security regression tests. Keep the test (update its assertions if the implementation is refactored) so that any future change that breaks proxy-on-redirect enforcement causes a CI failure. If the test is being removed because the behavior is intentionally changing, the change must be paired with an explicit security review, a changelog entry, and a documented mitigation (e.g. `maxRedirects: 0` by default when a proxy is configured, or an allow-list of redirect targets)."
+    }
+  ]
+}

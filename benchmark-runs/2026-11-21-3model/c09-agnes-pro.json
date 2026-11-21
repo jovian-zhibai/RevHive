@@ -1,0 +1,9 @@
+{
+  "failed": true,
+  "error": "Error code: 403 - Failed to pre-consume quota, remaining: ＄0.003026, required: ＄0.003198 (request id: 20261121082959953434251vMi7og20)",
+  "summary": "⚠️ Review could not run — all 2 agents failed. Last error: Error code: 403 - Failed to pre-consume quota, remaining: ＄0.003026, required: ＄0.003198 (request id: 20261121082959953434251vMi7og20)",
+  "risk_score": 0,
+  "risk_score_withheld": false,
+  "total_findings": 0,
+  "findings": []
+}

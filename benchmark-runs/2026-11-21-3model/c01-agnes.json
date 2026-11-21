@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (35/100)\n\n1 Critical · 2 Medium\n\nReview completed with 3 findings across 2 agents (1 critical, 2 medium).\n\n✅ AI analysis resolved 2 conflicting assessment(s).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Reintroduced SSRF via SpatialReference: always uses legacy OSRSetFromUserInput (LogicAgent + SecurityAgent)",
+  "risk_score": 35,
+  "risk_score_withheld": false,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "LogicAgent + SecurityAgent",
+      "severity": "critical",
+      "title": "Reintroduced SSRF via SpatialReference: always uses legacy OSRSetFromUserInput",
+      "file_path": "django/contrib/gis/gdal/srs.py",
+      "line": 312,
+      "description": "The code now unconditionally calls `capi.from_user_input` (the legacy `OSRSetFromUserInput`) regardless of the GDAL version. For GDAL >= 3.9, the safer `OSRSetFromUserInputEx` (which allows blocking file/network access via `PAPSZ_OPTIONS`) is no longer used. This re-introduces the vulnerability described in the removed CVE-2026-114582: `SpatialReference` will resolve URLs and file paths on GDAL 3.9+ when given string input, enabling SSRF and local file read attacks. The `dict:` check is also removed, so dictionary-based file access is no longer blocked on any version.\n\n_SecurityAgent:_ The diff replaces the secure `import_user_input` implementation with a naive call to `capi.from_user_input` (which maps to `OSRSetFromUserInput`). The previous implementation utilized `OSRSetFromUserInputEx` on GDAL >= 3.9 with `ALLOW_FILE_ACCESS=NO` and `ALLOW_NETWORK_ACCESS=NO` options to mitigate CVE-2026-114582 (SSRF and local file read). Furthermore, the previous code explicitly rejected `dict:` and `esri::dict:` prefixes to prevent dictionary-based file reads. The new code relies solely on `OSRSetFromUserInput`, which does not support these restrictive options and may still allow file/network access depending on the GDAL version. This reintroduces the SSRF and Local File Inclusion vulnerabilities.",
+      "suggestion": "Revert to using `OSRSetFromUserInputEx` with `PAPSZ_OPTIONS` for GDAL >= 3.9. If backward compatibility is required, at minimum retain the `dict:` prefix block and the `W001` warning. Never fall back to the legacy unsafe API when the safe one is available."
+    },
+    {
+      "agent": "SecurityAgent + LogicAgent",
+      "severity": "medium",
+      "title": "Removal of Security Check for GDAL Version",
+      "file_path": "django/contrib/gis/apps.py",
+      "line": 4,
+      "description": "The diff removes the registration of the security check `check_gdal_39` from `django/contrib/gis/apps.py`. This check is responsible for warning developers when the installed GDAL version is older than 3.9, which lacks the `OSRSetFromUserInputEx` function that properly restricts file and network access. By removing this check, the application silently operates in a vulnerable state on older GDAL versions without alerting the user during `manage.py check` or startup, increasing the risk of unpatched SSRV/file read vulnerabilities.\n\n_LogicAgent:_ The system check `check_gdal_39` is removed from the GIS app's `ready()` method. If the check was intended to warn users on GDAL versions < 3.9 about the lack of file/network blocking (since `OSRSetFromUserInput` is now always used), removing it means developers on older GDAL versions will not be notified that they are vulnerable to SSRF/File Read attacks via `SpatialReference` string input. This is a removal of a protective mechanism, leaving a security gap undetected for users on GDAL < 3.9.",
+      "suggestion": "Reinstate the import of `checks` and the `check_gdal_39` function. Ensure that `checks.register(check_gdal_39, checks.Tags.gis, checks.Tags.security)` is called within the `GISConfig.ready()` method to maintain security visibility for deployments using GDAL < 3.9."
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "medium",
+      "title": "PAPSZ_OPTIONS removed without replacing its use in safe code path",
+      "file_path": "django/contrib/gis/gdal/srs.py",
+      "line": 35,
+      "description": "The `PAPSZ_OPTIONS` constant is removed from `srs.py`, but the logic that would have used it (for GDAL >= 3.9) has been stripped out. If any other part of the codebase or a future commit re-introduces the call to `from_user_input_ex` without re-adding this constant, it will raise a `NameError`. More critically, the removal of the constant alongside the removal of the safe code path confirms the intent to disable the protection entirely, which is a security regression.",
+      "suggestion": "If the safe path is being intentionally removed (which is not recommended), ensure no other code references `PAPSZ_OPTIONS`. If not, restore the constant and the conditional call to `from_user_input_ex` for GDAL >= 3.9."
+    }
+  ]
+}

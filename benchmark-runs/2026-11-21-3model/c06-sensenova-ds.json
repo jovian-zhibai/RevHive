@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (21/100)\n\n1 High · 1 Medium · 1 Low\n\nReview completed with 3 findings across 1 agents (1 high, 1 medium, 1 low).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Security fix for CVE-2026-87975 reverted — authorization bypass in model formsets (arbitrary delete outside limiting queryset / create via edit_only) (SecurityAgent)\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Security fix for CVE-2026-87975 reverted — authorization bypass in model formsets (arbitrary delete outside limiting queryset / create via edit_only)",
+      "file_path": "django/forms/models.py",
+      "line": 970,
+      "description": "This diff removes the `or obj._state.adding` clause from `BaseModelFormSet.save_existing_objects()`, which is exactly the guard that fixed CVE-2026-87975 (whose release notes the same diff deletes).\n\nAttack/data flow (all steps traceable inside the changed function and its direct callees):\n1. Attacker controls the POST keys `form-<i>-<pk_name>` and `form-<i>-DELETE`, plus `INITIAL_FORMS`/`TOTAL_FORMS`.\n2. In `BaseModelFormSet._construct_form()`, for an initial form the pk is read from POST data and looked up via `_existing_object(pk)` -> `self._object_dict.get(pk)` where `_object_dict` is built from `self.get_queryset()`. When the forged pk is **not** in the limiting queryset, `_existing_object()` returns `None`, so the bound form is built on an empty instance whose pk is nevertheless set from POST and whose `_state.adding is True`.\n3. In `save_existing_objects()`, the loop iterates `self.initial_forms`. With the reverted condition `if not obj._is_pk_set(): continue`, an instance that merely *looks* like it has a pk (but was never fetched from the queryset, and is flagged `adding`) is no longer skipped.\n4. Deletion path: the form is in `forms_to_delete`, so `self.deleted_objects.append(obj)` and `self.delete_existing(obj, commit=True)` -> `obj.delete()` issues `DELETE ... WHERE pk = <attacker supplied pk>`. The row is deleted even though it is outside the formset's `queryset` — a horizontal/vertical authorization bypass letting a user delete objects they were explicitly scoped away from (e.g. another tenant's/owner's row via an inline formset whose `OneToOneField`/parent link is the pk).\n5. Creation path: for `edit_only=True` formsets (documented as never creating objects) `save_new_objects()` is a no-op, but the forged form is an *initial* form, so `save_existing()` -> `form.save()` runs with `obj._state.adding is True` and an explicit pk, performing an INSERT — creating a row the application intended to make impossible.\n6. Secondary impact: if the forged pk collides with an existing out-of-queryset row, the INSERT raises an unhandled `IntegrityError` (HTTP 500), a trivial error/DoS signal.\n\nReachability assumptions (explicitly capped by them): exploitation requires an application that uses `modelformset_factory`/`inlineformset_factory` with a *restricted* `queryset` (or `edit_only=True`) and a model whose pk is settable through the form (UUID/natural key pk, `OneToOneField`/parent-link pk). Models with the default `BigAutoField` and formsets without a limiting queryset are not affected — which is why Django rates the original advisory \"moderate\". The code path itself, however, is proven end-to-end in the diff and is unauthenticated-input driven, hence HIGH rather than LOW.",
+      "suggestion": "Restore the fixed condition that skips instances which were never materialized from the formset queryset:\n\n    for form in self.initial_forms:\n        obj = form.instance\n        # If the pk is unset or the instance is being added, it could mean:\n        # 1. The object is an unexpected unfetched instance, created by\n        #    invalid POST data such as an object outside the formset's\n        #    queryset, or a formset with edit_only=True.\n        # 2. The object was already deleted from the database.\n        if not obj._is_pk_set() or obj._state.adding:\n            continue\n\nDo not merge any change that drops `obj._state.adding` without an alternative control that re-validates the instance against `self.get_queryset()` (e.g. `if not self.get_queryset().filter(pk=obj.pk).exists(): continue`) before it can reach `delete_existing()` or `save_existing()`."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Regression tests guarding the CVE fix deleted",
+      "file_path": "tests/model_formsets/tests.py",
+      "line": 164,
+      "description": "The diff removes `test_deletion_not_allowed_outside_formset_queryset`, `test_deletion_not_allowed_outside_formset_queryset_editable_pk`, and `test_edit_only_editable_pk` from `tests/model_formsets/tests.py`. These are the only automated checks that detect the authorization bypass described above. Removing them means (a) the vulnerability reintroduced by the code change ships with a green test suite, and (b) any future re-regression in `save_existing_objects()`/`edit_only` handling will be invisible to CI. Security regression tests are part of the fix, not ancillary to it.",
+      "suggestion": "Restore the three removed tests unchanged. Additionally add an assertion that no INSERT occurred for the `edit_only` case (e.g. `self.assertEqual(CustomPrimaryKey.objects.count(), 0)`) and that a pk collision raises nothing beyond form validation, so both the delete-bypass and create-bypass paths are pinned."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "CVE-2026-87975 advisories removed from published release notes",
+      "file_path": "docs/releases/6.1.2.txt",
+      "line": 68,
+      "description": "The security sections of `docs/releases/5.2.18.txt`, `6.0.9.txt`, and `6.1.2.txt` are deleted. Downstream operators and distributors rely on these files to learn that 5.2.18/6.0.9/6.1.2 fix a privilege-abuse issue and to decide whether to upgrade; removing the advisory silently un-documents a known vulnerability in already-published releases and removes the traceability between the fix and the code. Combined with the code revert above, users of these versions will believe they are patched while the vulnerable code is present.",
+      "suggestion": "Restore the three advisory blocks verbatim. If the intent was to re-scope the CVE, amend the text rather than deleting the entry, and keep the CVE identifier, affected versions, and configuration preconditions (editable primary keys, limited querysets, `edit_only`) documented."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (17/100)\n\n1 High · 2 Low\n\nReview completed with 3 findings across 1 agents (1 high, 2 low).\n\n⚠️ 1 of 2 agents did not finish — the LLM provider kept throttling until the review budget ran out. This report covers what completed; re-run for full coverage.\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Security fix for CVE-2026-108147 reverted: unbounded in-memory buffering of base64 multipart uploads (SecurityAgent)\n\n⚠️ **Partial review** — 1/2 agents completed. Not checked: LogicAgent.\n\n🚫 Risk score withheld — partial agent coverage (1/2 agents completed; LogicAgent did not run). Findings above are real, but no number can stand in for the checks that never happened.",
+  "risk_score": null,
+  "risk_score_withheld": true,
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Security fix for CVE-2026-108147 reverted: unbounded in-memory buffering of base64 multipart uploads",
+      "file_path": "django/http/multipartparser.py",
+      "line": 311,
+      "description": "This diff removes the bounded, carry-over alignment logic (the `base64_remainder` mechanism) and replaces it with a loop that keeps calling `field_stream.read(self._chunk_size)` and appending to `stripped_parts` until the accumulated non-whitespace byte count happens to be a multiple of 4. Because `_chunk_size` (65536) is itself a multiple of 4, any part whose first chunk's stripped length is not ≡ 0 (mod 4) keeps the same residue forever: the loop never aligns and therefore reads the entire remaining field into memory (and then joins it into one `stripped_chunk`, and then decodes it all at once with `base64.b64decode(stripped_chunk, validate=True)`).\n\nAttack vector: attacker controls a `multipart/form-data` body with `Content-Transfer-Encoding: base64`. A single whitespace byte (or simply the natural chunk boundary falling mid-4-byte grouping) makes the residue non-zero; the parser then buffers the whole part, defeating the streaming contract and `FILE_UPLOAD_MAX_MEMORY_SIZE`-style bounds. The decoded blob is also handed to upload handlers as one huge chunk, so `MemoryFileUploadHandler` buffers a second copy. Result is remote memory exhaustion / OOM DoS — exactly the issue documented as CVE-2026-108147 in the release notes that this same diff deletes.\n\nAdditionally, `over_chunk` list growth holds every raw stripped chunk simultaneously, roughly doubling peak memory (raw chunks + joined copy + decoded copy). The path is traceable end-to-end inside the changed code (attacker body → `field_stream.read` loop → `b64decode` → handler), so no intermediary assumption is needed.",
+      "suggestion": "Restore the streaming alignment: decode only the largest multiple-of-4 prefix of the current chunk and carry the 1-3 trailing bytes over to the next iteration, never reading ahead:\n\n```python\ntry:\n    chunk = base64.b64decode(stripped_chunk[:aligned_length], validate=True)\nexcept Exception as exc:\n    raise MultiPartParserError(\"Could not decode base64 data.\") from exc\n```\n\nand after the loop:\n\n```python\nif base64_remainder:\n    raise MultiPartParserError(\"Could not decode base64 data.\")\n```\n\nIf read-ahead is unavoidable, cap the number of extra bytes read (e.g. at most 3 bytes past the chunk boundary) and enforce a hard maximum on `len(stripped_chunk)` before calling `b64decode`, raising `MultiPartParserError` if exceeded."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Loss of explicit truncated-base64 rejection and of regression tests for bounded chunk streaming",
+      "file_path": "tests/requests_tests/tests.py",
+      "line": 972,
+      "description": "The diff deletes both the `if base64_remainder: raise MultiPartParserError(\"Could not decode base64 data.\")` guard and the two tests that pinned the security properties: `test_multipart_file_upload_base64_streamed_in_chunks` (asserts chunks handed to upload handlers stay ≤ chunk_size) and `test_multipart_file_upload_base64_truncated` (asserts malformed/truncated base64 is rejected). Truncated data is now only rejected incidentally, because `binascii` happens to raise on a non-multiple-of-4 tail — a behaviour nothing tests, and one that no longer runs until the parser has consumed the remainder of the stream. Removing the chunk-bound assertion means any future regression that reintroduces full-part buffering (as this diff does) will pass CI silently.",
+      "suggestion": "Restore both tests (bounded decoded chunk size for several filename alignments, and `MultiPartParserError` for truncated data such as \"A\", \"AA\", \"AAA\", \"AAAAA\"), and keep the explicit `base64_remainder` check so truncation is rejected deterministically by the parser rather than by an incidental `binascii` exception after the whole stream has been read."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Security advisory (CVE-2026-108147) documentation removed while the vulnerability is reintroduced",
+      "file_path": "docs/releases/5.2.19.txt",
+      "line": 9,
+      "description": "The release-note entries describing CVE-2026-108147 ('Potential memory exhaustion in MultiPartParser via base64-encoded file upload') are deleted from `docs/releases/5.2.19.txt`, `6.0.10.txt` and `6.1.3.txt` at the same time the code change undoes the fix. Operators relying on release notes to triage deployments lose the only in-repo signal that base64 multipart uploads are a DoS vector, and if this revision is shipped the vulnerability returns with no published advisory — a silent security regression rather than a documented one.",
+      "suggestion": "Do not revert a security fix together with its advisory. If the fix must be reworked, keep the CVE-2026-108147 entries in the release notes (updated to reference the new fix commit), and add a regression note explaining why the streaming behaviour is intentional so a future contributor does not 'simplify' it back to full buffering."
+    }
+  ]
+}

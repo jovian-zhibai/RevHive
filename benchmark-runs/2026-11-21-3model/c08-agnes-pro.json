@@ -1,0 +1,19 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (15/100)\n\n1 High\n\nReview completed with 1 findings across 2 agents (1 high).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Stored XSS via URLField in Django admin — removal of URL scheme validation (CVE-2026-15920 regression) (SecurityAgent)",
+  "risk_score": 15,
+  "risk_score_withheld": false,
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Stored XSS via URLField in Django admin — removal of URL scheme validation (CVE-2026-15920 regression)",
+      "file_path": "django/contrib/admin/utils.py",
+      "line": 467,
+      "description": "The diff removes the URLValidator-based scheme check that previously prevented dangerous URL schemes (e.g., `javascript:`, `data:`) from being rendered as clickable links in the Django admin. Without this guard, a stored URLField value such as `javascript:alert(document.cookie)` is rendered verbatim into the `href` attribute via `format_html('<a href=\"{}\">{}</a>', value, value)`. Because `format_html` only HTML-escapes the value (and `javascript:alert(1)` contains no HTML-special characters), the resulting markup is `<a href=\"javascript:alert(document.cookie)\">…</a>`. When an authenticated admin user clicks the link on a changelist or read-only field view, the script executes in the admin's origin, enabling session-token theft, CSRF, or further admin-panel manipulation. This is a regression that re-introduces CVE-2026-15920.",
+      "suggestion": "Restore the scheme validation before rendering the link. Re-add the `URLValidator` import and the try/except block:\n\n```python\nfrom django.core.exceptions import FieldDoesNotExist, ValidationError\nfrom django.core.validators import EMPTY_VALUES, URLValidator\n\n# …\nelif isinstance(field, models.URLField) and value and not avoid_link:\n    try:\n        URLValidator()(value)\n    except ValidationError:\n        return display_for_value(value, empty_value_display)\n    return format_html('<a href=\"{}\">{}</a>', value, value)\n```\n\nAlternatively, if you want a lighter-weight check that does not depend on the full URL grammar, explicitly reject non-HTTP(S) schemes:\n\n```python\nfrom urllib.parse import urlparse\n\nelif isinstance(field, models.URLField) and value and not avoid_link:\n    scheme = urlparse(value).scheme.lower()\n    if scheme not in ('http', 'https'):\n        return display_for_value(value, empty_value_display)\n    return format_html('<a href=\"{}\">{}</a>', value, value)\n```\n\nAlso restore the corresponding unit test (`test_url_display_for_field_invalid_url`) so the regression is caught in CI."
+    }
+  ]
+}

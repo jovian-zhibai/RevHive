@@ -1,0 +1,28 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (20/100)\n\n1 High · 1 Medium\n\nReview completed with 2 findings across 2 agents (1 high, 1 medium).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Missing beforeRedirect hook breaks proxy on redirects (LogicAgent)\n🛡️ 1 severity cap(s) applied by deterministic post-processing:\n  - capped HIGH->MEDIUM (hedged title): Potential SSRF regression and credential leakage via removed proxy red",
+  "risk_score": 20,
+  "risk_score_withheld": false,
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "high",
+      "title": "Missing beforeRedirect hook breaks proxy on redirects",
+      "file_path": "lib/adapters/http.js",
+      "line": 150,
+      "description": "The inline proxy configuration removes the `beforeRedirect` logic that was in the deleted `setProxy` function. Previously, when the proxy sent a 3xx redirect response, the `beforeRedirect` hook would re-apply the proxy settings (hostname, port, path) and proxy authentication to the new request. By inlining the logic without adding an equivalent `beforeRedirect` handler, any redirects from a proxied request will bypass the proxy and hit the target host directly (or fail). This is a functional regression that breaks proxy workflows involving redirects.",
+      "suggestion": "Restore the `beforeRedirect` logic. After setting the proxy options, add:\n`options.beforeRedirect = function beforeRedirect(redirection) {` \n`  redirection.headers.host = redirection.host;`\n`  // Re-apply proxy settings to the redirect`\n`  redirection.hostname = proxy.host;`\n`  redirection.host = proxy.host;`\n`  redirection.port = proxy.port;`\n`  redirection.path = redirection.href;` \n`  if (proxy.auth) { ... set Proxy-Authorization ... }`\n`};`"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Potential SSRF regression and credential leakage via removed proxy redirect handling",
+      "file_path": "lib/adapters/http.js",
+      "line": 152,
+      "description": "The diff removes the `setProxy` helper function which previously handled redirect logic and then inlines proxy configuration logic. Crucially, the deleted test file `SNYK-JS-AXIOS-1038255.js` indicates that this codebase was previously vulnerable to a Server-Side Request Forgery (SSRF) bypass involving proxies and redirects. The new inline code sets `options.path` to include the full URL (`protocol + '//' + parsed.hostname...`) while simultaneously setting `options.hostname` to the proxy host. This logic appears to be an attempt to fix the SSRF issue by ensuring redirects go through the proxy. However, the `options.beforeRedirect` hook, which was responsible for re-applying proxy settings on redirects, has been completely removed from the visible code path. If the underlying `http` request logic does not inherently handle proxy redirection for all cases (e.g., cross-protocol or specific edge cases in Node.js internals), this could regress the security posture. More immediately, if `proxy.auth` credentials are sensitive, sending them via Basic auth over HTTP (if the target is HTTP) or reusing them for redirects (which is the original intent of the removed `beforeRedirect`) without strict validation of the redirect target host can lead to credential leakage to malicious hosts if the proxy configuration is flawed or if the library incorrectly applies the proxy headers to non-proxy requests.",
+      "suggestion": "Restore the `setProxy` helper or its `beforeRedirect` logic to ensure that redirects are strictly handled through the proxy. Do not remove the redirect handling for proxy configurations. Additionally, verify that the `Proxy-Authorization` header is only sent to the trusted proxy host and not leaked during redirect chains to arbitrary hosts. Ensure the fix for SNYK-JS-AXIOS-1038255 is fully functional by re-introducing the redirect hook or equivalent safeguard."
+    }
+  ]
+}
