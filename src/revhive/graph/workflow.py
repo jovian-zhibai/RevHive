@@ -618,7 +618,10 @@ class ReviewReport:
             for f in critical_high:
                 emoji = "🔴" if f.severity.value == "critical" else "🟠"
                 lines.append(f"### {emoji} [{f.severity.value.upper()}] {f.title}")
-                if f.line_number is not None:
+                if f.file_path:
+                    loc = f"{f.file_path}" + (f":{f.line_number}" if f.line_number is not None else "")
+                    lines.append(f"**Location:** {loc}")
+                elif f.line_number is not None:
                     lines.append(f"**Line:** {f.line_number}")
                 lines.append(f"\n{f.description}")
                 if f.suggestion:
@@ -653,7 +656,10 @@ class ReviewReport:
                 for f in findings:
                     emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(f.severity.value, "⚪")
                     lines.append(f"#### {emoji} [{f.severity.value.upper()}] {f.title}")
-                    if f.line_number is not None:
+                    if f.file_path:
+                        loc = f"{f.file_path}" + (f":{f.line_number}" if f.line_number is not None else "")
+                        lines.append(f"**Location:** {loc}")
+                    elif f.line_number is not None:
                         lines.append(f"**Line:** {f.line_number}")
                     lines.append(f"\n{f.description}")
                     if f.suggestion:
@@ -675,6 +681,7 @@ class ReviewReport:
                     "agent": f.agent,
                     "severity": f.severity.value,
                     "title": f.title,
+                    "file_path": f.file_path,
                     "line": f.line_number,
                     "description": f.description,
                     "suggestion": f.suggestion,

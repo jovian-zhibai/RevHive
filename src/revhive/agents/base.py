@@ -190,6 +190,12 @@ class BaseReviewAgent(ABC):
                     )
                     for f in result.findings
                 ]
+                # Diff reviews hand agents a "diff:<ref>" marker instead of a
+                # path; recover the real file from the diff's hunk ranges
+                # before anything downstream treats the marker as an anchor.
+                if file_path.startswith("diff:"):
+                    from revhive.utils.anchors import anchor_diff_findings
+                    findings, _ = anchor_diff_findings(findings, code)
                 # Estimate token usage from prompt + response text lengths
                 prompt_text = system_prompt + human_prompt
                 response_text = result.summary or ""
@@ -237,6 +243,11 @@ class BaseReviewAgent(ABC):
         for f in findings:
             if not f.file_path and file_path:
                 f.file_path = file_path
+        # Same recovery as the structured path above: a "diff:<ref>" marker
+        # is a review mode, not a file the user can open.
+        if file_path.startswith("diff:"):
+            from revhive.utils.anchors import anchor_diff_findings
+            findings, _ = anchor_diff_findings(findings, code)
         # Use response metadata if available, otherwise estimate from text
         token_usage = response.response_metadata.get("token_usage", {}).get("total_tokens", 0)
         if not token_usage:

@@ -75,8 +75,13 @@ def reconcile_findings(
                 f"capped {f.severity.value.upper()}->MEDIUM (hedged title): {f.title[:70]}"
             )
         # Rule 2: no anchor, no HIGH. A finding with neither a file path nor
-        # a line number points at nothing the user can open and verify.
-        if new.severity in (Severity.HIGH, Severity.CRITICAL) and not new.file_path and not new.line_number:
+        # a line number points at nothing the user can open and verify. A
+        # "diff:<ref>" marker is a review mode, not a path, so it does not
+        # count as an anchor either.
+        fp = new.file_path or ""
+        if new.severity in (Severity.HIGH, Severity.CRITICAL) and (
+            not fp or fp.startswith("diff:")
+        ) and not new.line_number:
             new = replace(new, severity=Severity.MEDIUM)
             adjustments.append(
                 f"capped {f.severity.value.upper()}->MEDIUM (no code anchor): {f.title[:70]}"
