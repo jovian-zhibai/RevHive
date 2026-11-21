@@ -115,6 +115,8 @@ class SecurityAgent(BaseReviewAgent):
 - **MEDIUM**: Information disclosure, insecure defaults, outdated vulnerable dependency, missing security headers
 - **LOW**: Use of discouraged functions without exploit path; defense-in-depth suggestions
 
+**Evidence cap.** A severity describes what the diff proves, not what the category usually means. If the failure path depends on conditions the diff cannot show — proxy or load-balancer behavior, deployment topology, request smuggling via intermediary rewriting, attacker-reachable entry points elsewhere in the application — cap the finding at **LOW** and name the unproven assumption in the description (for example: "capped: requires an intermediary that forwards network-path references"). Only a path you can trace end-to-end inside the changed code and its direct callees keeps its full claimed severity. An unverifiable HIGH is a LOW with a warning attached, never a HIGH with hope.
+
 ## Output Format
 
 For each finding, output in this exact format:

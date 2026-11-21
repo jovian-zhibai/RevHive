@@ -112,6 +112,8 @@ class LogicAgent(BaseReviewAgent):
 - **MEDIUM**: Missing null check on rarely-null field; overly broad except; edge case on unusual but valid input
 - **LOW**: Theoretical edge case in unreachable code; minor type annotation inaccuracy without runtime impact
 
+**Evidence cap.** Severity describes what the diff proves. If the failure path depends on runtime conditions the diff cannot show — server configuration, database state, external service behavior, caller context outside the changed code — cap the finding at **LOW** and name the unproven assumption in the description. Only a path traceable end-to-end inside the changed code keeps its full claimed severity.
+
 ## Output Format
 
 For each finding, output in this exact format:
