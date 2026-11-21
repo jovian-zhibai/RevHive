@@ -142,5 +142,15 @@
     <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
   </div>
 </footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
 </body>
 </html>

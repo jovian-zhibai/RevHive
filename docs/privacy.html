@@ -83,6 +83,7 @@
         <ul class="list-disc pl-5 space-y-2 text-gray-400">
           <li>Email you send us for licensing/support — kept for the business relationship only.</li>
           <li>Billing metadata from <a href="https://www.creem.io/" target="_blank" rel="noopener" class="text-accent underline underline-offset-2">Creem</a>, our merchant of record (plan, status, invoice ID, country for tax). <span class="text-gray-200 font-medium">Card numbers never touch our servers</span> — Creem collects and stores them.</li>
+          <li>Anonymous page views. The site runs a first-party counter with no cookies, no fingerprinting, and no third-party script: it records the path, the referring host, and a visitor key that is a daily-salted hash of your IP. The IP itself is never written to disk, and yesterday's key cannot be matched to today's.</li>
         </ul>
       </section>
 
@@ -125,5 +126,15 @@
     </div>
   </footer>
 
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
 </body>
 </html>

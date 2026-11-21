@@ -133,5 +133,15 @@
 <footer class="border-t border-white/5 py-8 text-center text-sm text-gray-600">
   <a href="/" class="hover:text-gray-400">RevHive</a> · <a href="/terms.html" class="hover:text-gray-400">Terms</a> · <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
 </footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
 </body>
 </html>
