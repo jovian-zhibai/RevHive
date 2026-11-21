@@ -86,9 +86,13 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
 @click.option("--pr-description", default=None,
               help="Pull-request description text to review alongside the diff, "
                    "the way a human reviewer sees the PR description.")
+@click.option("--passes", "-p", default=1, type=int,
+              help="Run the review N times and report the median-risk pass "
+                   "(default: 1). Single-pass severity is noisy; 2-3 passes "
+                   "give a stable verdict at N times the token cost.")
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int,
            max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool, agents: str,
-           fallback: str, pr_description: str):
+           fallback: str, pr_description: str, passes: int):
     """Run code review on a file or git diff."""
     cfg = load_config()
     file_size_limit = max_file_size or _DEFAULT_MAX_FILE_SIZE
@@ -140,12 +144,14 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
             workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
                                           enabled_agents=enabled_agents,
                                           fallback_models=fallback_models)
-            result = _run_with_timeout(workflow.run(code=code, file_path=str(file_path)), timeout=timeout)
+            result = _run_with_timeout(workflow.run(code=code, file_path=str(file_path),
+                                                    passes=passes), timeout=timeout)
         elif diff_ref:
             workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
                                           enabled_agents=enabled_agents,
                                           fallback_models=fallback_models)
-            result = _run_with_timeout(workflow.run_from_diff(diff_ref, pr_description=pr_description), timeout=timeout)
+            result = _run_with_timeout(workflow.run_from_diff(diff_ref, pr_description=pr_description,
+                                                              passes=passes), timeout=timeout)
         else:
             click.echo("Please specify --file or --diff to review.")
             return

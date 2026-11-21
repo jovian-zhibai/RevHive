@@ -411,13 +411,23 @@ class CodeReviewWorkflow:
             )
         return {"final_result": final}
 
-    async def run(self, code: str, file_path: str = "", pr_description: str | None = None) -> AgentResult:
+    async def run(self, code: str, file_path: str = "", pr_description: str | None = None,
+                  passes: int = 1) -> AgentResult:
         """Run the full review workflow.
 
         *pr_description* simulates the description a reviewer would see on a
         real pull request. It is prepended to the reviewed text and clearly
         delimited, so agents can weigh it as context — the way a human
         reviewer reads the PR description alongside the diff.
+
+        *passes* runs the whole review N times independently. Single-pass
+        severity is noisy: the same model on the same diff produced
+        risk-weighted scores of 45 vs 54 across two identical passes.
+        With N > 1 the reported result comes from the median-risk pass
+        (deterministic, no cross-pass finding matching — the same defect
+        is re-described in unrelated words across passes, so lexical
+        matching is not trustworthy), and the summary discloses every
+        pass's risk level so the reader sees the disagreement.
         """
         if pr_description:
             code = (
@@ -426,9 +436,43 @@ class CodeReviewWorkflow:
                 "--- end PR description ---\n\n"
                 + code
             )
-        initial_state = ReviewState(code=code, file_path=file_path)
-        final_state = await self.graph.ainvoke(initial_state)
-        return final_state.get("final_result", AgentResult(agent_name="System", summary="No results"))
+        passes = max(1, int(passes))
+        finals = []
+        for _ in range(passes):
+            final_state = await self.graph.ainvoke(ReviewState(code=code, file_path=file_path))
+            finals.append(final_state.get("final_result",
+                                          AgentResult(agent_name="System", summary="No results")))
+        if passes == 1:
+            return finals[0]
+        return self._merge_passes(finals)
+
+    @staticmethod
+    def _merge_passes(finals: list[AgentResult]) -> AgentResult:
+        """Pick the median-risk pass as the report and disclose the rest.
+
+        Failed passes are excluded from the median: a failed pass reports
+        no findings and would fake a low risk score. If every pass failed
+        the first one is returned so the caller sees the error.
+        """
+        ok = [f for f in finals if not f.failed]
+        if not ok:
+            return finals[0]
+        scored = sorted(ok, key=lambda f: (f.risk_score if f.risk_score is not None else 0))
+        median = scored[len(scored) // 2 if len(scored) % 2 == 1 else len(scored) // 2 - 1]
+        # For an even count take the quieter middle pass: severity describes
+        # what the diff proves, and a defect one pass could not substantiate
+        # should not inherit the other pass's alarm.
+        median.risk_score = median.risk_score or 0
+        lines = ["",
+                 f"🛡️ Consensus of {len(finals)} independent passes — "
+                 f"risk scores: " + ", ".join(
+                     f"pass {i + 1}: {f.risk_score if f.risk_score is not None else 'failed'}"
+                     for i, f in enumerate(finals))
+                 + f". Report shows the median pass (score {median.risk_score}/100)."]
+        if len(ok) < len(finals):
+            lines.append(f"  {len(finals) - len(ok)} pass(es) failed and were excluded from the median.")
+        median.summary += "\n".join(lines)
+        return median
 
     @staticmethod
     def _validate_diff_ref(diff_ref: str) -> None:
@@ -445,7 +489,8 @@ class CodeReviewWorkflow:
         if not re.match(pattern, diff_ref):
             raise ValueError(f"Invalid diff reference: {diff_ref}")
 
-    async def run_from_diff(self, diff_ref: str, pr_description: str | None = None) -> AgentResult:
+    async def run_from_diff(self, diff_ref: str, pr_description: str | None = None,
+                            passes: int = 1) -> AgentResult:
         """Run review on a git diff."""
         import asyncio as _asyncio
         self._validate_diff_ref(diff_ref)
@@ -459,7 +504,7 @@ class CodeReviewWorkflow:
         if proc.returncode != 0:
             raise RuntimeError(f"git diff failed: {stderr.decode()}")
         return await self.run(code=stdout.decode(), file_path=f"diff:{diff_ref}",
-                              pr_description=pr_description)
+                              pr_description=pr_description, passes=passes)
 
     async def run_on_repo(self, repo_path: str, file_patterns: list[str] = None) -> list[AgentResult]:
         """Run review on an entire repository. High token consumption scenario.

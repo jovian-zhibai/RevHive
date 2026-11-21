@@ -6,6 +6,7 @@ import re
 
 from revhive.agents.base import SEVERITY_ORDER, AgentResult, BaseReviewAgent, ReviewFinding, Severity
 from revhive.utils.dedup import _extract_keywords, _jaccard_similarity, deduplicate_and_sort
+from revhive.utils.reconcile import consensus_summary_block, reconcile_findings
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +51,16 @@ When agents disagree on severity, err on the side of caution. Deduplicate relate
         resolved, merged_groups = await self._consolidate(resolved)
         conflicts_resolved += merged_groups
 
+        # Deterministic severity reconciliation. Prompt-level instructions
+        # to "be conservative" did not survive paired reruns — sampling
+        # variance exceeded the effect of the wording. Caps are applied in
+        # code instead: same input, same severities, every run.
+        resolved, cap_log = reconcile_findings(resolved)
+
         risk_score = self._calculate_risk_score(resolved)
         summary = self._generate_summary(resolved, results, risk_score, conflicts_resolved)
+        if cap_log:
+            summary += consensus_summary_block({"passes": 1, "adjustments": cap_log})
 
         return AgentResult(
             agent_name="CoordinatorAgent",

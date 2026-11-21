@@ -292,7 +292,12 @@ def test_coordinator_risk_score():
             "Open redirect URL validation",
         ]
         return [
-            ReviewFinding(agent="Test", severity=s, title=titles[i], description=descs[i % len(descs)])
+            ReviewFinding(agent="Test", severity=s, title=titles[i], description=descs[i % len(descs)],
+                          # Anchored to a code location: unanchored findings are
+                          # capped at MEDIUM by deterministic reconciliation
+                          # (see tests/test_reconcile.py), which would change
+                          # the scores this test is about.
+                          file_path=f"src/file{i}.py", line_number=i + 1)
             for i, s in enumerate(severities)
         ]
 
