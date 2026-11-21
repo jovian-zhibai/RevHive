@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (5/100)\n\n1 Medium\n\nReview completed with 1 findings across 1 agents (1 medium).",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Behavioral change in header parsing ignores parameters without values",
+      "line": 516,
+      "description": "The change in parsing logic introduces a vulnerability where a parameter value without an explicit '=' (e.g., 'no_equals') is ignored entirely, whereas previously it was treated as a boolean True. This behavioral change can lead to silent data corruption or misinterpretation of headers if downstream code relies on the presence of keys that were previously defaulted to True.",
+      "suggestion": "Ensure that any code relying on boolean-like parameters (parameters without '=') in Content-Type or other headers is updated to reflect that these keys are no longer present in the returned dictionary. If boolean parameter support is required, restore the fallback logic explicitly and test it."
+    }
+  ]
+}

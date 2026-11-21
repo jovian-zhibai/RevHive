@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (25/100)\n\n1 Critical\n\nReview completed with 1 findings across 1 agents (1 critical).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Header Injection via CRLF (SecurityAgent)",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "critical",
+      "title": "Header Injection via CRLF",
+      "line": 13,
+      "description": "This diff adds tests for headers containing trailing newlines, but the regex changes to enforce strict \\Z anchoring are a positive security improvement (preventing header injection via trailing CRLF). However, the code snippet provided only shows the regex change. If this file is part of a library that allows unvalidated user input to construct headers, the previous regex without \\Z allowed 'foo\\n' to match as valid, potentially enabling CRLF injection. The change to \\Z fixes a Critical header injection vulnerability. There are no hardcoded secrets, auth issues, or weak crypto in this diff. The change is a security fix.",
+      "suggestion": "The change is correct and fixes a critical header injection vulnerability. Ensure that all header construction paths in the library use these validated regexes. No further action needed for this specific diff, as it strengthens security."
+    }
+  ]
+}

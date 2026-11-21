@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (5/100)\n\n1 Medium\n\nReview completed with 1 findings across 1 agents (1 medium).",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Insecure Cryptographic Algorithms in HTTP Digest Authentication",
+      "line": 148,
+      "description": "The code change adds `usedforsecurity=False` to MD5 and SHA-1 hash functions used in HTTP Digest authentication. MD5 and SHA-1 are cryptographically broken and unsuitable for security purposes. Using `usedforsecurity=False` does not mitigate the underlying weakness; it merely suppresses deprecation warnings. HTTP Digest authentication using MD5 or SHA-1 algorithms is insecure and should be avoided in favor of stronger algorithms like SHA-256.",
+      "suggestion": "Enforce the use of SHA-256 or stronger algorithms for HTTP Digest authentication. Deprecate or disable MD5 and SHA-1 support. Update clients and servers to use `algorithm=SHA-256` or higher. If MD5/SHA-1 must be retained for legacy compatibility, document the risk and plan a migration path to stronger algorithms."
+    }
+  ]
+}

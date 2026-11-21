@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (1/100)\n\n1 Low\n\nReview completed with 1 findings across 1 agents (1 low).",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Type hint change to MutableMapping may hide side-effects on user objects",
+      "line": 323,
+      "description": "The type hint `_t.HeadersType` is defined as `MutableMapping[str, str | bytes] | None`. However, in the `BaseRequestKwargs` TypedDict in `_types.py`, it is also updated to `HeadersType`. In `models.py`, the `Request` class annotation changes from `headers: CaseInsensitiveDict[str] | Mapping[str, str | bytes] | None` to `headers: MutableMapping[str, str | bytes]`. This implies that the `headers` parameter is expected to be a mutable mapping. While the `requests` library typically handles header normalization internally, the change in the public type signature to `MutableMapping` (which includes standard `dict`) suggests that if the underlying implementation now relies on mutating the provided header object (e.g., `self.headers.update(...)` where `self.headers` is the same object passed in) without making a deep copy or CaseInsensitiveDict conversion, it could lead to unexpected side effects for the caller. More critically, if the internal logic assumes `headers` is a `CaseInsensitiveDict` for case-insensitive lookup but accepts a `MutableMapping` which might be a standard `dict`, case-sensitive lookups might occur, potentially bypassing header overrides or causing `KeyError`s if not handled. However, looking at the diff, `CaseInsensitiveDict` import is removed from the `TYPE_CHECKING` block in `sessions.py`? No, it's just the annotation changing. The security risk here is low to medium. If the library code performs `headers['X-Forwarded-For'] = ...` and the user passed a frozen `Mapping` (which `MutableMapping` allows but `Mapping` doesn't), it might throw `TypeError`. But `MutableMapping` implies mutability. The risk is that the type contract now promises a mutable interface, but if the implementation internally treats it as immutable, it's fine. If it treats it as mutable and modifies the user's dict, it's a minor data integrity issue, not a security vulnerability. The main security concern in `requests` regarding headers is usually SSRF via `Host` header or HTTP Request Smuggling. This diff doesn't change the URL or header handling logic, only the type hints. Therefore, there are no direct security vulnerabilities like injection or hardcoded secrets introduced by *this* specific diff. The change is refactoring/type-hinting.",
+      "suggestion": "Ensure that the internal implementation of `Request` and `Session` does not mutate the user-provided `headers` object without explicit documentation or by using a deep copy, to prevent side effects that might affect security-relevant headers (like `Authorization` or `Set-Cookie`) if the same object is reused in a multi-threaded context or reused for subsequent requests. If the library intends to accept standard `dict`s, ensure case-insensitive handling is explicitly applied by converting to `CaseInsensitiveDict` internally before use, rather than relying on the input type."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (5/100)\n\n1 Medium\n\nReview completed with 1 findings across 1 agents (1 medium).",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "N/A",
+      "line": null,
+      "description": "The provided diff contains only type annotation refactoring in the `requests` library. The changes consolidate header type aliases (`HeadersType`) and update function signatures to use the new alias. There are no changes to runtime logic, string concatenation, input validation, cryptographic operations, authentication/authorization checks, or secret handling that would introduce injection, data exposure, or authentication bypass risks.",
+      "suggestion": "No action required. These are safe type-only changes that improve type consistency without altering security behavior. ## Summary I reviewed the diff for `src/requests/_types.py`, `src/requests/models.py`, and `src/requests/sessions.py`. The changes are limited to updating type aliases and type hints for HTTP headers from `Mapping`/`CaseInsensitiveDict` unions to a unified `MutableMapping`-based `HeadersType`. There are no new code paths, no changes to how user input is processed, no hardcoded secrets, no weak cryptography, no unsafe deserialization, and no authentication/authorization logic modifications. Therefore, no security findings apply to this diff."
+    }
+  ]
+}

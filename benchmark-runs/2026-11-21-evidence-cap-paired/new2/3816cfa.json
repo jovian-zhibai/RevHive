@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (1/100)\n\n1 Low\n\nReview completed with 1 findings across 1 agents (1 low).",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Use of `Any` in type aliases may reduce type safety guarantees",
+      "line": 88,
+      "description": "Using `Any` types in public type aliases like `KVDataType` can lead to type safety bypasses. While not a direct exploit, it reduces the ability of static analysis tools to catch potential data flow issues or unexpected types that might be passed to serialization or URL encoding, which could indirectly mask injection risks if downstream code assumes strict typing.",
+      "suggestion": "Consider using more specific generics or re-exporting the specific `Mapping` types if the intent is to restrict to standard library types, or document that `SupportsItems` allows any object with an `items()` method, which may broaden the attack surface for downstream deserialization or encoding vulnerabilities."
+    }
+  ]
+}

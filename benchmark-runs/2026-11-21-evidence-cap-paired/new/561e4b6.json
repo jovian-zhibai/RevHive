@@ -1,0 +1,48 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (9/100)\n\n1 Medium · 4 Low\n\nReview completed with 5 findings across 1 agents (1 medium, 4 low).",
+  "total_findings": 5,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Unpinned `pyright` dependency in dev/typecheck group",
+      "line": 68,
+      "description": "The new `typecheck` extra installs `pyright` without version pinning. While `pyright` is a type-checker and not a runtime dependency, unpinned dev dependencies can introduce supply chain risks if the package is compromised or if a future version contains malicious code that runs during the `pip install` or execution phase in CI/CD.",
+      "suggestion": "Pin the version of `pyright` in the `typecheck` extra, e.g., `\"pyright>=1.0,<2.0\"` or a specific version like `\"pyright==1.1.380\"`."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "`Cookie` object mutation in `set_cookie`",
+      "line": 364,
+      "description": "The `set_cookie` method mutates the `cookie.value` attribute to strip quotes. This is a standard behavior for cookie normalization and does not appear to have a security flaw. The check `(value := cookie.value) is not None` prevents attribute errors on `None` values, which is a robustness improvement.",
+      "suggestion": "No change needed."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Potential Information Disclosure via `Response.content` property",
+      "line": 1044,
+      "description": "The `content` property implementation was slightly modified to handle `_content` returning a non-bytes object more explicitly in some type-checking paths, but more notably, the `text` property (around line 1072) now explicitly uses `str(self.content, encoding or \"utf-8\", errors=\"replace\")`. While not a vulnerability in isolation, the addition of explicit fallbacks and the structure of `Response` allows the entire response body to be read into memory. If an application displays `response.text` directly in an HTML context without escaping (XSS), it is vulnerable. However, this is a library behavior, not an application flaw. The library itself correctly separates `content` (bytes) and `text` (unicode). The risk is minimal as it requires the user to mishandle the output. No direct injection or secret leak in the library code itself.",
+      "suggestion": "No change needed in the library. Application developers must ensure `response.text` is properly encoded when outputting to browsers."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Potential `None` dereference in `get_auth_from_url`",
+      "line": 1074,
+      "description": "The `get_auth_from_url` function attempts to unquote `parsed.username` and `parsed.password`. If the URL is malformed or these attributes are `None` in some edge cases, `unquote(None)` would raise a `TypeError`. The code currently relies on a `try/except (AttributeError, TypeError)` block to return `(\"\", \"\")`. This is safe. The change is purely typographical/type-hint related.",
+      "suggestion": "No change needed. **Summary:** The code changes are primarily focused on adding type hints, strict type-checking configuration (`pyright`), and minor refactoring for clarity. No critical security vulnerabilities, injection risks, hardcoded secrets, or authentication bypasses were identified in the diff. The main actionable finding is the unpinned `pyright` dependency in the development group, which is a low-risk supply chain hygiene issue. The use of weak hashes in Digest Auth is protocol-specific and mitigated with `usedforsecurity=False`. The library correctly handles sensitive data like cookies and auth headers, with no new data exposure paths introduced."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "low",
+      "title": "Use of `hashlib.md5` and `hashlib.sha1` in Digest Auth",
+      "line": 176184,
+      "description": "The `HTTPDigestAuth` class uses `hashlib.md5` and `hashlib.sha1` with `usedforsecurity=False`. While this prevents them from being used for digital signatures where collision attacks matter (like cert verification), digest auth is inherently weak. However, this is mandated by the HTTP Digest Auth protocol (RFC 2617/7616). The `usedforsecurity=False` flag is a security best practice to indicate that these hashes are not being used for cryptographic integrity, mitigating FIPS 140-2/3 compliance issues. It does not introduce a new vulnerability compared to the previous code, but it confirms that MD5/SHA1 are being used for authentication hashes.",
+      "suggestion": "This is acceptable for HTTP Digest Auth compatibility. No action required."
+    }
+  ]
+}
