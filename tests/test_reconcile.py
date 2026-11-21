@@ -221,3 +221,78 @@ class TestUnmatchedOutliers:
 
     def test_empty_outliers_empty_block(self):
         assert outliers_summary_block([]) == ""
+
+
+# ---------------------------------------------------------------------------
+# fail-closed coverage gate
+# ---------------------------------------------------------------------------
+
+
+from revhive.agents.base import AgentResult
+from revhive.utils.reconcile import withhold_risk_score
+
+
+class TestWithholdRiskScore:
+    def test_sets_none_and_appends_reason(self):
+        r = AgentResult(agent_name="X", risk_score=42, summary="s")
+        withhold_risk_score(r, "partial coverage")
+        assert r.risk_score is None
+        assert "partial coverage" in r.summary
+        assert "🚫 Risk score withheld" in r.summary
+
+    def test_idempotent(self):
+        r = AgentResult(agent_name="X", risk_score=42, summary="s")
+        withhold_risk_score(r, "reason one")
+        withhold_risk_score(r, "reason two")
+        assert r.summary.count("🚫 Risk score withheld") == 1
+
+    def test_findings_untouched(self):
+        f = _finding()
+        r = AgentResult(agent_name="X", risk_score=42, findings=[f], summary="s")
+        withhold_risk_score(r, "partial")
+        assert len(r.findings) == 1
+
+
+class TestPassCoverageGate:
+    """CodeReviewWorkflow._merge_passes fail-closed behaviour."""
+
+    @staticmethod
+    def _pass(score, failed=False, findings=None):
+        return AgentResult(agent_name="Pass", risk_score=None if failed else score,
+                           failed=failed, findings=findings or [],
+                           summary="pass summary")
+
+    def _merge(self, finals):
+        from revhive.graph.workflow import CodeReviewWorkflow
+        return CodeReviewWorkflow._merge_passes(finals)
+
+    def test_majority_scorable_emits_median(self):
+        out = self._merge([self._pass(10), self._pass(30, failed=True), self._pass(50)])
+        # scorable = [10, 50]; even count takes the quieter middle by design
+        assert out.risk_score == 10
+
+    def test_minority_scorable_withholds(self):
+        out = self._merge([self._pass(10, failed=True), self._pass(30, failed=True), self._pass(50)])
+        assert out.risk_score is None
+        assert "pass coverage below half" in out.summary
+
+    def test_two_of_three_scorable_is_enough(self):
+        out = self._merge([self._pass(10, failed=True), self._pass(30), self._pass(50)])
+        # scorable = [30, 50]; even count takes the quieter middle by design
+        assert out.risk_score == 30
+
+    def test_withheld_pass_not_counted_as_zero(self):
+        # A score-withheld pass must not sort as the best pass (None as 0
+        # would make an incomplete review the median).
+        out = self._merge([self._pass(None), self._pass(30), self._pass(50), self._pass(90)])
+        # scorable = [30, 50, 90] -> median 50; None-as-0 would give [0,30,50,90] -> 30
+        assert out.risk_score == 50
+
+    def test_all_failed_returns_first(self):
+        out = self._merge([self._pass(10, failed=True), self._pass(20, failed=True)])
+        assert out.failed is True
+
+    def test_discloses_excluded_passes(self):
+        out = self._merge([self._pass(10, failed=True), self._pass(30), self._pass(50)])
+        assert "excluded from the median" in out.summary
+        assert "failed" in out.summary

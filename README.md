@@ -75,6 +75,10 @@ revhive review --file src/main.py      # or: revhive review --diff HEAD~1
 # For a stable verdict, run 2-3 passes — the report comes from the
 # median-risk pass and discloses every pass's score:
 revhive review --diff HEAD~1 --passes 3
+
+# Fail closed: if any agent or pass fails, findings are still listed but the
+# risk score is WITHHELD (not zero) — a partial review never emits a number
+# that reads as a verdict. CI gating on the score fails safe.
 ```
 
 **B. GitHub App — automatic review on every PR**

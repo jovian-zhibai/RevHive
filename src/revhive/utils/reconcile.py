@@ -290,6 +290,22 @@ def outliers_summary_block(outliers: list[tuple[int, ReviewFinding]]) -> str:
     return "\n".join(lines)
 
 
+def withhold_risk_score(result, reason: str) -> None:
+    """Fail closed: replace a numeric verdict with an explicit refusal.
+
+    Coverage was partial (an agent or a pass never ran), so any number the
+    pipeline could emit would read as a verdict the missing checks never
+    earned — and a CI gate on that number passes code that was not fully
+    reviewed. Findings stay listed (they are real observations); the score
+    is set to ``None`` and the reason is appended to the summary,
+    idempotently.
+    """
+    marker = "🚫 Risk score withheld"
+    result.risk_score = None
+    if marker not in result.summary:
+        result.summary += f"\n\n🚫 Risk score withheld — {reason}"
+
+
 def consensus_summary_block(stats: dict) -> str:
     """Human-readable note about the consensus process, appended to the report."""
     n = stats.get("passes", 1)

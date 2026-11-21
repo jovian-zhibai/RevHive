@@ -17,6 +17,8 @@ from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
 
+from revhive.utils.reconcile import withhold_risk_score
+
 from revhive.agents import (
     CoordinatorAgent,
     DocAgent,
@@ -402,12 +404,20 @@ class CodeReviewWorkflow:
                 f"Last error: {final.error}"
             )
         elif any(r.failed for r in results):
-            # Partial coverage: be explicit about what was NOT checked.
+            # Partial coverage: be explicit about what was NOT checked, and
+            # fail closed — a score computed over a subset of the agents
+            # would read as a verdict the missing agents never earned.
             failed_names = ", ".join(r.agent_name for r in results if r.failed)
             ok_count = sum(1 for r in results if not r.failed)
             final.summary += (
                 f"\n\n⚠️ **Partial review** — {ok_count}/{len(results)} agents completed. "
                 f"Not checked: {failed_names}."
+            )
+            withhold_risk_score(
+                final,
+                f"partial agent coverage ({ok_count}/{len(results)} agents completed; "
+                f"{failed_names} did not run). Findings above are real, but no "
+                f"number can stand in for the checks that never happened.",
             )
         return {"final_result": final}
 
@@ -450,27 +460,51 @@ class CodeReviewWorkflow:
     def _merge_passes(finals: list[AgentResult]) -> AgentResult:
         """Pick the median-risk pass as the report and disclose the rest.
 
-        Failed passes are excluded from the median: a failed pass reports
-        no findings and would fake a low risk score. If every pass failed
-        the first one is returned so the caller sees the error.
+        Failed (or score-withheld) passes are excluded from the median: a
+        failed pass reports no findings and would fake a low risk score, and
+        a pass whose score was withheld for partial agent coverage has no
+        score to contribute. If every pass failed the first one is returned
+        so the caller sees the error. If fewer than half the requested
+        passes are scorable the median is still shown but its score is
+        withheld — a median over a minority of passes is a single-pass
+        number wearing a consensus label.
         """
+        from revhive.utils.reconcile import outliers_summary_block, unmatched_outliers, withhold_risk_score
+
         ok = [f for f in finals if not f.failed]
         if not ok:
             return finals[0]
-        scored = sorted(ok, key=lambda f: (f.risk_score if f.risk_score is not None else 0))
+        scorable = [f for f in ok if f.risk_score is not None]
+        if not scorable:
+            return ok[0]
+        scored = sorted(scorable, key=lambda f: f.risk_score)
         median = scored[len(scored) // 2 if len(scored) % 2 == 1 else len(scored) // 2 - 1]
         # For an even count take the quieter middle pass: severity describes
         # what the diff proves, and a defect one pass could not substantiate
         # should not inherit the other pass's alarm.
-        median.risk_score = median.risk_score or 0
+        unscorable = [f for f in finals if f.failed or f.risk_score is None]
         lines = ["",
                  f"🛡️ Consensus of {len(finals)} independent passes — "
                  f"risk scores: " + ", ".join(
-                     f"pass {i + 1}: {f.risk_score if f.risk_score is not None else 'failed'}"
-                     for i, f in enumerate(finals))
-                 + f". Report shows the median pass (score {median.risk_score}/100)."]
-        if len(ok) < len(finals):
-            lines.append(f"  {len(finals) - len(ok)} pass(es) failed and were excluded from the median.")
+                     f"pass {i + 1}: {'failed' if f.failed else ('withheld' if f.risk_score is None else f.risk_score)}"
+                     for i, f in enumerate(finals))]
+        if len(scorable) < (len(finals) + 1) // 2:
+            withhold_risk_score(
+                median,
+                f"pass coverage below half ({len(scorable)}/{len(finals)} passes "
+                f"produced a score). The findings below come from the median "
+                f"scorable pass, but a median over a minority of passes is not "
+                f"a consensus verdict.",
+            )
+            lines.append("  Report shows the median scorable pass — risk score withheld.")
+        else:
+            median.risk_score = median.risk_score or 0
+            lines.append(f"  Report shows the median pass (score {median.risk_score}/100).")
+        if unscorable:
+            lines.append(
+                f"  {len(unscorable)} pass(es) failed or had their score withheld "
+                f"and were excluded from the median."
+            )
         median.summary += "\n".join(lines)
 
         # A finding reported only by a non-median pass must not vanish with
@@ -688,6 +722,8 @@ class ReviewReport:
             "failed": bool(getattr(self.result, "failed", False)),
             "error": getattr(self.result, "error", ""),
             "summary": self.result.summary,
+            "risk_score": getattr(self.result, "risk_score", None),
+            "risk_score_withheld": getattr(self.result, "risk_score", None) is None,
             "total_findings": len(self.result.findings),
             "findings": [
                 {

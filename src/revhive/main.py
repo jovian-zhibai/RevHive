@@ -195,25 +195,31 @@ def _render_demo_rich(result) -> None:
     from revhive.agents.base import Severity
 
     console = Console()
-    score = result.risk_score or 0
+    score = result.risk_score
     findings = result.findings
 
-    # Risk score line
-    if score <= 20:
-        emoji, level, bar_color = "✅", "LOW", "green"
-    elif score <= 50:
-        emoji, level, bar_color = "⚠️", "MEDIUM", "yellow"
-    elif score <= 80:
-        emoji, level, bar_color = "🔴", "HIGH", "orange3"
-    else:
-        emoji, level, bar_color = "🚨", "CRITICAL", "red"
-
-    filled = int(score / 100 * 40)
-    bar = "█" * filled + "░" * (40 - filled)
-
     risk_text = Text()
-    risk_text.append(f"{emoji} Risk Score: {score}/100 {level}\n", style=f"bold {bar_color}")
-    risk_text.append(f"{bar} {score}%\n", style=bar_color)
+    if score is None:
+        # Fail-closed: coverage was partial, no verdict exists. Showing 0
+        # here would render an unreviewed diff as clean.
+        risk_text.append("🚫 Risk Score: withheld (incomplete coverage)\n", style="bold red")
+        risk_text.append("░" * 40 + " no verdict — see summary\n", style="red")
+    else:
+        # Risk score line
+        if score <= 20:
+            emoji, level, bar_color = "✅", "LOW", "green"
+        elif score <= 50:
+            emoji, level, bar_color = "⚠️", "MEDIUM", "yellow"
+        elif score <= 80:
+            emoji, level, bar_color = "🔴", "HIGH", "orange3"
+        else:
+            emoji, level, bar_color = "🚨", "CRITICAL", "red"
+
+        filled = int(score / 100 * 40)
+        bar = "█" * filled + "░" * (40 - filled)
+
+        risk_text.append(f"{emoji} Risk Score: {score}/100 {level}\n", style=f"bold {bar_color}")
+        risk_text.append(f"{bar} {score}%\n", style=bar_color)
 
     # Severity counts
     counts: dict[str, int] = {}
