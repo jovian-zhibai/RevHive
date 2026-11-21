@@ -411,8 +411,21 @@ class CodeReviewWorkflow:
             )
         return {"final_result": final}
 
-    async def run(self, code: str, file_path: str = "") -> AgentResult:
-        """Run the full review workflow."""
+    async def run(self, code: str, file_path: str = "", pr_description: str | None = None) -> AgentResult:
+        """Run the full review workflow.
+
+        *pr_description* simulates the description a reviewer would see on a
+        real pull request. It is prepended to the reviewed text and clearly
+        delimited, so agents can weigh it as context — the way a human
+        reviewer reads the PR description alongside the diff.
+        """
+        if pr_description:
+            code = (
+                "--- PR description (developer-provided context) ---\n"
+                f"{pr_description.strip()}\n"
+                "--- end PR description ---\n\n"
+                + code
+            )
         initial_state = ReviewState(code=code, file_path=file_path)
         final_state = await self.graph.ainvoke(initial_state)
         return final_state.get("final_result", AgentResult(agent_name="System", summary="No results"))
@@ -432,7 +445,7 @@ class CodeReviewWorkflow:
         if not re.match(pattern, diff_ref):
             raise ValueError(f"Invalid diff reference: {diff_ref}")
 
-    async def run_from_diff(self, diff_ref: str) -> AgentResult:
+    async def run_from_diff(self, diff_ref: str, pr_description: str | None = None) -> AgentResult:
         """Run review on a git diff."""
         import asyncio as _asyncio
         self._validate_diff_ref(diff_ref)
@@ -445,7 +458,8 @@ class CodeReviewWorkflow:
         stdout, stderr = await proc.communicate()
         if proc.returncode != 0:
             raise RuntimeError(f"git diff failed: {stderr.decode()}")
-        return await self.run(code=stdout.decode(), file_path=f"diff:{diff_ref}")
+        return await self.run(code=stdout.decode(), file_path=f"diff:{diff_ref}",
+                              pr_description=pr_description)
 
     async def run_on_repo(self, repo_path: str, file_patterns: list[str] = None) -> list[AgentResult]:
         """Run review on an entire repository. High token consumption scenario.

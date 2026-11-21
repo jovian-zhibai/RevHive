@@ -34,8 +34,12 @@ MODEL_PRESETS: dict[str, dict[str, str]] = {
     # SenseNova (商汤日日新) — OpenAI-compatible gateway, free token-plan quota.
     # Note: the base URL is token.sensenova.cn, NOT api.sensenova.cn.
     "sensenova": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-v4-flash"},
+    "sensenova-ds": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-flash"},
     "sensenova-flash": {"base_url": "https://token.sensenova.cn/v1", "model": "sensenova-6.8-flash"},
     "sensenova-glm": {"base_url": "https://token.sensenova.cn/v1", "model": "glm-5.3"},
+    # Agnes AI — OpenAI-compatible, free Flash tier (10 RPM, no TPM cap observed).
+    "agnes": {"base_url": "https://apihub.agnes-ai.com/v1", "model": "agnes-3.0-flash"},
+    "agnes-pro": {"base_url": "https://apihub.agnes-ai.com/v1", "model": "agnes-2.5-pro"},
     # Ollama (or any OpenAI-compatible local server). This is the option that
     # keeps code inside the network: no request ever leaves the machine.
     "ollama": {"base_url": "http://127.0.0.1:11434/v1", "model": "qwen2.5-coder:7b"},

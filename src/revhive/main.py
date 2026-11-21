@@ -83,9 +83,12 @@ def _validate_file_path(file_path: str, allow_outside_cwd: bool = False) -> Path
               help="Allow loading plugin agents from the plugins directory.")
 @click.option("--agents", default=None,
               help="Comma-separated agents to run, e.g. security,logic. Default: all enabled agents.")
+@click.option("--pr-description", default=None,
+              help="Pull-request description text to review alongside the diff, "
+                   "the way a human reviewer sees the PR description.")
 def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout: int,
            max_file_size: int, allow_outside_cwd: bool, allow_plugins: bool, agents: str,
-           fallback: str):
+           fallback: str, pr_description: str):
     """Run code review on a file or git diff."""
     cfg = load_config()
     file_size_limit = max_file_size or _DEFAULT_MAX_FILE_SIZE
@@ -142,7 +145,7 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
             workflow = CodeReviewWorkflow(model=model, config=cfg, allow_plugins=allow_plugins,
                                           enabled_agents=enabled_agents,
                                           fallback_models=fallback_models)
-            result = _run_with_timeout(workflow.run_from_diff(diff_ref), timeout=timeout)
+            result = _run_with_timeout(workflow.run_from_diff(diff_ref, pr_description=pr_description), timeout=timeout)
         else:
             click.echo("Please specify --file or --diff to review.")
             return
