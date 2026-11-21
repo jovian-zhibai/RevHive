@@ -18,7 +18,7 @@ pip install revhive-ai && revhive demo   # 30-second taste — no API key, no se
 - **CLI / CI** — run it yourself, data never leaves your machine. Free forever under BSL.
 - **[GitHub App](https://github.com/apps/revhive-review)** — every PR gets auto-reviewed. Free for 50 reviews/month, no credit card.
 
-> **Status:** early-stage and solo-built. We run RevHive on every PR we open in our own repos. False positives are the #1 thing we care about — if a finding is noise, [tell us](https://github.com/jovian-zhibai/RevHive/issues) and we'll fix the agent, not the symptom. [How we measure that, including where our own benchmark is weak](https://revhive.souljian.cn/blog/evaluating-ai-code-review.html).
+> **Status:** early-stage and solo-built. We run RevHive on every PR we open in our own repos. False positives are the #1 thing we care about — if a finding is noise, [tell us](https://github.com/jovian-zhibai/RevHive/issues) and we'll fix the agent, not the symptom. [How we measure that, including where our own benchmark is weak](https://revhive.souljian.cn/blog/evaluating-ai-code-review.html), [the noise measurement on 20 ordinary PRs](https://revhive.souljian.cn/blog/ordinary-prs-noise.html), and [the matched control plus a correction: all ten original runs used a rate-limit fallback model](https://revhive.souljian.cn/blog/matched-control.html).
 
 ---
 

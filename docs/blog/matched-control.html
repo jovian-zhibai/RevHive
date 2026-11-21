@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The matched control on our 10/10 benchmark, and the model we were actually testing | RevHive</title>
+<meta name="description" content="A reader asked us to revert ten ordinary commits alongside the ten CVE fixes. Seven stayed silent, three produced confident security findings about real but non-security bugs. Re-reading the logs also showed all ten original runs used a rate-limit fallback model.">
+<meta name="keywords" content="AI code review, benchmark, control group, false positives, LLM evaluation, rate limit">
+<meta property="og:title" content="We ran the control a reader asked for. It also turned out we had benchmarked the wrong model.">
+<meta property="og:description" content="7 of 10 ordinary reverts stayed silent. Three produced confident security findings about ordinary bugs. And the original 10/10 was a fallback-model result.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/matched-control.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article pre{background:#111113;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;color:#9ca3af;margin:1.4rem 0}
+  article pre code{background:none;padding:0;color:inherit}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+  article table{width:100%;margin:1.4rem 0;font-size:.88rem;border-collapse:collapse}
+  article th{text-align:left;padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  article td{padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);color:#b4b4bb}
+  article a{color:#10B981;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11-21 &middot; Evaluation notes</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">We ran the control a reader asked for. It also turned out we had benchmarked the wrong model.</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">Ten ordinary reverts beside ten CVE reverts, 7 silent, 3 comments, and a correction to the original number.</p>
+
+  <article>
+
+    <p>Two people left long, technical comments on the posts we published this week. One of them asked for an experiment we should have run before publishing anything at all.</p>
+
+    <p>The original number was <a href="/benchmark.html">10/10</a>: take ten real CVE fix commits, revert each one, and ask our security agent to find what was reintroduced. It found all ten. We wrote a whole post about why that number is weak, and listed four reasons. A reader pointed out the fifth, with a design:</p>
+
+    <blockquote>For each of the ten cases, revert a commit of about the same size in the same files that fixed nothing security related, and run the reviewer with the same settings. If it reports a vulnerability on many of those, ten out of ten says the reviewer notices removed checks rather than the bug.</blockquote>
+
+    <p>He is right, and the reason cuts deeper than "we forgot a control". A reverted fix is a diff that deletes a guard. If the reviewer is pattern matching on <em>a guard was removed</em>, then any reverted commit that removes a guard gets flagged, and the ground truth (this was a CVE) is doing none of the work. Without the control, 10/10 cannot distinguish "finds vulnerabilities" from "notices deletions".</p>
+
+    <h2>The design</h2>
+
+    <p>Ten control commits, one per original case, chosen to be as close as possible to the fix it replaces: same repository, and where the file had enough history the same source file; an already merged commit with a non-security subject; comparable diff size; and the same treatment as the original ten &mdash; check out the commit, <code>git revert --no-commit</code>, restore <code>docs</code>/<code>tests</code>, commit, then run only the security agent on <code>HEAD~1</code> with no PR description and no commit message.</p>
+
+    <table>
+      <thead><tr><th>Case</th><th>Fix (lines / date)</th><th>Control</th><th>Lines</th><th>Date</th><th>What it actually changed</th></tr></thead>
+      <tbody>
+        <tr><td>c01</td><td>264 / 2026-11-03</td><td><code>c709a748</code></td><td>42</td><td>2023-12-20</td><td>Dropped support for GDAL 2.4</td></tr>
+        <tr><td>c02</td><td>72 / 2026-11-03</td><td><code>77d0c9d5</code></td><td>37</td><td>2026-06-18</td><td>Admin displays database defaults as empty</td></tr>
+        <tr><td>c03</td><td>87 / 2026-11-03</td><td><code>a0f2e29e</code></td><td>50</td><td>2026-11-12</td><td>Deprecated passing table names to <code>createcachetable</code></td></tr>
+        <tr><td>c04</td><td>84 / 2026-11-03</td><td><code>d3954c98</code></td><td>52</td><td>2026-11-16</td><td>Re-raise <code>RecursionError</code> as <code>ValueError</code></td></tr>
+        <tr><td>c05</td><td>176 / 2026-11-03</td><td><code>7732f942</code></td><td>117</td><td>2026-02-10</td><td>Made the multipart parser class pluggable</td></tr>
+        <tr><td>c06</td><td>110 / 2026-10-06</td><td><code>be6a149d</code></td><td>62</td><td>2026-09-07</td><td><code>ModelFormSet</code> respects custom <code>Form.add_prefix()</code></td></tr>
+        <tr><td>c07</td><td>154 / 2026-10-06</td><td><code>9ea5f4fa</code></td><td>163</td><td>2026-07-24</td><td>Typos and grammar in docs and docstrings</td></tr>
+        <tr><td>c08</td><td>55 / 2026-08-04</td><td><code>4b2b4bf0</code></td><td>35</td><td>2026-03-18</td><td>Admin boolean icons for related fields</td></tr>
+        <tr><td>c09</td><td>97 / 2020-11-24</td><td><code>58b16c88</code></td><td>81</td><td>2026-07-15</td><td>Extract duplicated <code>setFormDataHeaders</code></td></tr>
+        <tr><td>c10</td><td>29 / 2021-02-20</td><td><code>0cec2257</code></td><td>38</td><td>2019-10-16</td><td><code>_.isEqual</code> and circular references</td></tr>
+      </tbody>
+    </table>
+
+    <p>This is not a clean matched experiment, and we would rather say so here than have someone find it later. Three controls are years away from their fix in repository time (c01 is 2023 code against a 2026 fix, c10 is 2019 against 2021, c09 is six years later). Two controls are mostly docs or docstrings, which are trivially quiet. c03 and c04 are dated <em>after</em> their fix. c01's control is a sixth of the size of its fix. For files with almost no history there was no same-file, same-size, same-year commit that was not itself a security fix, so "nearest available" was the honest ceiling.</p>
+
+    <h2>What the control showed</h2>
+
+    <p>All ten controls eventually completed. The axios case timed out twice on the provider; after a cooling-off period a third attempt succeeded, so it is included. We are keeping that detail because "ten clean runs" would be a nicer sentence and a less true one.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8">
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-emerald-400">7/10</div>
+        <div class="text-gray-500 text-xs mt-1">controls got complete silence</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-white">3</div>
+        <div class="text-gray-500 text-xs mt-1">comments in total</div>
+      </div>
+      <div class="bg-[#111113] border border-white/5 rounded-xl p-4">
+        <div class="text-2xl font-extrabold text-orange-400">3/3</div>
+        <div class="text-gray-500 text-xs mt-1">graded as noise for a security review</div>
+      </div>
+    </div>
+
+    <p>So the cheap version of the criticism does not hold: the reviewer was not flagging every reverted commit. It stayed quiet on seven of ten ordinary reverts, against 10/10 on the CVE reverts. Something in the security patches is being detected.</p>
+
+    <p>But the three comments it did produce are more interesting than a clean zero would have been, because all three are the same failure mode. None is a random hallucination. Each describes the reverted change accurately, then promotes an ordinary robustness bug to a security vulnerability.</p>
+
+    <ol>
+      <li><strong><code>d3954c98</code></strong> (Django, re-raise <code>RecursionError</code> as <code>ValueError</code> for deeply nested GeoJSON) was reverted, so the raw exception propagates again. The reviewer wrote an entirely correct paragraph about that, then called it <em>"a remote denial-of-service vector when the input is attacker-controlled"</em>, severity <code>medium</code>. Django tracked it as ordinary ticket #37491, not a security release. The code observation is right. The security framing is invented.</li>
+      <li><strong><code>58b16c88</code></strong> (axios, extract duplicated <code>setFormDataHeaders</code>) was reverted, leaving <code>Object.entries(formHeaders)</code> without a null guard. The reviewer correctly identified the unguarded call and the resulting <code>TypeError</code>, and reported severity <code>medium</code> with <em>"potentially crashing the Node.js process"</em>. It even quoted the changelog back at us. A crash on a malformed custom <code>FormData</code> implementation is a real bug. It is not a vulnerability, and this commit was a refactor.</li>
+      <li><strong><code>0cec2257</code></strong> (lodash, <code>_.isEqual</code> on circular references) was reverted, removing the symmetric cyclic check. The reviewer reported severity <code>high</code> and added that this could enable <em>"authentication bypass or authorization flaws if <code>_.isEqual</code> is used to compare user-controlled data with trusted values"</em>. There is no such path. An equality bug is not an auth bypass, and nothing in the diff touches authentication. This is the exact shape we described in <a href="/blog/ordinary-prs-noise.html">the noise measurement</a>: a defensible observation written up in the most flattering possible way.</li>
+    </ol>
+
+    <p>All three findings also had <code>file: null</code> (one had a line number of <code>56375802</code>). We claimed in <a href="/blog/evaluating-ai-code-review.html">an earlier post</a> that anchoring every finding to a specific line was one of our design fixes. On these runs it plainly was not enforced, and we would rather say that than leave the claim standing.</p>
+
+    <p>One more thing worth noting: those three runs did not all use the same model. <code>ctl04</code> completed on the primary model; the other two fell back to flash-lite. The same failure appeared on both models, which suggests this is not a quirk of the weaker fallback. It is also a confound we cannot remove from a ten-case experiment, and it is part of why the table above is an anecdote rather than a rate.</p>
+
+    <h2>The thing we found while setting it up</h2>
+
+    <p>To keep the two runs comparable we opened the original ten log files, and found something that should have been in the first post:</p>
+
+<pre><code>SecurityAgent: rate-limited by provider for diff:HEAD~1, retrying:
+  Error code: 429 - inference exceeds tpm/rpm limit
+SecurityAgent rate-limited on sensenova &mdash;
+  switched to sensenova-6.8-flash-lite and retrying</code></pre>
+
+    <p>All ten. Two also logged <code>structured output failed ... falling back to regex</code> after a timeout. So the 10/10 was never a result for the model we configured (<code>deepseek-v4-flash</code>); it was a result for a rate-limit fallback, with a weaker parser on two cases. We had published the number, written four paragraphs about its limitations, and never checked which model produced it.</p>
+
+    <p>There is one narrow upside: eight of the ten control runs also hit the same 429 and used the same fallback, so most of the comparison is at least <em>internally</em> consistent. But two controls completed on the primary model, so it is not a clean matched-model experiment, and the published claim is now narrower than the one we made: we measured a fallback model on ten constructed patches, plus a control on ten ordinary ones. We have no clean result at all for the primary model.</p>
+
+    <p>The <a href="/benchmark.html">benchmark page</a> now lists this as a fifth limitation, and the first post carries a correction. We would rather publish that than let the 10/10 keep circulating unqualified.</p>
+
+    <h2>What the number is worth now</h2>
+
+    <p>The control stayed mostly quiet, so 10/10 is not merely "notices deletions": on this small set the reviewer did distinguish security-relevant removals from ordinary ones. But the three exceptions change what that is worth. Every one was a real, correctly described code regression promoted into a security finding &mdash; two tagged DoS, one with a fabricated authentication-bypass path. A reviewer that does this on 3 of 10 ordinary reverts is not one whose 10/10 you can hand to a team and call a benchmark; the same mechanism that finds the planted bug also invents the impact around a real change.</p>
+
+    <p>So the honest statement is narrower than the headline: ten cases, all constructed by reverting a known fix, ten controls, no blind human labelling, no fixed model, one run that needed three attempts, and three findings with no valid file anchor. A reviewer can pass this and still be useless on a real pull request queue &mdash; which is what we saw on ordinary merged commits.</p>
+
+    <p>Either way, the sequence matters more to us than the score. We published a number, two readers told us how to attack it, we ran the attack, and the attack surfaced a bigger flaw than the one we had already admitted. That feedback loop is worth more than a flattering benchmark.</p>
+
+    <h2>What comes next</h2>
+
+    <p>The next version does not get to use ten cases or a fallback we did not choose:</p>
+    <ol>
+      <li>100 commits across three or four projects, with security and non-security cases mixed and blinded.</li>
+      <li>A single pinned model, with the <strong>model actually used</strong> recorded per run instead of inferred from the config. If it rate-limits, the run is discarded, not silently retried on a different model.</li>
+      <li>Two independent human labels per comment, with disagreements written down.</li>
+      <li>The exact prompt and context for each finding retained, so a wrong comment can be classified as missing context or overconfidence. That distinction was the other reader's question, and we cannot answer it yet.</li>
+      <li>Reviewer time per actionable finding, rather than a raw comment count. Counting comments is cheap and flattering; it hides that a silent reviewer saves nobody anything.</li>
+    </ol>
+
+    <p>Until then, treat 10/10 as what it is: a fallback-model result on ten constructed patches, with a control that is itself imperfect. The harness, the raw JSON, and now the correction are public. If you can break it, we want the counterexample.</p>
+
+  </article>
+
+  <hr class="border-white/10 my-10">
+  <p class="text-sm text-gray-500">
+    The full series: <a href="/benchmark.html" class="text-emerald-400 hover:underline">the original 10/10</a> &middot;
+    <a href="/blog/evaluating-ai-code-review.html" class="text-emerald-400 hover:underline">why that number is weak</a> &middot;
+    <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">20 ordinary PRs, 4 comments</a> &middot; this control.
+    Source and harness: <a href="https://github.com/jovian-zhibai/RevHive" class="text-emerald-400 hover:underline">github.com/jovian-zhibai/RevHive</a>.
+  </p>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>

@@ -131,6 +131,8 @@
     <hr class="border-white/10 my-10">
     <p class="text-sm text-gray-500">
       The missing half is now published: <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">twenty ordinary merged commits, four comments, read by hand</a>.
+      And the matched control a reader asked for &mdash; ten ordinary reverts beside the ten CVE reverts &mdash; is
+      <a href="/blog/matched-control.html" class="text-emerald-400 hover:underline">published here</a>.
     </p>
     <p class="text-sm text-gray-500">
       <strong class="text-gray-400">Correction.</strong> Re-reading the raw run logs, all ten cases hit a <code>429</code> on the primary model and were retried on <code>sensenova-6.8-flash-lite</code>; two also timed out on structured output and were parsed with a regex. The 10/10 is a fallback-model result, not a result for the model we configured. We should have said that on day one. The benchmark page now lists it as a fifth limitation.
