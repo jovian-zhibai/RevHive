@@ -69,6 +69,12 @@ The demo runs the full 10-agent pipeline locally with mock responses — same re
 pip install revhive-ai
 export LLM_API_KEY=your-key            # DeepSeek, MiMo, Qwen, GLM, Kimi, OpenAI…
 revhive review --file src/main.py      # or: revhive review --diff HEAD~1
+
+# Single-pass severity is noisy (the same model scored the same commits
+# 45 vs 54 risk-weighted across two identical passes in our benchmarks).
+# For a stable verdict, run 2-3 passes — the report comes from the
+# median-risk pass and discloses every pass's score:
+revhive review --diff HEAD~1 --passes 3
 ```
 
 **B. GitHub App — automatic review on every PR**
@@ -219,16 +225,20 @@ Want something else? [Open an issue](https://github.com/jovian-zhibai/RevHive/is
 
 | Provider | Model | Cost / review | Setup |
 |---|---|---|---|
-| **DeepSeek** | `deepseek-chat` | ~$0.05 | `LLM_BASE_URL=https://api.deepseek.com/v1` |
+| **DeepSeek** ⭐ recommended | `deepseek-chat` | ~$0.05 | `LLM_BASE_URL=https://api.deepseek.com/v1` |
 | **MiMo (Xiaomi)** | `mimo-v2.5-pro` | ~$0.05–0.15 (free credits) | `LLM_BASE_URL=https://api.xiaomimimo.com/v1` |
 | OpenAI | `gpt-4o` | ~$0.10–0.30 | `LLM_BASE_URL=https://api.openai.com/v1` |
 | Qwen (Alibaba) | `qwen-plus` | ~$0.05–0.10 | `LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | GLM (Zhipu) | `glm-4` | ~$0.05–0.15 | `LLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4` |
 | Kimi (Moonshot) | `kimi` | ~$0.05–0.15 | `LLM_BASE_URL=https://api.moonshot.cn/v1` |
-| SenseNova (商汤日日新) | `deepseek-v4-flash` | free token-plan quota | `LLM_BASE_URL=https://token.sensenova.cn/v1` |
+| Ollama (local) | `qwen2.5-coder:7b` | free, fully offline | `LLM_BASE_URL=http://127.0.0.1:11434/v1` |
 | Anthropic | `claude-sonnet-4-20250514` | ~$0.15–0.40 | `pip install -e ".[anthropic]"`, set `ANTHROPIC_API_KEY` |
+| SenseNova (商汤日日新) *evaluation only* | `deepseek-v4-flash` | free token-plan quota | `LLM_BASE_URL=https://token.sensenova.cn/v1` |
+| Agnes AI *evaluation only* | `agnes-3.0-flash` | free Flash promo tier | `LLM_BASE_URL=https://apihub.agnes-ai.com/v1` |
 
-**Presets:** set `LLM_MODEL` to `deepseek` / `openai` / `qwen` … and RevHive auto-configures the base URL. CLI default: MiMo. GitHub App dashboard default: DeepSeek (cheapest).
+**Presets:** set `LLM_MODEL` to `deepseek` / `openai` / `qwen` / `ollama` … and RevHive auto-configures the base URL. CLI default: MiMo. GitHub App dashboard default: DeepSeek (cheapest).
+
+**About the two free options:** SenseNova's public-beta token plan throttles hard on tokens per minute (~8K TPM per account), so large diffs will hit rate limits mid-review; Agnes AI's Flash tier is a free promotion capped at 10 requests/minute. Both are fine for evaluating RevHive on small diffs — for anything production-shaped, a paid DeepSeek key is the honest recommendation, and free tiers can change or disappear at any time.
 
 **Env vars**
 
