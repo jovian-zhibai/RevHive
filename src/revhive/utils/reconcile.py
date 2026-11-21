@@ -95,16 +95,18 @@ def _findings_match(a: ReviewFinding, b: ReviewFinding) -> bool:
     same defect — same file, nearby lines, overlapping subject words."""
     if (a.file_path or None) != (b.file_path or None):
         return False
-    if a.line_number and b.line_number:
-        if abs(a.line_number - b.line_number) > _MATCH_LINE_PROXIMITY:
-            return False
-    elif a.line_number != b.line_number:
+    if (
+        a.line_number
+        and b.line_number
+        and abs(a.line_number - b.line_number) > _MATCH_LINE_PROXIMITY
+    ):
+        return False
+    elif a.line_number != b.line_number and _jaccard_similarity(
+        _extract_keywords(a.title or ""), _extract_keywords(b.title or "")
+    ) < 0.6:
         # One pass anchored the finding, the other did not; same file plus
         # strong title overlap below still counts.
-        if _jaccard_similarity(
-            _extract_keywords(a.title or ""), _extract_keywords(b.title or "")
-        ) < 0.6:
-            return False
+        return False
     sim = _jaccard_similarity(
         _extract_keywords(a.title or ""), _extract_keywords(b.title or "")
     )
@@ -161,12 +163,12 @@ def reconcile_passes(
                 continue
             group = [f]
             for k in range(i + 1, n):
-                for l, g in enumerate(passes[k]):
-                    if (k, l) in consumed:
+                for m, g in enumerate(passes[k]):
+                    if (k, m) in consumed:
                         continue
                     if _findings_match(f, g):
                         group.append(g)
-                        consumed.add((k, l))
+                        consumed.add((k, m))
             consumed.add((i, j))
             groups.append(group)
 

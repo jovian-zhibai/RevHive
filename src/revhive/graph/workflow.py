@@ -17,8 +17,6 @@ from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
 
-from revhive.utils.reconcile import withhold_risk_score
-
 from revhive.agents import (
     CoordinatorAgent,
     DocAgent,
@@ -33,6 +31,7 @@ from revhive.agents import (
 )
 from revhive.agents.base import SEVERITY_ORDER, AgentResult, BaseReviewAgent
 from revhive.config import RevHiveConfig, load_config
+from revhive.utils.reconcile import withhold_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -511,9 +510,6 @@ class CodeReviewWorkflow:
         # that pass's score: name every location the median pass never
         # corroborated. Disclosed for transparency, not added to the risk
         # score — one noisy pass does not get to move the verdict.
-        from revhive.utils.reconcile import outliers_summary_block, unmatched_outliers
-
-        median_pass_no = finals.index(median) + 1
         others = [(i + 1, f.findings) for i, f in enumerate(finals)
                   if f is not median and not f.failed]
         outliers = unmatched_outliers(median.findings, others)

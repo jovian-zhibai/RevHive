@@ -1,8 +1,6 @@
 """Tests for deterministic severity reconciliation."""
 
-import pytest
-
-from revhive.agents.base import ReviewFinding, Severity
+from revhive.agents.base import AgentResult, ReviewFinding, Severity
 from revhive.utils.reconcile import (
     _findings_match,
     _median_severity,
@@ -11,6 +9,7 @@ from revhive.utils.reconcile import (
     reconcile_findings,
     reconcile_passes,
     unmatched_outliers,
+    withhold_risk_score,
 )
 
 
@@ -226,10 +225,6 @@ class TestUnmatchedOutliers:
 # ---------------------------------------------------------------------------
 # fail-closed coverage gate
 # ---------------------------------------------------------------------------
-
-
-from revhive.agents.base import AgentResult
-from revhive.utils.reconcile import withhold_risk_score
 
 
 class TestWithholdRiskScore:
