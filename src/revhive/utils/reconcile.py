@@ -231,6 +231,65 @@ def reconcile_passes(
     return out, stats
 
 
+def unmatched_outliers(
+    median_findings: list[ReviewFinding],
+    other_passes: list[tuple[int, list[ReviewFinding]]],
+) -> list[tuple[int, ReviewFinding]]:
+    """Findings from non-median passes that the median pass never corroborated.
+
+    Corroboration is location-based, not wording-based: findings are anchored
+    to real file paths by the diff anchoring step, so the same defect shows
+    up in the same file within a few lines regardless of how each pass
+    worded it. Same file and lines within 5 (or both unanchored with
+    overlapping subjects) counts as the same spot.
+
+    Returns (pass_number_1based, finding) pairs, in pass order. The caller
+    should NAME these in the report — an outlier that only the loudest pass
+    saw must not be silently dropped with that pass's score.
+    """
+    outliers: list[tuple[int, ReviewFinding]] = []
+    for pass_no, findings in other_passes:
+        for f in findings:
+            corroborated = False
+            for m in median_findings:
+                if f.file_path and m.file_path:
+                    same_file = f.file_path == m.file_path
+                    both_lines = f.line_number is not None and m.line_number is not None
+                    if same_file and (not both_lines or abs(f.line_number - m.line_number) <= 5):
+                        corroborated = True
+                        break
+                # Unanchored on either side: fall back to subject overlap.
+                # Two subjects with no keywords at all prove nothing either
+                # way — treat as uncorroborated (over-disclosure is the safe
+                # direction for a transparency block).
+                kw_f = _extract_keywords(f.title or "")
+                kw_m = _extract_keywords(m.title or "")
+                if kw_f and kw_m and _jaccard_similarity(kw_f, kw_m) >= 0.6:
+                    corroborated = True
+                    break
+            if not corroborated:
+                outliers.append((pass_no, f))
+    return outliers
+
+
+def outliers_summary_block(outliers: list[tuple[int, ReviewFinding]]) -> str:
+    """Report block naming findings that only non-median passes reported."""
+    if not outliers:
+        return ""
+    lines = [
+        "",
+        f"⚠️ {len(outliers)} finding(s) appeared only in a non-median pass and were "
+        "not corroborated at the same location by the median pass — named here for "
+        "transparency, not added to the risk score:",
+    ]
+    for pass_no, f in outliers[:8]:
+        loc = ""
+        if f.file_path:
+            loc = f"{f.file_path}" + (f":{f.line_number}" if f.line_number else "")
+        lines.append(f"  - pass {pass_no}: [{f.severity.value.upper()}] {loc or 'no location'} — {f.title[:70]}")
+    return "\n".join(lines)
+
+
 def consensus_summary_block(stats: dict) -> str:
     """Human-readable note about the consensus process, appended to the report."""
     n = stats.get("passes", 1)

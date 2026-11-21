@@ -7,8 +7,10 @@ from revhive.utils.reconcile import (
     _findings_match,
     _median_severity,
     consensus_summary_block,
+    outliers_summary_block,
     reconcile_findings,
     reconcile_passes,
+    unmatched_outliers,
 )
 
 
@@ -173,3 +175,49 @@ class TestConsensusSummaryBlock:
         assert "3 independent passes" in block
         assert "2 disagreed" in block
         assert "capped one level down" in block
+
+
+# ---------------------------------------------------------------------------
+# outlier disclosure (median pass vs the rest)
+# ---------------------------------------------------------------------------
+
+
+class TestUnmatchedOutliers:
+    def test_same_location_counts_as_corroborated(self):
+        median = [_finding("medium", title="URL normalization flaw", line_number=590,
+                           file_path="src/adapters.py")]
+        others = [(1, [_finding("critical", title="Completely different wording here",
+                                line_number=592, file_path="src/adapters.py")])]
+        assert unmatched_outliers(median, others) == []
+
+    def test_unmatched_location_is_named(self):
+        median = [_finding("medium", title="Doc typo", line_number=10,
+                           file_path="src/a.py")]
+        outlier = _finding("critical", title="Header injection risk", line_number=500,
+                           file_path="src/b.py")
+        out = unmatched_outliers(median, [(3, [outlier])])
+        assert out == [(3, outlier)]
+
+    def test_far_line_same_file_is_outlier(self):
+        median = [_finding("medium", title="x", line_number=10, file_path="src/a.py")]
+        far = _finding("high", title="y", line_number=400, file_path="src/a.py")
+        out = unmatched_outliers(median, [(2, [far])])
+        assert out == [(2, far)]
+
+    def test_unanchored_falls_back_to_title_overlap(self):
+        median = [_finding("medium", title="SQL injection in get_user", file_path=None)]
+        same_topic = _finding("high", title="SQL injection in get_user query", file_path=None)
+        other_topic = _finding("critical", title="Header injection via CRLF", file_path=None)
+        out = unmatched_outliers(median, [(2, [same_topic, other_topic])])
+        assert out == [(2, other_topic)]
+
+    def test_summary_block_lists_pass_and_location(self):
+        outlier = _finding("critical", title="Header injection risk", line_number=500,
+                           file_path="src/b.py")
+        block = outliers_summary_block([(3, outlier)])
+        assert "pass 3" in block
+        assert "src/b.py:500" in block
+        assert "not added to the risk score" in block
+
+    def test_empty_outliers_empty_block(self):
+        assert outliers_summary_block([]) == ""

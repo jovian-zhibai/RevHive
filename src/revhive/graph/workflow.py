@@ -472,6 +472,19 @@ class CodeReviewWorkflow:
         if len(ok) < len(finals):
             lines.append(f"  {len(finals) - len(ok)} pass(es) failed and were excluded from the median.")
         median.summary += "\n".join(lines)
+
+        # A finding reported only by a non-median pass must not vanish with
+        # that pass's score: name every location the median pass never
+        # corroborated. Disclosed for transparency, not added to the risk
+        # score — one noisy pass does not get to move the verdict.
+        from revhive.utils.reconcile import outliers_summary_block, unmatched_outliers
+
+        median_pass_no = finals.index(median) + 1
+        others = [(i + 1, f.findings) for i, f in enumerate(finals)
+                  if f is not median and not f.failed]
+        outliers = unmatched_outliers(median.findings, others)
+        if outliers:
+            median.summary += outliers_summary_block(outliers)
         return median
 
     @staticmethod
