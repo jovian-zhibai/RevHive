@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Same reviewer, three models: is the noise sampling or model choice? | RevHive</title>
+<meta name="description" content="We ran the 10-CVE suite on three models with fallback disabled. Every model missed a different case, cross-model risk spread (median 30) exceeded cross-pass spread on one model (median 21), and the fail-closed gate withheld 6 of 10 verdicts on the free-tier model.">
+<meta name="keywords" content="AI code review, model variance, benchmark, BYOK, DeepSeek, fail-closed, multi-pass">
+<meta property="og:title" content="Same reviewer, three models: every model missed a different vulnerability.">
+<meta property="og:description" content="Cross-model risk spread (median 30) is larger than cross-pass spread on one model (median 21). Swapping models is not a substitute for multi-pass — and multi-pass does not fix a wrong model choice.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/model-choice-vs-sampling.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article pre{background:#111113;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;color:#9ca3af;margin:1.4rem 0}
+  article pre code{background:none;padding:0;color:inherit}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+  article table{width:100%;margin:1.4rem 0;font-size:.88rem;border-collapse:collapse}
+  article th{text-align:left;padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  article td{padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);color:#b4b4bb}
+  article a{color:#10B981;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11-21 &middot; Evaluation notes</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">Same reviewer, three models: is the noise sampling or model choice?</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">The multi-pass post left an open question: is single-run variance model-driven, provider-driven, or prompt-driven? We ran the 10-CVE suite on three models with fallback substitution disabled. The answer complicates both the "pick the best model" and "just run more passes" advice.</p>
+
+  <article>
+
+    <p>The <a href="/blog/ordinary-prs-noise.html">multi-pass experiment</a> ended with a confession: nineteen commits on one model cannot tell you whether the ±21-point cross-pass spread we measured is a property of that model, of the provider, or of the task. The next cell we could afford was the 10-CVE suite — the same ten revert-diffs from the original benchmark — run on three models with everything else held constant.</p>
+
+    <h2>The design, including the flag we had to build</h2>
+
+    <p>Three models, same pipeline (two agents, same prompts, same reconciliation code), one pass per cell:</p>
+
+    <ul>
+      <li><code>agnes-3.0-flash</code> — the model behind every number we have published so far</li>
+      <li><code>agnes-2.5-pro</code> — same provider, a reasoning model</li>
+      <li><code>sensenova-ds</code> (DeepSeek V4.1 via a free gateway) — a different provider entirely</li>
+    </ul>
+
+    <p>One design problem surfaced immediately. Our CLI silently rotates to a smaller model when the primary hits a rate limit — the right behavior for production uptime, and exactly wrong for a benchmark, where a substituted model's answer pollutes the cell it lands in. (It polluted our <em>first</em> benchmark that way, before we knew to look.) So we built <code>--fallback none</code>: the named model's answer, or a recorded failure. Never a substitution.</p>
+
+    <h2>Results: every model missed a different case</h2>
+
+    <p>Hit = the report names the core vulnerability the revert reintroduced (judged on finding title, description, and anchored file path; the three disagreement cases were verified manually). Raw JSON for all thirty runs is in the repository under <code>benchmark-runs/2026-11-21-3model/</code>.</p>
+
+    <table>
+      <tr><th>case</th><th>agnes-3.0-flash</th><th>agnes-2.5-pro</th><th>sensenova-ds</th></tr>
+      <tr><td>c01 SSRF / local file read</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c02 password hash disclosure</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c03 empty vs missing headers</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c04 unescaped log messages</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c05 unbounded multipart memory</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c06 forged formset actions</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c07 translation parser memory</td><td>hit</td><td>hit</td><td><strong>miss</strong></td></tr>
+      <tr><td>c08 unvalidated URL rendering</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c09 axios SSRF</td><td>hit</td><td><strong>miss</strong></td><td>hit</td></tr>
+      <tr><td>c10 template command injection</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td><strong>total</strong></td><td><strong>10/10</strong></td><td><strong>9/10</strong></td><td><strong>9/10</strong></td></tr>
+    </table>
+
+    <p>The headline is not that one model won. It is that <strong>the two misses do not overlap</strong>. <code>agnes-2.5-pro</code> returned risk 0 and zero findings on c09 — silent on a reintroduced SSRF. <code>sensenova-ds</code> missed c07 entirely. No single model is strictly better; an ensemble voting 2-of-3 would have caught all ten. We are not claiming that as a feature — it is a hypothesis the next cell has to earn.</p>
+
+    <h2>The case that flipped</h2>
+
+    <p>The original benchmark reported agnes-3.0-flash at 8/10, missing c02 (password hash disclosure). Today, the same model on the same revert returns a CRITICAL anchored at <code>django/contrib/admin/utils.py:435</code> describing exactly that vulnerability.</p>
+
+    <p>Attribution honesty: we cannot credit a single change. Since that first run the security prompt gained the evidence-cap rubric, findings gained real file anchoring, and severity reconciliation moved from prose to code. Anchoring is post-processing, so it did not make the model <em>see</em> the bug — but prompt changes and plain sampling noise are both live candidates, and one run cannot separate them. What we can say: the published 8/10 is no longer the current number, and the published number will be re-baselined multi-pass before anyone treats either as a rate.</p>
+
+    <h2>The fail-closed gate met real data</h2>
+
+    <p>On <code>sensenova-ds</code>, the free tier's TPM limit kept killing the LogicAgent — in 6 of 10 runs. Under the old pipeline, those runs would have shipped a verdict computed from half the checks. Instead, every one of them carries a withheld risk score: findings listed, verdict refused, reason in the summary. Six withheld reports are the clearest demonstration we have that the gate does its job on real provider failures — a partial review cannot masquerade as a clean one.</p>
+
+    <p>Practical read: the free tier is workable for <em>evaluation</em> (the SecurityAgent completed all ten cases and found 9/10 vulnerabilities), but production-shaped reviews need a provider that finishes what it starts. That is why our BYOK table still puts paid DeepSeek in the recommended slot.</p>
+
+    <h2>Which noise is bigger?</h2>
+
+    <p>Risk-score spread, median (raw JSON behind every number):</p>
+
+    <ul>
+      <li>Across three models, same case, same pass: <strong>median 30</strong> (n=3 cases where all three models scored; the withheld runs are excluded, not zeroed)</li>
+      <li>Across passes, same model, same case: <strong>median 21</strong> (n=19 commits, the multi-pass cell)</li>
+      <li>Across two models of the same provider, same case: <strong>median 14</strong> (n=9)</li>
+    </ul>
+
+    <p>Reading it: crossing providers moves the verdict about as much as re-rolling the same model. Swapping models inside one provider moves it less than either. Neither number is a substitute for the other — <strong>model choice does not buy you stability, and multi-pass does not buy you a model that sees c09</strong>. If your CI gates on a single-run score from a single model, you are stacking both noise sources and calling the result a verdict.</p>
+
+    <h2>One correction in our own tooling</h2>
+
+    <p>Our first automated pass of the hit matrix scored one case wrong: the matching script compared keywords against finding titles and descriptions but not anchored file paths, so a correct critical on <code>django/utils/translation/trans_real.py</code> read as a miss. We caught it while verifying the disagreement cases, fixed the script, and re-ran the matrix before publishing anything. We mention it because it is the same failure mode we criticize in vendor benchmarks — an eval script that quietly mislabels results — and it happened to us on a Saturday afternoon with the publish button in reach.</p>
+
+    <h2>Honest limits</h2>
+
+    <ul>
+      <li>One pass per cell. The multi-pass post showed single-run numbers carry ±21 points of sampling noise; these hit rates are one sample, not a rate. The 10/10 will get a multi-pass re-baseline before we print it on the benchmark page.</li>
+      <li>Hit judgment is ours, on named findings, verified manually only for the disagreement cases.</li>
+      <li>CVE-diff shapes: these are reverts of real security fixes — well-formed, security-flavored diffs. Ordinary merged PRs behave differently, as the noise post showed.</li>
+      <li><code>agnes-2.5-pro</code> is a reasoning model: slower per call, and its behavior under the pipeline differs in ways a single cell does not fully expose.</li>
+    </ul>
+
+    <p>Open items from the comments, in order: the 100-commit double-labelled run, and a multi-pass re-baseline of this cell. The harness, all thirty raw runs, and the corrected analysis script are public. If you can break the matrix, we want the counterexample.</p>
+
+  </article>
+
+  <hr class="border-white/10 my-10">
+  <p class="text-sm text-gray-500">
+    The full series: <a href="/benchmark.html" class="text-emerald-400 hover:underline">the original 10/10</a> &middot;
+    <a href="/blog/evaluating-ai-code-review.html" class="text-emerald-400 hover:underline">why that number is weak</a> &middot;
+    <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">20 ordinary PRs, 4 comments</a> &middot;
+    <a href="/blog/matched-control.html" class="text-emerald-400 hover:underline">the matched control</a> &middot;
+    <a href="/blog/answer-key-leakage.html" class="text-emerald-400 hover:underline">the answer-key audit</a> &middot; this cell.
+    Source and harness: <a href="https://github.com/jovian-zhibai/RevHive" class="text-emerald-400 hover:underline">github.com/jovian-zhibai/RevHive</a>.
+  </p>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>
