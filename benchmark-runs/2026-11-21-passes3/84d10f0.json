@@ -1,0 +1,26 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (20/100)\n\n1 High · 1 Medium\n\nReview completed with 2 findings across 9 agents (1 high, 1 medium).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [HIGH] Changing `HeadersType` to `Mapping` is a breaking API change (RepoAgent)\n🛡️ 1 severity cap(s) applied by deterministic post-processing:\n  - capped HIGH->MEDIUM (hedged title): `Request.headers` type changed to `Mapping` may break mutability expec\n🛡️ Consensus of 3 independent passes — risk scores: pass 1: 10, pass 2: 20, pass 3: 45. Report shows the median pass (score 20/100).",
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "RepoAgent",
+      "severity": "high",
+      "title": "Changing `HeadersType` to `Mapping` is a breaking API change",
+      "file_path": "src/requests/_types.py",
+      "line": 112,
+      "description": "The diff changes the `HeadersType` alias from `MutableMapping` to `Mapping`. This is a **breaking change** for the public API. `Mapping` is read-only, meaning users can no longer pass mutable dictionaries (like `dict`) or other `MutableMapping` implementations in contexts where `HeadersType` is expected as a *mutable* input (e.g., if a user passes a `HeadersType` to a function and expects it to be mutated, or if internal code relied on it being mutable). While `dict` is a `MutableMapping` and thus a valid `Mapping`, the type alias now explicitly signals a read-only contract. If any internal code was doing `headers[key] = value` on an object typed as `HeadersType`, it would now be a type error, or worse, if a read-only `Mapping` was passed where mutation was expected, it would cause a `TypeError` at runtime. The `models.py` change from `MutableMapping` to `Mapping` for the `headers` attribute aligns with this, but it fundamentally alters the mutability contract of the Request object's headers.",
+      "suggestion": "Audit all usages of `HeadersType` and the `Request.headers` attribute. Ensure that no internal code attempts to mutate the headers mapping directly. If the headers are intended to be immutable after construction, this change is correct, but you must verify that no code path (including user code that relied on mutation) will break. Consider adding a note in the changelog about this breaking change. If mutation is still needed internally, the type should remain `MutableMapping`, or the internal representation should be a `dict` while the public API presents it as a `Mapping`."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "medium",
+      "title": "`Request.headers` type changed to `Mapping` may break mutability expectations",
+      "file_path": "src/requests/models.py",
+      "line": 313,
+      "description": "In `models.py`, the `Request.headers` attribute is changed from `MutableMapping` to `Mapping`. This mirrors the change in `_types.py`. The concern is the same as above: does the `Request` class or any mixin (like `RequestHooksMixin`) or utility function rely on mutating `request.headers`? If `Request` is designed to be mutable (e.g., you can do `request.headers['Accept'] = 'application/json'`), this type change is incorrect and will cause type checkers to flag valid code, or runtime errors if a read-only mapping is passed in.",
+      "suggestion": "Verify if `Request` objects are expected to be mutable after instantiation. If yes, revert to `MutableMapping`. If `Request` is intended to be immutable, ensure that all code paths respect this and that the type change is consistent across the codebase. Also, check if `Request` inherits from or mixes in classes that define mutability expectations."
+    }
+  ]
+}

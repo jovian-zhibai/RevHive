@@ -1,0 +1,62 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "🔴 Risk Score: HIGH (56/100)\n\n1 Critical · 1 High · 3 Medium · 1 Low\n\nReview completed with 6 findings across 9 agents (1 critical, 1 high, 3 medium, 1 low).\n\n✅ AI analysis resolved 1 conflicting assessment(s).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] `usedforsecurity` parameter breaks standard Python environments (LogicAgent + DocAgent)\n  - [HIGH] Inconsistent cnonce hash algorithm selection (RepoAgent)\n🛡️ Consensus of 3 independent passes — risk scores: pass 1: 56, pass 2: 31, pass 3: 100. Report shows the median pass (score 56/100).",
+  "total_findings": 6,
+  "findings": [
+    {
+      "agent": "LogicAgent + DocAgent",
+      "severity": "critical",
+      "title": "`usedforsecurity` parameter breaks standard Python environments",
+      "file_path": "src/requests/auth.py",
+      "line": 147,
+      "description": "The `usedforsecurity` parameter is a non-standard keyword argument to Python's `hashlib` hash constructors. It is not supported in the Python Standard Library on Linux or Windows, where `hashlib` is backed by the OpenSSL library. It is only supported when running in a FIPS-140 compliant environment or when using the `cryptography` backend. Since this is a library intended to be used broadly across different environments, adding this argument will cause a `TypeError` in most production Python environments, breaking the `HTTPDigestAuth` mechanism entirely. As with the other hashes, `usedforsecurity=False` is an unsupported parameter for `hashlib.sha1` in standard Python environments, which will result in a `TypeError` when this line executes.\n\n_DocAgent:_ Missing docstring explaining the purpose of `usedforsecurity=False` and why it is safe/necessary in this context.",
+      "suggestion": "Remove the `usedforsecurity=False` argument from all `hashlib` calls to ensure maximum compatibility across standard Python environments. If FIPS compliance is a strict requirement, the library should detect the environment and conditionally add this argument only when appropriate (e.g., if `hashlib` is available from a FIPS-compliant module), rather than hardcoding it. The standard `hashlib.md5()`, `sha1()`, etc. do not accept `usedforsecurity` by default in non-FIPS setups."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "high",
+      "title": "Inconsistent cnonce hash algorithm selection",
+      "file_path": "src/requests/auth.py",
+      "line": 202,
+      "description": "Hardcoding `sha1` for cnonce generation is a design choice that may not align with the selected `_algorithm`. If the algorithm is `SHA-256`, using `SHA-1` for cnonce is inconsistent and potentially a security weakness (cnonce should be as strong as the hash algorithm). This is a leaky abstraction where the internal detail of cnonce generation doesn't respect the public algorithm selection.",
+      "suggestion": "Use the same hash algorithm selected for the digest to generate the cnonce. For example, if `_algorithm` is `SHA-256`, use `hashlib.sha256` for cnonce. This ensures consistency and improves security."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "medium",
+      "title": "Duplicate code and hardcoded if/else for hash algorithms",
+      "file_path": "src/requests/auth.py",
+      "line": 145,
+      "description": "The diff introduces `usedforsecurity=False` for MD5, which is good for security, but the surrounding logic still uses `if _algorithm == \"MD5\"` chains and defines separate functions (`md5_utf8`, `sha_utf8`, etc.) that duplicate the encoding logic. This is a violation of the Open/Closed Principle (hardcoded if/else chains that should be strategy/polymorphism) and Dry (duplicate code blocks within the same file).",
+      "suggestion": "Refactor the algorithm selection to use a Strategy pattern or a dictionary mapping algorithm names to hash functions. Extract the common UTF-8 encoding logic into a helper function to reduce duplication."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "medium",
+      "title": "Poor testability due to nested function definitions",
+      "file_path": "src/requests/auth.py",
+      "line": 161,
+      "description": "The inner function definitions (`md5_utf8`, `sha_utf8`, etc.) capture the `_algorithm` context but are redefined every time the method is called. This is inefficient and hard to test. The functions are not exposed, making it difficult to mock specific hash behavior in unit tests without testing the entire digest auth flow.",
+      "suggestion": "Move the hash function definitions outside the class method into module-level functions or a separate utility module. This will improve testability and allow for better mocking of hash functions if needed."
+    },
+    {
+      "agent": "DocAgent",
+      "severity": "medium",
+      "title": "Missing documentation for `usedforsecurity=False` usage in cnonce generation",
+      "file_path": "src/requests/auth.py",
+      "line": 204,
+      "description": "No explanation of why the `usedforsecurity=False` flag is added here.",
+      "suggestion": "Add a brief comment indicating that this change ensures compatibility with restricted environments (e.g., FIPS 140-2/3) where default hashing functions are blocked for non-security uses."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "low",
+      "title": "Use of weak cryptographic algorithms (SHA-1, MD5)",
+      "file_path": "src/requests/auth.py",
+      "line": 153,
+      "description": "The use of `sha1` for the \"SHA\" algorithm is technically correct for legacy digest auth, but `SHA-1` is considered broken for cryptographic purposes. Even with `usedforsecurity=False`, relying on a weak algorithm is a technical debt signal. Additionally, the naming `SHA` vs `SHA-256` is inconsistent (one is a family name, the others are specific standards).",
+      "suggestion": "Deprecate support for `SHA` and `MD5` algorithms in favor of `SHA-256` or higher. Update the public API to clearly document which algorithms are supported and recommended. Consider removing weaker algorithms if backward compatibility is not required."
+    }
+  ]
+}

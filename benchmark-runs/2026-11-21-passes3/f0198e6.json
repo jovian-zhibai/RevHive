@@ -1,0 +1,62 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (42/100)\n\n2 High · 2 Medium · 2 Low\n\nReview completed with 6 findings across 9 agents (2 high, 2 medium, 2 low).\n\n✅ AI analysis resolved 4 conflicting assessment(s).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [HIGH] Behavior regression in `_parse_content_type_header` dropping optional parameters (FixAgent + RefactorAgent + FixAgent + RefactorAgent + RepoAgent)\n  - [HIGH] Breaking Change Not Documented in Changelog (DocAgent)\n🛡️ Consensus of 3 independent passes — risk scores: pass 1: 34, pass 2: 43, pass 3: 42. Report shows the median pass (score 42/100).",
+  "total_findings": 6,
+  "findings": [
+    {
+      "agent": "FixAgent + RefactorAgent + FixAgent + RefactorAgent + RepoAgent",
+      "severity": "high",
+      "title": "Behavior regression in `_parse_content_type_header` dropping optional parameters",
+      "file_path": "src/requests/utils.py",
+      "line": 511,
+      "description": "In `src/requests/utils.py` (around line 515), the parameter parsing loop now ignores tokens that do not contain an `=` sign. Previously, such tokens were included with a boolean `True` value. This is a behavioral regression because the original implementation supported RFC 2234/5947 optional parameters where presence-only parameters are legal and meaningful. By silently dropping these, the library changes the parsing semantics of `Content-Type` and `Set-Cookie` headers, which may break downstream users who depend on the old behavior or that expect optional parameters to be recorded.\n\n_RefactorAgent:_ The refactored code has introduced a significant logical error. The new implementation drops parameters that do not contain an equals sign ('='). For instance, the input 'text/plain; charset; no_equals' will now result in the 'no_equals' parameter being omitted from the resulting dictionary. The previous behavior preserved these key-only parameters as 'no_equals: True'. This represents a regression in functionality and a breaking change for consumers relying on key-only parameter handling.\n\n_RepoAgent:_ The function silently ignores parameters in the header that do not contain an equals sign (e.g., 'no_equals'). While this aligns with standard RFC parsing (where such parameters are invalid or boolean-like), the previous behavior explicitly returned `True` for them. This creates a behavioral discontinuity that could break clients relying on the previous heuristic, especially if they were treating 'True' as a valid presence flag for optional parameters. The change from a dict containing `True` to a dict missing the key entirely is a breaking change for the API contract of this utility function.",
+      "suggestion": "Restore the handling for parameters without an `=` sign (preserve them as `True` in the dictionary), or explicitly document and test the new behavior as intentional if backward compatibility is no longer required."
+    },
+    {
+      "agent": "DocAgent",
+      "severity": "high",
+      "title": "Breaking Change Not Documented in Changelog",
+      "file_path": "tests/test_utils.py",
+      "line": 598,
+      "description": "The removal of the `\"no_equals\": True` test case from `tests/test_utils.py` is a significant behavior change. The new code now ignores parameters that do not have an equals sign. This is a breaking change for anyone relying on the previous behavior. This should be clearly documented in the changelog.",
+      "suggestion": "Add a clear entry in the changelog indicating that `_parse_content_type_header` (and by extension, `get_encodings_from_content`) now ignores parameters without values. This is a breaking change and should be highlighted."
+    },
+    {
+      "agent": "DocAgent",
+      "severity": "medium",
+      "title": "Incomplete Docstring for Behavior Change",
+      "file_path": "src/requests/utils.py",
+      "line": 505,
+      "description": "The docstring for `_parse_content_type_header` is incomplete and does not accurately reflect the new behavior. Specifically, it does not mention that parameters without a value (e.g., `charset`) are now ignored. This is a public API (or internal but widely used) function, and its behavior has changed. The docstring should be updated to clarify that only `key=value` pairs are parsed, and that `key` alone will not result in an entry in the returned dictionary.\n\n_DocAgent:_ The value extracted from the header is not stripped of any surrounding whitespace or quotes. The old code had `strip_chars = \"\\\"' \"`, but the new code only uses it to strip the key. The value might contain unexpected characters if not handled properly.",
+      "suggestion": "Update the docstring for `_parse_content_type_header` to accurately describe the new behavior. For example: `\"\"\"Returns content type and parameters from given header. Parameters without an equals sign are ignored.\"\"\"`."
+    },
+    {
+      "agent": "LogicAgent + DocAgent",
+      "severity": "medium",
+      "title": "Bare parameters without '=' are silently dropped; empty keys unguarded",
+      "file_path": "src/requests/utils.py",
+      "line": 517,
+      "description": "The new code uses `params_dict[key.lower()] = value`. If two different parameter keys normalize to the same lowercase key (e.g., `charset` and `CHARSET`, or `boundary` and `Boundary`), the second one silently overwrites the first. The old code had the same `key.lower()` logic, so this is not a regression, but it's a pre-existing bug that persists. More importantly, the diff *removes* the handling of parameters without an equals sign (like `no_equals`). In the old code:\n```python\nkey, value = param, True\nindex_of_equals = param.find(\"=\")\nif index_of_equals != -1:\n    key = param[:index_of_equals].strip(items_to_strip)\n    value = param[index_of_equals + 1 :].strip(items_to_strip)\n```\nThis meant that a token like `no_equals` would be stored as `{'no_equals': True}`. The new code only processes tokens if `param.find(\"=\") != -1`, so bare tokens are silently discarded. The test changes confirm this: `\"no_equals\": True` is removed from all expected dicts. This is a **behavioral regression**: bare parameters (e.g., `text/plain; q=0.5; no_equals`) will no longer be captured. While HTTP content-type headers rarely use bare parameters, other header parsers in the library may rely on this, and the removal changes the contract. Also, if `key` is empty after stripping (e.g., `=value`), `key.lower()` is `\"\"` and `params_dict[\"\"]` is set, which is a silent edge case.\n\n_DocAgent:_ The use of the walrus operator `:=` is a Python 3.8+ feature. If the project supports Python versions prior to 3.8, this will cause a `SyntaxError`. The project's supported Python versions should be checked.",
+      "suggestion": "Decide whether bare parameters should still be supported. If backward compatibility matters, add back the handling:\n```python\nif param and (idx := param.find(\"=\")) != -1:\n    key = param[:idx].strip(strip_chars)\n    value = param[idx + 1:].strip(strip_chars)\nelse:\n    key = param.strip(strip_chars)\n    value = True\nif key:\n    params_dict[key.lower()] = value\n```\nIf bare parameters are intentionally dropped, document this breaking change. Also guard against empty `key`."
+    },
+    {
+      "agent": "RepoAgent",
+      "severity": "low",
+      "title": "Fragile manual header parsing logic",
+      "file_path": "src/requests/utils.py",
+      "line": 509,
+      "description": "The function uses a simple string split on semicolons, which is fragile. It does not handle quoted values that contain semicolons (e.g., `filename=\"file;name.txt\"`). This is a known limitation of this specific utility, but as a design observation, this function lacks robustness for standard MIME header parsing. It is not a SOLID violation per se, but it indicates a lack of abstraction for a parser that could easily delegate to `email.message.Message` or `http.client.parse_headers` which are part of the standard library and handle these edge cases correctly.",
+      "suggestion": "Consider replacing the manual parsing logic with Python's standard library `email.message.Message` or `http.client.parse_headers` if the requirements for this utility allow it. If manual parsing is required for performance or specific edge-case control, document the limitations clearly."
+    },
+    {
+      "agent": "DocAgent",
+      "severity": "low",
+      "title": "New Test Case for Edge Case",
+      "file_path": "tests/test_utils.py",
+      "line": 648,
+      "description": "The new test case verifies that `text/html; charset` results in the default encoding `ISO-8859-1` because the `charset` parameter is ignored. This is a good addition to the test suite to cover the new edge case.",
+      "suggestion": "None, this is a good test addition."
+    }
+  ]
+}

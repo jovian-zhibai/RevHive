@@ -1,0 +1,35 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (35/100)\n\n1 Critical · 2 Medium\n\nReview completed with 3 findings across 9 agents (1 critical, 2 medium).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Fix regex anchor to prevent header injection via newline characters (FixAgent)\n🛡️ Consensus of 3 independent passes — risk scores: pass 1: 70, pass 2: 35, pass 3: 22. Report shows the median pass (score 35/100).",
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "FixAgent",
+      "severity": "critical",
+      "title": "Fix regex anchor to prevent header injection via newline characters",
+      "file_path": "src/requests/_internal_utils.py",
+      "line": 13,
+      "description": "The regular expressions for validating header names and values were updated to include the \\\\Z anchor to prevent matching only part of a string when it contains newlines. However, the original patterns used `$` which in Python's `re` module matches before the newline at the end of the string or before a trailing newline. This meant that strings like `\"foo\n\"` or `\"bar\n\"` would incorrectly pass validation because `$` would match before the final `\\n`. By changing `$` to `\\\\Z`, the regex now strictly requires the match to end at the absolute end of the string, preventing header injection attacks via newlines embedded in headers.",
+      "suggestion": "The fix correctly changes `$` to `\\\\Z` in the regular expressions for `_VALID_HEADER_NAME_RE_BYTE`, `_VALID_HEADER_NAME_RE_STR`, `_VALID_HEADER_VALUE_RE_BYTE`, and `_VALID_HEADER_VALUE_RE_STR`. This ensures that header names and values cannot contain newline characters that could be used for header injection. The test cases in `tests/test_requests.py` have been updated to reflect that headers containing trailing newlines are now rejected. This is a critical security fix to prevent HTTP response splitting and header injection attacks."
+    },
+    {
+      "agent": "TestAgent",
+      "severity": "medium",
+      "title": "Untested behavior for header values with leading/trailing whitespace",
+      "file_path": "src/requests/_internal_utils.py",
+      "line": 15,
+      "description": "The regex for valid header values uses `^\\S` which requires the first character to be a non-whitespace character, OR the entire string to be empty (`^\\Z`). This means a header value like `\" foo\"` (leading space) or `\"bar \"` (trailing space, but non-empty) might behave unexpectedly. The `\\S` at the start disallows leading whitespace. While leading/trailing whitespace in header values is often stripped or ignored by HTTP clients/servers, the current regex explicitly rejects a value that starts with a space unless it is empty. This may be intended to enforce strict RFC compliance, but it could break existing code that sends headers with leading spaces in values (e.g., some user-agent strings or custom metadata). There is no test covering values with leading or trailing whitespace to document the expected behavior.",
+      "suggestion": "Add unit tests in `tests/test_internal_utils.py` for header values with: 1) Leading whitespace (`\" foo\"`), 2) Trailing whitespace (`\"foo \"`), 3) Internal whitespace (`\"foo bar\"`), 4) All whitespace (`\"  \"`), and 5) Empty string (`\"\"`). Document the expected pass/fail behavior for each. If leading whitespace should be allowed, the regex `^\\S` needs to be reconsidered (e.g., `^[\\S\\s]*` with explicit rejection of `\\r`/`\\n`). If it should be rejected, ensure the tests confirm this rejection is intentional."
+    },
+    {
+      "agent": "TestAgent",
+      "severity": "medium",
+      "title": "Integration tests do not directly unit-test the new regex validation logic",
+      "file_path": "tests/test_requests.py",
+      "line": 1794,
+      "description": "The added test cases in `test_header_no_return_chars` verify that headers with `\\n` or `\\r\\n` in the *value* position (and `\\n` in the *name* position) are rejected. However, this test relies on an `httpbin` fixture to make a request, which is an integration-level test. It does not directly unit test the `_internal_utils` regex changes in isolation. A direct unit test is needed to ensure the regexes themselves are correct, independent of the network stack or httpbin behavior. Additionally, the test cases `{\"foo\": \"bar\\n\"}` and `{\"foo\": \"bar\\r\\n\"}` confirm that trailing newlines in values are rejected, which is the primary vulnerability fixed by the `\\Z` change. There is no explicit test for the *empty value* case (`\"\"`) which is allowed by the new regex `^\\S[^\\r\\n]*\\Z|^\\Z`, and no test for names ending in newlines (e.g., `\"foo\\n\"` is present, but what about `\"foo\"` with a valid value when the name was previously checked? The name `foo\\n` is tested, which is good. But we should ensure valid names like `\"Accept\"` pass.)",
+      "suggestion": "1. Add a dedicated unit test file or class in `tests/test_internal_utils.py` to directly test the regex patterns from `src/requests/_internal_utils.py`. 2. Parametrize these tests with a table of (input, expected_valid) pairs for both header names and values, covering: valid standard headers, headers with `\\r`, `\\n`, `\\t` in names, empty values, values with leading/trailing whitespace, and multi-line values. 3. Ensure that the integration test in `test_requests.py` is retained for end-to-end validation, but supplement it with these direct unit tests to isolate the regex logic."
+    }
+  ]
+}
