@@ -121,6 +121,7 @@
     <li><strong class="text-gray-200">It measures recall, never precision.</strong> Nothing here says how often it flags clean code. We ran the other half separately: twenty ordinary merged commits, seventeen with no comment, four comments in total. Every one is written up in <a class="text-emerald-400 underline" href="/blog/ordinary-prs-noise.html">the noise measurement</a>.</li>
     <li><strong class="text-gray-200">Ten cases is an anecdote with a table.</strong> Adding or removing two cases moves the number by twenty points.</li>
     <li><strong class="text-gray-200">Severity is unreliable.</strong> The password-hash disclosure was called <em>low</em>; Django shipped it as a security release. Read the finding, not just the colour.</li>
+    <li><strong class="text-gray-200">The model was not the one we configured.</strong> Re-reading the run logs, all ten cases hit a 429 on the primary model and fell back to <code>sensenova-6.8-flash-lite</code>; two also timed out on structured output and were parsed with a regex. So 10/10 is a fallback-model result, not a result for <code>deepseek-v4-flash</code>. We did not notice this when we published the number.</li>
   </ul>
 
   <div class="bg-[#111113] border border-white/5 rounded-xl p-6">

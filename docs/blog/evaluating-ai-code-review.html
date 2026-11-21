@@ -114,7 +114,7 @@
 
     <p>There is also a selfish reason. A benchmark you are willing to describe &mdash; method written down, harness shipped as a shell script &mdash; is one other people can attack. Ours fetches a fix commit, reverts it, strips docs and tests, runs the CLI, and diffs against the files the fix touched. It is not pretty and it is not peer reviewed. That is precisely why it is written down: so the next version can be better, and so someone can tell us where it is wrong.</p>
 
-    <p>The next version of the page needs twenty ordinary pull requests and a false positive count. Until it has them, treat 10/10 as a floor on capability, not a rate of quality.</p>
+    <p>That other half is now published: twenty ordinary merged commits, four comments, all read by hand. Treat 10/10 as a floor on capability, not a rate of quality.</p>
 
     <h2>If you are evaluating a reviewer</h2>
 
@@ -131,6 +131,9 @@
     <hr class="border-white/10 my-10">
     <p class="text-sm text-gray-500">
       The missing half is now published: <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">twenty ordinary merged commits, four comments, read by hand</a>.
+    </p>
+    <p class="text-sm text-gray-500">
+      <strong class="text-gray-400">Correction.</strong> Re-reading the raw run logs, all ten cases hit a <code>429</code> on the primary model and were retried on <code>sensenova-6.8-flash-lite</code>; two also timed out on structured output and were parsed with a regex. The 10/10 is a fallback-model result, not a result for the model we configured. We should have said that on day one. The benchmark page now lists it as a fifth limitation.
     </p>
     <p class="text-sm text-gray-500">
       The raw results, the reproduce steps, and the limitations are on the
