@@ -102,6 +102,10 @@ def review(file: str, diff_ref: str, model: str, output: str, fmt: str, timeout:
     # right next to it. SenseNova gets a default because its free token plan
     # throttles hard enough that a single-model run times out before finishing.
     fallback_models = [m.strip() for m in (fallback or "").split(",") if m.strip()]
+    if fallback_models and fallback_models[0].lower() in ("none", "off"):
+        # Explicit opt-out: benchmarking needs the named model's answer or a
+        # failure, never a silent substitution.
+        fallback_models = []
     if not fallback_models and model and model.startswith("sensenova"):
         fallback_models = ["sensenova-6.8-flash-lite", "sensenova-6.8-flash", "glm-5.3"]
 
