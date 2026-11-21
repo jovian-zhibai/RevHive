@@ -83,6 +83,11 @@ filterwarnings = [
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+# One-off analysis scripts kept for reproducibility. They ship the raw numbers
+# behind the published benchmark, so they stay in the repo — but they are not
+# product code and are not held to the product lint gate. examples/ is *not*
+# excluded: sample code is a shop window and must pass like src/.
+extend-exclude = ["benchmark-runs"]
 
 [tool.ruff.lint]
 # An explicit rule set, not whatever the installed Ruff defaults to. A gate

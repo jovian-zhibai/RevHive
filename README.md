@@ -143,11 +143,11 @@ jobs:
 
 ## Pricing — honest numbers
 
-| Tier | Price | Reviews | Agents | Inline comments | Commit status gate | History | Slack | Support |
+| Tier | Price | Reviews | Agents | Inline comments | Merge gate | History | Slack | Support |
 |------|-------|---------|--------|:---:|:---:|:---:|:---:|:---:|
 | **Free** | $0 | 50/mo | 4 core | — | — | — | — | Community |
-| **Pro** | $9/mo | Unlimited | All 10 | ✅ | ✅ | 30 days | — | Email (48h) |
-| **Business** | $19/mo | Unlimited | All 10 | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
+| **Pro** | $9/mo | Unlimited | All 9 + coordinator | ✅ | ✅ | 30 days | — | Email (48h) |
+| **Business** | $19/mo | Unlimited | All 9 + coordinator | ✅ | ✅ | Permanent | ✅ | Priority (4h SLA) |
 
 - **Free** — for trying it out and light use. 50 reviews/month is roughly one active repo.
 - **Pro ($9/mo)** — the "stop bad merges" tier: inline annotations + commit status gates so a risky PR *blocks* the merge.
