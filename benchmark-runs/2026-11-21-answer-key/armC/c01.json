@@ -1,0 +1,32 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (45/100)\n\n1 Critical · 1 High · 1 Medium\n\nReview completed with 3 findings across 2 agents (1 critical, 1 high, 1 medium).\n\n✅ AI analysis resolved 1 conflicting assessment(s).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] SSRF and Arbitrary File Read Vulnerability via Reverted GDAL Security Fix (SecurityAgent + LogicAgent)\n  - [HIGH] Removal of Security Regression Tests (SecurityAgent)",
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "SecurityAgent + LogicAgent",
+      "severity": "critical",
+      "title": "SSRF and Arbitrary File Read Vulnerability via Reverted GDAL Security Fix",
+      "line": null,
+      "description": "Reverting this security patch reintroduces a Server-Side Request Forgery (SSRF) and arbitrary file read vulnerability. The `SpatialReference` class accepts user-supplied strings. When passed to older GDAL versions (or any version if the check is bypassed), GDAL's `OSRSetFromUserInput` function can resolve URLs (e.g., `http://`, `https://`, `ftp://`) and read local files. An attacker can supply a malicious spatial reference string to exfiltrate sensitive files (like `/etc/passwd`) or trigger requests to internal services (SSRF). The removal of the `dict:` prefix check also allows for potential arbitrary code execution or data exfiltration via GDAL's dictionary file loading mechanism.\n\n_LogicAgent:_ The removed import `from django.contrib.gis.gdal.error import GDALException, SRSException` is split into `from django.contrib.gis.gdal.error import SRSException` in the new code. However, the previous code in `import_user_input` raised `GDALException` when a dictionary reference was detected (`raise GDALException(msg)`). This method has been removed/replaced entirely in the diff. The check for `dict:` and `esri::dict:` prefixes that was preventing SSRF via dictionary files on *all* GDAL versions has been completely removed. Since the diff removes `import_user_input_ex` and `PAPSZ_OPTIONS`, all calls now go through `capi.from_user_input` (the old, unsafe `OSRSetFromUserInput`), which does not block file or network access. This reverts the CVE-2026-114582 fix, reintroducing SSRF and local file read vulnerabilities in `SpatialReference`, `GEOSGeometry.transform`, `OGRGeometry.transform`, `GDALRaster.transform`, `OGRGeometry.srs` setter, and `GDALRaster.srs`/`srid` setters. This is a security regression that breaks the documented fix and reintroduces the vulnerability that the CVE addressed.",
+      "suggestion": "You must keep the security fix for CVE-2026-114582. Revert this diff's changes to `django/contrib/gis/gdal/srs.py` and `django/contrib/gis/apps.py`. The secure implementation must:\n1. Use `OSRSetFromUserInputEx` with `ALLOW_FILE_ACCESS=NO` and `ALLOW_NETWORK_ACCESS=NO` options when GDAL >= 3.9.\n2. Reject any input starting with `dict:` or `esri::dict:` (case-insensitive) to prevent dictionary file loading.\n3. Keep the `check_gdal_39` system check to warn developers if they are using an unpatched GDAL version (< 3.9) that cannot fully mitigate this."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Removal of Security Regression Tests",
+      "line": null,
+      "description": "Removing these tests deletes the regression protection for the SSRF vulnerability. Without these tests, future changes could silently reintroduce the insecure behavior. The `test_no_dictionary_access` test specifically ensures that the `dict:` prefix is blocked, which is a critical part of the mitigation. The file/network access tests ensure that the GDAL 3.9+ options are correctly applied.",
+      "suggestion": "Restore the deleted test files and test cases. Security patches require corresponding regression tests to ensure they are not accidentally removed or bypassed in future refactoring."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Removal of Security Warning System Check",
+      "line": null,
+      "description": "Removing the `check_gdal_39` system check eliminates the warning for users running GDAL versions < 3.9. Since GDAL < 3.9 does not support the `ALLOW_FILE_ACCESS=NO` and `ALLOW_NETWORK_ACCESS=NO` options, these users remain vulnerable to the SSRF/file read issue described above without any diagnostic warning. This hides a critical security misconfiguration from developers and operators.",
+      "suggestion": "Restore the `check_gdal_39` function and its registration in the GIS app config. This check is essential for informing users of their vulnerability status when running older GDAL versions that lack the secure API."
+    }
+  ]
+}

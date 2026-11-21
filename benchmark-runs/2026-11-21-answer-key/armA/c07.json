@@ -1,0 +1,32 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "✅ Risk Score: LOW (11/100)\n\n2 Medium · 1 Low\n\nReview completed with 3 findings across 2 agents (2 medium, 1 low).\n\n✅ AI analysis resolved 2 conflicting assessment(s).",
+  "total_findings": 3,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "medium",
+      "title": "trans_null implementation not updated to match new security logic",
+      "line": 505,
+      "description": "Inconsistency between the new `get_supported_language_variant` implementation and `trans_null`. The new `trans_real.get_supported_language_variant` raises `LookupError` for overly long codes, but `trans_null.get_supported_language_variant` is not updated in the diff. If `trans_null` still uses the old logic or returns the code as-is without the length check, there is a divergence in behavior between the real and null translation backends, which can cause test failures or inconsistent security mitigation.\n\n_LogicAgent:_ The new implementation of `get_supported_language_variant` performs the language variant resolution logic (fallbacks, truncation, supported code lookup) directly within the function body. Unlike the previous implementation which called a separate cached helper, the caching behavior is now managed by `@functools.lru_cache` on the function itself. However, the function now returns `None` implicitly at the end of the function if no match is found and no `LookupError` is raised (specifically in the non-strict path where a generic match fails but the `for` loop over supported codes also fails, or if `lang_code` is falsy). The explicit `raise LookupError(lang_code)` at the very end of the function is only reached if the `if lang_code:` block is not entered or if the logic inside doesn't return/raise. Wait, looking at the diff: the `raise LookupError(lang_code)` is *outside* the `if lang_code:` block. So if `lang_code` is falsy (None or ''), it skips the `if` block and hits the `raise`. Inside the `if` block, it may `return` or `raise`. This logic is consistent. However, the caching of `None` results (if any path returns None) or `LookupError` handling with LRU cache needs care. `functools.lru_cache` caches return values. Exceptions are not cached by default. This is fine. The issue is that `get_supported_language_variant` is now public and cached. The previous `_get_supported_language_variant` was private and cached. The public function was the wrapper. Now the public function is the cached function. This changes the public API surface of the cache. Any external code relying on clearing the cache of the old private function will now fail or target the wrong object. The diff updates `reset_cache` to call `get_supported_language_variant.cache_clear()`, which is correct. But any downstream code or tests that directly referenced `_get_supported_language_variant` will break. The diff removes the private function, so this is intended. The risk is lower-level integration code.",
+      "suggestion": "Update `django/utils/translation/trans_null.py` to mirror the length-truncation logic and `LookupError` raising behavior of the new `trans_real` implementation to ensure consistent security posture across both backends."
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "medium",
+      "title": "Missing Input Validation for User-Controlled Language Code in Dictionary Lookup",
+      "line": 531,
+      "description": "The code uses the user-controlled `lang_code` directly as a key in `LANG_INFO` without sanitizing or validating its format (e.g., checking if it matches a valid language code regex or ensuring it only contains alphanumeric characters and hyphens). Although `lang_code` is truncated to `LANGUAGE_CODE_MAX_LENGTH` (500 chars) just before, an attacker can still send a malformed string of that length. While `LANG_INFO` is a fixed dictionary, using arbitrary user input as a dictionary key, even in a read-only context, is a poor input validation practice. If `LANG_INFO` were ever extended to load dynamic data or if the lookup logic changed, this could become a significant vulnerability. It is not an immediate RCE or data leak, but it represents a violation of input validation principles.\n\n_SecurityAgent:_ The loop that generates `possible_lang_codes` iterates by finding the last hyphen. If an attacker provides a string with a very high density of hyphens (e.g., `\"-\" * 499`), the loop will iterate 499 times. This creates a minor CPU load per request. In a high-traffic application, an attacker could exploit this to cause a Denial of Service by flooding the server with such requests. This is a low-severity algorithmic complexity issue.",
+      "suggestion": "Before using `lang_code` to look up in `LANG_INFO`, validate that it conforms to BCP 47 language tag format. A simple regex check (e.g., `re.match(r'^([A-Za-z]{2,3}|[A-Za-z]{5,8})(-[A-Za-z0-9]{2,4})*$', lang_code)`) can be added. If the format is invalid, skip the `LANG_INFO` lookup and proceed directly to the generic fallback logic or raise `LookupError` immediately. This prevents malformed input from being used in internal dictionary operations."
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "low",
+      "title": "Truncation logic correctly prevents unbounded cache keys",
+      "line": 522,
+      "description": "In the non-strict path, if `lang_code` is longer than `LANGUAGE_CODE_MAX_LENGTH`, the code attempts to find a hyphen before the limit to truncate. If no hyphen is found (index == -1) or `strict` is False but index is not > 0, it raises `LookupError`. This is consistent with the old behavior. However, consider the case where `lang_code` is exactly `LANGUAGE_CODE_MAX_LENGTH` in length. The condition `len(lang_code) > LANGUAGE_CODE_MAX_LENGTH` is False, so it skips the truncation logic and proceeds to `possible_lang_codes = [lang_code]`. This is correct. Consider the case where `lang_code` is longer, say 501 chars, and contains a hyphen at position 499. `rfind('-', 0, 500)` finds it. It truncates to 499 chars. Then it proceeds to the fallback logic. This is the intended DoS mitigation. The logic appears sound.",
+      "suggestion": "No change needed. The truncation logic correctly prevents unbounded cache keys."
+    }
+  ]
+}

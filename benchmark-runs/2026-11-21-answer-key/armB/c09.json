@@ -1,0 +1,24 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (40/100)\n\n1 Critical · 1 High\n\nReview completed with 2 findings across 2 agents (1 critical, 1 high).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] SSRF Vulnerability Reintroduced: Missing beforeRedirect Hook for Proxies (LogicAgent)\n  - [HIGH] Potential SSRF via Proxy Bypass on Redirects (SecurityAgent)",
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "LogicAgent",
+      "severity": "critical",
+      "title": "SSRF Vulnerability Reintroduced: Missing beforeRedirect Hook for Proxies",
+      "line": 148,
+      "description": "The new code sets `options.path` to an absolute URL string (e.g., 'http://localhost:8080/api'). In Node.js `http.request`, if `path` starts with a protocol like `http://`, it may be interpreted as a URL, but the combination with `hostname` and `port` set explicitly (to the proxy's) creates a conflict or malformed request. The original code passed `location` (which was an absolute URL) to `setProxy`, which also set `options.path = location`. However, the critical regression is that the new code **removed** the `beforeRedirect` hook that was inside the deleted `setProxy` function. The original `setProxy` function set `options.beforeRedirect` to ensure that if the proxy responded with a redirect, the client would continue sending requests through the proxy. By inlining the proxy configuration and removing `setProxy` (and thus `beforeRedirect`), the axios client will no longer respect the proxy for subsequent redirects. If the proxy returns a 302, the client will follow the redirect directly to the target host (bypassing the proxy), which is exactly the SSRF vulnerability this patch is trying to fix. The test `test/unit/regression/SNYK-JS-AXIOS-1038255.js` was deleted, but the logic it tested (redirects passing through proxy) is now broken.",
+      "suggestion": "Restore the `beforeRedirect` hook. You cannot simply delete the `setProxy` function and inline the static properties because `beforeRedirect` is a dynamic hook. You must add the `options.beforeRedirect` function back into the inline code to ensure that any redirects from the proxy are also routed through the proxy. Example: `options.beforeRedirect = function (redirection) { redirection.headers.host = redirection.host; options.hostname = proxy.host; options.host = proxy.host; options.port = proxy.port; options.path = redirection.href; };`"
+    },
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Potential SSRF via Proxy Bypass on Redirects",
+      "line": 148,
+      "description": "The removed regression test contains a logic flaw in the mock proxy implementation that allowed the SSRF vulnerability to persist or be bypassed in specific scenarios. While the test was deleted, the underlying issue it highlighted was that the proxy redirect logic in `lib/adapters/http.js` (now inlined) did not correctly enforce the proxy host/port for subsequent requests. If the current implementation in `lib/adapters/http.js` simply overwrites `options.hostname` and `options.port` without ensuring that `options.path` remains relative or that the absolute URL is correctly constructed for the proxy request, an attacker could potentially craft a URL that results in a direct connection to an internal resource, bypassing the proxy. Additionally, the inlined code in `lib/adapters/http.js` sets `options.path` to an absolute URL string (`protocol + '//' + parsed.hostname + ...`). In Node.js `http.request`, if `hostname` is explicitly set, `path` must be relative (e.g., `/index.html`). Setting `path` to an absolute URL while also setting `hostname` can lead to unpredictable behavior or potential SSRF if the HTTP client library interprets these fields in a way that bypasses the intended proxy isolation, especially during redirects where `beforeRedirect` is no longer explicitly re-applied with the proxy logic.",
+      "suggestion": "Ensure that when a proxy is used, the `options.path` is treated as the absolute URL string only if the underlying HTTP client supports that pattern for proxy requests, or strictly use the `url` option. More importantly, verify that the redirect logic (if any) respects the proxy configuration. The removal of `setProxy` and the `beforeRedirect` hook suggests that redirects might no longer traverse the proxy. If `axios` follows redirects natively, ensure that the proxy host/port are preserved or that redirects are not followed when a proxy is configured, to prevent SSRF via open redirect."
+    }
+  ]
+}

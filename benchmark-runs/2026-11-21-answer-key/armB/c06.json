@@ -1,0 +1,16 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (25/100)\n\n1 Critical\n\nReview completed with 1 findings across 2 agents (1 critical).\n\n⚠️ 1 critical/high severity issues require immediate attention:\n  - [CRITICAL] Reintroduction of CVE-2026-87975: Insecure Handling of Forged Editable Primary Keys (SecurityAgent)",
+  "total_findings": 1,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "critical",
+      "title": "Reintroduction of CVE-2026-87975: Insecure Handling of Forged Editable Primary Keys",
+      "line": 966,
+      "description": "The patch weakens the integrity check in `save_existing_objects()`. By removing the `obj._state.adding` check and relying solely on `_is_pk_set()`, the code reintroduces the vulnerability described in CVE-2026-87975. For models with editable primary keys (e.g., UUID, custom strings, or OneToOne parent links), an attacker can forge POST data to set a `pk` that belongs to an object outside the formset's queryset or to create new objects in edit-only formsets. `construct_instance()` will populate the PK from the user input. Since the PK is now set, the new condition `if not obj._is_pk_set()` evaluates to `False`, causing the code to treat this forged/new instance as an 'existing object' from the queryset. This allows `save_existing_objects()` to perform unauthorized deletions or persists data that violates the formset's restrictions.",
+      "suggestion": "Restore the `obj._state.adding` check to ensure that instances not loaded from the database (even if they have a PK set via forged input) are treated as new objects and not processed in the 'existing' logic. The code should be:\n```python\nif not obj._is_pk_set() or obj._state.adding:\n    continue\n```"
+    }
+  ]
+}

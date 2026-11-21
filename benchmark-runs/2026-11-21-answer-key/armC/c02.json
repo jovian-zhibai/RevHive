@@ -1,0 +1,24 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (30/100)\n\n2 High\n\nReview completed with 2 findings across 2 agents (2 high).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [HIGH] Password Hash Disclosure Due to Strict Model Equality Check (SecurityAgent)\n  - [HIGH] Logic error: MTI user models reveal password hash (LogicAgent)",
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "SecurityAgent",
+      "severity": "high",
+      "title": "Password Hash Disclosure Due to Strict Model Equality Check",
+      "line": 435,
+      "description": "The check `field.model == get_user_model()` introduces a regression in data exposure. Previously, any model inheriting from `AbstractBaseUser` or matching `AUTH_USER_MODEL` would have its password hashed. Now, only the exact `AUTH_USER_MODEL` class is masked. If `AUTH_USER_MODEL` is a child model in a multi-table inheritance hierarchy (e.g., `ChildUser` inheriting from `ParentUser` which has the `password` field), `field.model` will be `ParentUser`. Since `ParentUser != ChildUser`, the check fails, and the raw password hash is displayed instead of the masked version. This exposes sensitive cryptographic material (password hashes) to admin users with view-only permissions on the specific model, violating confidentiality.",
+      "suggestion": "Restore the robust check that accounts for inheritance. Use:\n```python\nif field.name == \"password\" and (\n    issubclass(field.model, AbstractBaseUser)\n    or issubclass(get_user_model(), field.model)\n):\n    return render_password_as_hash(value)\n```"
+    },
+    {
+      "agent": "LogicAgent",
+      "severity": "high",
+      "title": "Logic error: MTI user models reveal password hash",
+      "line": 435,
+      "description": "The new condition fails to handle multi-table inheritance (MTI) where the `password` field is defined on a parent model (e.g., `AbstractBaseUser`), but the admin instance or `AUTH_USER_MODEL` is a concrete child model. In such cases, `field.model` will be the parent, while `get_user_model()` returns the child, causing the equality check to fail. This leads to the password hash being rendered as a plain value instead of a secure hashed representation.",
+      "suggestion": "Restore the inheritance check: `if field.name == \"password\" and (issubclass(field.model, AbstractBaseUser) or issubclass(get_user_model(), field.model)):`"
+    }
+  ]
+}

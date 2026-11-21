@@ -112,7 +112,9 @@
 
     <p>Because the failure mode of this category is not bad models. It is a demo culture where every tool shows a screenshot of a planted bug being found, and nobody shows the false positive rate. If we publish only the 10/10 we become another screenshot.</p>
 
-    <p>There is also a selfish reason. A benchmark you are willing to describe &mdash; method written down, harness shipped as a shell script &mdash; is one other people can attack. Ours fetches a fix commit, reverts it, strips docs and tests, runs the CLI, and diffs against the files the fix touched. It is not pretty and it is not peer reviewed. That is precisely why it is written down: so the next version can be better, and so someone can tell us where it is wrong.</p>
+    <p>There is also a selfish reason. A benchmark you are willing to describe &mdash; method written down, harness shipped as a shell script &mdash; is one other people can attack. Ours fetches a fix commit, reverts it, runs the CLI, and diffs against the files the fix touched. It is not pretty and it is not peer reviewed. That is precisely why it is written down: so the next version can be better, and so someone can tell us where it is wrong.</p>
+
+    <p><strong>Correction (2026-11-21):</strong> an earlier version of this paragraph said the harness strips docs and tests from the patch. It does not &mdash; the published runs reviewed the full revert diff, test hunks included. We reran all ten cases with the diff stripped and with the original fix message injected as a PR description; the stripped condition scored the same or better. Full details in the <a href="/blog/answer-key-leakage.html">answer-key audit</a>.</p>
 
     <p>That other half is now published: twenty ordinary merged commits, four comments, all read by hand. Treat 10/10 as a floor on capability, not a rate of quality.</p>
 

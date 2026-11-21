@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does the PR description leak the answer key? We ran the benchmark three ways | RevHive</title>
+<meta name="description" content="A reader asked whether our 10/10 benchmark was measuring reading comprehension. We audited the prompt path, found the published runs did not strip test hunks as claimed, then ran the ten CVE reverts three ways: full diff, stripped diff, and diff plus the original fix message as a PR description.">
+<meta name="keywords" content="AI code review, benchmark, answer key, commit message, PR description, LLM evaluation">
+<meta property="og:title" content="We audited our benchmark for answer-key leakage — and found the opposite of what we feared.">
+<meta property="og:description" content="The published runs did not strip test hunks as we claimed. Stripping them made the reviewer better, not worse: the case it missed at 10/10 was caught under the strictest condition.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/answer-key-leakage.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article pre{background:#111113;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;color:#9ca3af;margin:1.4rem 0}
+  article pre code{background:none;padding:0;color:inherit}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+  article table{width:100%;margin:1.4rem 0;font-size:.88rem;border-collapse:collapse}
+  article th{text-align:left;padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  article td{padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);color:#b4b4bb}
+  article a{color:#10B981;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="text-xs text-gray-500 font-mono mb-3">2026-11-21 &middot; Evaluation notes</div>
+  <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-5">Does the PR description leak the answer key? We ran the benchmark three ways.</h1>
+  <p class="text-gray-500 text-sm mb-10 leading-relaxed">A reader asked whether our 10/10 was measuring reading comprehension. The audit found a correction we had to make — and an experiment where the strictest condition scored best.</p>
+
+  <article>
+
+    <p>The first post in this series included a checklist for anyone evaluating a code reviewer, and one item keeps coming up in the comments:</p>
+
+    <blockquote>Ask whether the eval strips the answer key (release notes, tests, commit messages). If it doesn't, you are measuring the model's ability to read.</blockquote>
+
+    <p>It is the right question, and we owed a direct answer for our own benchmark. So we audited the prompt path, reran all ten CVE cases under three conditions, and found a claim on our benchmark page that needed correcting. Here is everything, including the part where we were wrong.</p>
+
+    <h2>What the reviewer actually reads</h2>
+
+    <p>The CLI takes a diff reference, runs <code>git diff</code>, and hands the raw diff text to the agents. Commit messages are never read: there is no code path from <code>git log</code> to the prompt. We verified this two ways — by reading the prompt-construction path (<code>run_from_diff</code> builds the text from <code>git diff</code> output only), and empirically: identical diffs produce identical reviews whether or not a commit message exists.</p>
+
+    <p>So for commit messages, the answer was clean. It did not stay clean.</p>
+
+    <h2>The correction: we claimed we stripped tests, and we did not</h2>
+
+    <p>The <a href="/benchmark.html">benchmark page</a> has said the harness "fetches the fix commit, reverts it, <strong>strips docs and tests</strong>, runs the CLI". We went back and checked the script that produced the published numbers. It does not strip anything. The revert commit contains every change the fix made, including the test hunks — and reverted test code often carries descriptive names. In case c02, the deleted tests sit in files named <code>tests/admin_utils/…</code> exercising exactly the password-hash path. That is answer-key material sitting inside the diff, in the published runs, with a claim on the page saying otherwise.</p>
+
+    <p>We have corrected the page. And because the honest move is not just to admit the leak but to measure what it does, we reran all ten cases three ways.</p>
+
+    <h2>The three conditions</h2>
+
+    <ol>
+      <li><strong>Arm A — as published.</strong> Full revert diff (test hunks included), no commit message, no PR description. This replicates the conditions behind every number we have published so far.</li>
+      <li><strong>Arm B — the description a real reviewer would see.</strong> Same full diff, plus the original fix commit's message injected as a PR description — complete with CVE numbers. This is the strongest possible answer key, and also the most realistic: a human reviewer on a real PR reads the description next to the diff.</li>
+      <li><strong>Arm C — the strictest key-free condition.</strong> The diff with all test and docs hunks removed, so the reviewer sees only the source-code change. Nothing but the vulnerable code itself.</li>
+    </ol>
+
+    <p>Same ten reverted CVE fixes (<a href="/blog/evaluating-ai-code-review.html">the original cases</a>), same model for every run (<code>agnes-3.0-flash</code> — one model, recorded per run, no fallback), same agent set, one run per case, serialised. To make context injection possible we shipped a small <code>--pr-description</code> flag, which is also just a real feature: reviewers on GitHub see the description.</p>
+
+    <h2>Results</h2>
+
+    <table>
+      <thead><tr><th>Case</th><th>What was reverted</th><th>A: full diff</th><th>B: + PR description</th><th>C: stripped diff</th></tr></thead>
+      <tbody>
+        <tr><td>c01</td><td>GDAL file/network access restriction</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
+        <tr><td>c02</td><td>Password hash disclosure</td><td>✗ <strong>(0)</strong></td><td>✓ <strong>(3, critical)</strong></td><td>✓ <strong>(2, high)</strong></td></tr>
+        <tr><td>c03</td><td>Empty vs missing Vary header cache keys</td><td>✓ (1)</td><td>✓ (1)</td><td>✓ (3)</td></tr>
+        <tr><td>c04</td><td>Unescaped log messages</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (1)</td></tr>
+        <tr><td>c05</td><td>Unbounded multipart memory</td><td>✓ (4)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
+        <tr><td>c06</td><td>Forged formset actions</td><td>✓ (2)</td><td>✓ (1)</td><td>✓ (2)</td></tr>
+        <tr><td>c07</td><td>Language-variant parser memory exhaustion</td><td>〜 (3)</td><td>〜 (1)</td><td>〜 (1)</td></tr>
+        <tr><td>c08</td><td>Unvalidated URL rendering (XSS)</td><td>✓ (3)</td><td>✓ (2)</td><td>✓ (1)</td></tr>
+        <tr><td>c09</td><td>axios SSRF via redirects</td><td>✓ (5)</td><td>✓ (2)</td><td>✓ (3)</td></tr>
+        <tr><td>c10</td><td>lodash template command injection</td><td>✓ (2)</td><td>✓ (2)</td><td>✓ (2)</td></tr>
+        <tr><td><strong>Total</strong></td><td></td><td><strong>8 clear</strong> / 24 findings</td><td><strong>9 clear</strong> / 21 findings</td><td><strong>9 clear</strong> / 21 findings</td></tr>
+      </tbody>
+    </table>
+
+    <p>✓ = the core vulnerability of that case was reported. 〜 = the reviewer found a real bug in the same function or the surrounding logic, but not the DoS itself (c07: every arm found adjacent defects — an unvalidated language-code path, a <code>reset_cache</code> mis-call — none named the unbounded cache growth). Counts are total findings including noise, not hits.</p>
+
+    <h2>What this says</h2>
+
+    <p><strong>The leak did not create the score — removing it made the score better.</strong> Under the strictest key-free condition the reviewer caught every case the leaky condition caught, plus the one it missed: c02, the password-hash disclosure, went from zero findings to two high-severity findings on the stripped diff. The plausible mechanism is mundane — the full diff carries hundreds of deleted test lines that dilute the actual change, and the stripped version is a smaller, more focused text.</p>
+
+    <p><strong>PR descriptions help, and they do not turn the model into a parrot.</strong> Arm B saw the original fix messages with CVE numbers — the loudest answer key we could construct — and the total finding count went <em>down</em> from 24 to 21 while c02 flipped to a critical hit. The model used the description as context, not as an answer to copy. That matters because real PR review always happens next to a description, and now the CLI supports it: <code>revhive review -d HEAD~1 --pr-description "..."</code>.</p>
+
+    <p><strong>c02 is the case that keeps teaching.</strong> It was the miss in the noise measurement's sibling experiment, it was the miss in the first rerun, and it is the case most sensitive to context. A small diff (2K tokens, 6 files), a subtle information-exposure path — exactly the shape that a reviewer working from a bare diff under a rate-limited budget is most likely to walk past. We do not have enough runs to say the stripped condition reliably beats the full condition; we have one observation that it did on the hardest case.</p>
+
+    <h2>Corrections issued</h2>
+
+    <ul>
+      <li>The benchmark page no longer says the harness strips docs and tests. The published runs reviewed the full revert diff, test hunks included.</li>
+      <li>The first post's method description carries the same correction.</li>
+      <li>All numbers published so far remain as published — with the note that they were produced under the leaky condition, which the three-way rerun suggests made them <em>conservative</em>, not inflated. That is a lucky break we did not design, and we are not claiming it as a virtue.</li>
+    </ul>
+
+    <h2>Honest limits of this experiment</h2>
+
+    <ul>
+      <li>Ten cases, one model, one run per condition. Any cell can be a fluctuation.</li>
+      <li>Label matching ("did it report the core vulnerability?") is our judgment on named findings; the raw JSON for all thirty runs is in the repository.</li>
+      <li>Arm B's descriptions came from the fix commits, which are better written than most real PR descriptions. A vague real-world description would likely help less.</li>
+      <li>c07 remains unresolved in every condition, which we take as the honest boundary of what this reviewer does with subtle resource-exhaustion paths.</li>
+    </ul>
+
+    <p>The checklist item that started this is now answered for our tool, in public, with the correction attached. The next open item from the comments is the 100-commit double-labelled run, and that one is bigger than a Saturday. The harness, all thirty raw run files, and the diff of every correction are public. If you can break it, we want the counterexample.</p>
+
+  </article>
+
+  <hr class="border-white/10 my-10">
+  <p class="text-sm text-gray-500">
+    The full series: <a href="/benchmark.html" class="text-emerald-400 hover:underline">the original 10/10</a> &middot;
+    <a href="/blog/evaluating-ai-code-review.html" class="text-emerald-400 hover:underline">why that number is weak</a> &middot;
+    <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">20 ordinary PRs, 4 comments</a> &middot;
+    <a href="/blog/matched-control.html" class="text-emerald-400 hover:underline">the matched control</a> &middot; this audit.
+    Source and harness: <a href="https://github.com/jovian-zhibai/RevHive" class="text-emerald-400 hover:underline">github.com/jovian-zhibai/RevHive</a>.
+  </p>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>

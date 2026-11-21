@@ -1,0 +1,24 @@
+{
+  "failed": false,
+  "error": "",
+  "summary": "⚠️ Risk Score: MEDIUM (40/100)\n\n1 Critical · 1 High\n\nReview completed with 2 findings across 2 agents (1 critical, 1 high).\n\n✅ AI analysis resolved 3 conflicting assessment(s).\n\n⚠️ 2 critical/high severity issues require immediate attention:\n  - [CRITICAL] Regression: Unconditional use of deprecated/unsecure GDAL function (LogicAgent + SecurityAgent)\n  - [HIGH] Deletion of GDAL security checks module (SecurityAgent + LogicAgent)",
+  "total_findings": 2,
+  "findings": [
+    {
+      "agent": "LogicAgent + SecurityAgent",
+      "severity": "critical",
+      "title": "Regression: Unconditional use of deprecated/unsecure GDAL function",
+      "line": 3,
+      "description": "The import in srs.py was changed to remove GDAL_VERSION. The new code unconditionally uses `capi.from_user_input` (which maps to `OSRSetFromUserInput`). However, `OSRSetFromUserInput` is a deprecated function and may not exist in GDAL versions 3.9 and later where `OSRSetFromUserInputEx` is the standard. If this code is run against GDAL >= 3.9, the lookup for `OSRSetFromUserInput` might fail or behave unexpectedly if the symbol is removed from the library's public API in future versions, or more critically, it completely ignores the security hardening added in 3.9. The diff removes the `if GDAL_VERSION < (3, 9)` check that conditionally defined `from_user_input` vs `from_user_input_ex`. By always defining `from_user_input = void_output(std_call(\"OSRSetFromUserInput\"), ...)`, the code assumes `OSRSetFromUserInput` is always available. If GDAL 3.9+ removes the deprecated `OSRSetFromUserInput`, this will cause a runtime error when the function is called or when the module is loaded (depending on how `std_call` works, likely a lazy lookup or immediate lookup failure).\n\n_SecurityAgent:_ The patch reverts the fix for CVE-2026-114582. In `django/contrib/gis/gdal/srs.py`, the `import_user_input` method now unconditionally uses the unsafe `capi.from_user_input` (OSRSetFromUserInput) instead of the secure `capi.from_user_input_ex` (OSRSetFromUserInputEx) which blocks file and network access. Additionally, the explicit rejection of `DICT:` and `ESRI::` prefixes has been removed. This exposes the application to Server-Side Request Forgery (SSRF) and Local File Inclusion (LFI) if user input reaches the `SpatialReference` constructor or related methods, as GDAL will attempt to resolve URLs and read local files as the Django process user.",
+      "suggestion": "Restore the conditional logic based on `GDAL_VERSION`. You must import `GDAL_VERSION` back. Define `from_user_input` to use `OSRSetFromUserInput` only for GDAL < 3.9, and `from_user_input_ex` for GDAL >= 3.9. The security fix relies on `OSRSetFromUserInputEx` to block file/network access. Using the older, unsecure `OSRSetFromUserInput` on newer GDAL versions defeats the purpose of the patch and re-introduces the vulnerability."
+    },
+    {
+      "agent": "SecurityAgent + LogicAgent",
+      "severity": "high",
+      "title": "Deletion of GDAL security checks module",
+      "line": 1,
+      "description": "The entire `django/contrib/gis/checks.py` file, which contained the definition of the `W001` warning and the `check_gdal_39` function, has been deleted. This compounds the removal in `apps.py` and eliminates the tooling needed to detect the SSRF vulnerability during development.\n\n_LogicAgent:_ The security check for `DICT:` and `ESRI::DICT:` prefixes was removed. The diff shows that the code previously raised a `GDALException` for dictionary-based SRS inputs because they could bypass file access restrictions. By removing this check and relying solely on `OSRSetFromUserInput` (as seen in the previous finding), the protection against malicious spatial references that use the `DICT:` scheme is gone. On GDAL versions where `OSRSetFromUserInput` is used, `DICT:` inputs are processed normally, allowing an attacker to potentially read local files or execute arbitrary code if the dictionary file exists or if the parser has other vulnerabilities.\n\n_SecurityAgent:_ The patch deletes the registration of the `check_gdal_39` system check in `django/contrib/gis/apps.py`. This means Django will no longer warn developers during the `check` command if they are running a vulnerable version of GDAL (< 3.9) that cannot enforce network/file access restrictions. This removes a critical defensive layer and early warning mechanism against the reverted vulnerability.",
+      "suggestion": "Recreate `django/contrib/gis/checks.py` with the `check_gdal_39` function and `W001` warning definition."
+    }
+  ]
+}
