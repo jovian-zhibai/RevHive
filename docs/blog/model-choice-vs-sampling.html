@@ -48,6 +48,8 @@
 
     <p>The <a href="/blog/ordinary-prs-noise.html">multi-pass experiment</a> ended with a confession: nineteen commits on one model cannot tell you whether the ±21-point cross-pass spread we measured is a property of that model, of the provider, or of the task. The next cell we could afford was the 10-CVE suite — the same ten revert-diffs from the original benchmark — run on three models with everything else held constant.</p>
 
+    <p style="border-left:2px solid #fcd34d;padding-left:1rem;margin-bottom:1.5rem"><strong style="color:#fcd34d">Correction (2026-11-22):</strong> the grid below first printed a flat hit/miss, which implied every hit was the same kind of evidence. It was not. Nine of the ten sensenova-ds hits, and five of the nine on agnes-2.5-pro, came from runs whose verdict the gate withheld — a partial review that did surface the vulnerability, but in which some agents never finished. Those are real positive signals and worthless as measurements, which is the entire argument of this series. The grid now carries the run state in every cell, and the totals count the clean cells separately. No miss changed; what changed is that an incomplete run no longer looks like a clean one.</p>
+
     <h2>The design, including the flag we had to build</h2>
 
     <p>Three models, same pipeline (two agents, same prompts, same reconciliation code), one pass per cell:</p>
@@ -66,24 +68,29 @@
 
     <table>
       <tr><th>case</th><th>agnes-3.0-flash</th><th>agnes-2.5-pro</th><th>sensenova-ds</th></tr>
-      <tr><td>c01 SSRF / local file read</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c02 password hash disclosure</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c03 empty vs missing headers</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c04 unescaped log messages</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c05 unbounded multipart memory</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c06 forged formset actions</td><td>hit</td><td>hit</td><td>hit</td></tr>
+      <tr><td>c01 SSRF / local file read</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c02 password hash disclosure</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c03 empty vs missing headers</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c04 unescaped log messages</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c05 unbounded multipart memory</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c06 forged formset actions</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
       <tr><td>c07 translation parser memory</td><td>hit</td><td>hit</td><td><strong>miss</strong></td></tr>
-      <tr><td>c08 unvalidated URL rendering</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td>c09 axios SSRF</td><td>hit</td><td><strong>miss</strong></td><td>hit</td></tr>
-      <tr><td>c10 template command injection</td><td>hit</td><td>hit</td><td>hit</td></tr>
-      <tr><td><strong>total</strong></td><td><strong>10/10</strong></td><td><strong>9/10</strong></td><td><strong>9/10</strong></td></tr>
+      <tr><td>c08 unvalidated URL rendering</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c09 axios SSRF</td><td>hit</td><td><strong>miss</strong></td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td>c10 template command injection</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+      <tr><td><strong>found it</strong></td><td><strong>10/10</strong></td><td><strong>9/10</strong></td><td><strong>9/10</strong></td></tr>
+      <tr><td><strong>of which clean</strong></td><td><strong>9</strong></td><td><strong>4</strong></td><td><strong>0</strong></td></tr>
     </table>
+
+    <p class="text-sm" style="font-size:.9rem"><code>hit</code> — the run finished cleanly and the finding is in a report the gate would have published. <code style="color:#fcd34d">hit*</code> — the finding is in the raw output, but the run that produced it did not complete cleanly: withheld score, fallback model, regex-parsed output, or an agent that never finished. <code>miss</code> — it ran and did not find it.</p>
+
+    <p>The two rows matter more than the one number people quote. Every published claim of the form “model X scored 9/10 here” is really “model X found nine of ten, in four (or zero) runs good enough to compare.” The first column is the only one where the headline and the measurement are the same thing.</p>
 
     <p>The headline is not that one model won. It is that <strong>the two misses do not overlap</strong>. <code>agnes-2.5-pro</code> returned risk 0 and zero findings on c09 — silent on a reintroduced SSRF. <code>sensenova-ds</code> missed c07 entirely. No single model is strictly better; an ensemble voting 2-of-3 would have caught all ten. We are not claiming that as a feature — it is a hypothesis the next cell has to earn.</p>
 
     <h2>The case that flipped</h2>
 
-    <p>The original benchmark reported agnes-3.0-flash at 8/10, missing c02 (password hash disclosure). Today, the same model on the same revert returns a CRITICAL anchored at <code>django/contrib/admin/utils.py:435</code> describing exactly that vulnerability.</p>
+    <p>The original benchmark flagged c02 (password hash disclosure) but rated it <em>low</em> — the row is still on the <a href="/benchmark.html">benchmark page</a> saying exactly that: “Flagged the exposure but rated it low; the real fix rated it high.” Today the same model on the same revert returns a <strong>CRITICAL</strong> anchored at <code>django/contrib/admin/utils.py</code>, naming the removed inheritance check. So what moved here is severity calibration, not detection — and severity is the part a gate reads. A reviewer that sees the bug and calls it low is, for CI purposes, a reviewer that missed it.</p>
 
     <p>Attribution honesty: we cannot credit a single change. Since that first run the security prompt gained the evidence-cap rubric, findings gained real file anchoring, and severity reconciliation moved from prose to code. Anchoring is post-processing, so it did not make the model <em>see</em> the bug — but prompt changes and plain sampling noise are both live candidates, and one run cannot separate them. What we can say: the published 8/10 is no longer the current number, and the published number will be re-baselined multi-pass before anyone treats either as a rate.</p>
 
@@ -91,7 +98,7 @@
 
     <p>On <code>sensenova-ds</code>, the free tier's TPM limit kept killing the LogicAgent — in 6 of 10 runs. Under the old pipeline, those runs would have shipped a verdict computed from half the checks. Instead, every one of them carries a withheld risk score: findings listed, verdict refused, reason in the summary. Six withheld reports are the clearest demonstration we have that the gate does its job on real provider failures — a partial review cannot masquerade as a clean one.</p>
 
-    <p>Practical read: the free tier is workable for <em>evaluation</em> (the SecurityAgent completed all ten cases and found 9/10 vulnerabilities), but production-shaped reviews need a provider that finishes what it starts. That is why our BYOK table still puts paid DeepSeek in the recommended slot.</p>
+    <p>Practical read: the free tier is workable for <em>evaluation</em> — the security pass itself turned up 9 of the 10 vulnerabilities — but in six of those ten runs the second agent kept dying, so the gate refused to score the review. A number you have to caveat that hard is not a benchmark result, and a provider that finishes what it starts is not optional for production-shaped reviews. That is why our BYOK table still puts paid DeepSeek in the recommended slot.</p>
 
     <h2>Which noise is bigger?</h2>
 
