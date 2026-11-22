@@ -46,7 +46,7 @@
     <p class="text-lg text-gray-400 mb-2">Four agents timed out at 90 seconds each. The network was fine.</p>
     <p class="text-sm text-gray-500 mb-10">The cause was two separate mistakes, and only one of them was in the code I was staring at.</p>
 
-    <p>Yesterday I switched the hosted service from one LLM provider to another. The new provider was faster and free at the tier we needed, and I had already added its endpoint to the preset table. The switch should have taken one environment variable.</p>
+    <p>This afternoon I switched the hosted service from one LLM provider to another. The new provider was faster and free at the tier we needed, and I had already added its endpoint to the preset table. The switch should have taken one environment variable.</p>
 
     <p>What happened instead: every review hung. Four specialist agents, each hitting its 90-second ceiling, six minutes to produce a report that said nothing useful. The pull request sat there with a comment that never got its result.</p>
 
@@ -68,7 +68,7 @@
       </tbody>
     </table>
 
-    <p>Four green rows. Every layer I could test from the shell said the provider was reachable, fast, and happy with our key. Inside the service process, the same provider timed out ten times out of ten.</p>
+    <p>Four green rows. Every layer I could test from the shell said the provider was reachable, fast, and happy with our key. Inside the service process, every attempt timed out.</p>
 
     <blockquote>"It works when I curl it" is not evidence that the application is calling the same place.</blockquote>
 
@@ -92,14 +92,14 @@
 
     <p>The preset table lives in the CLI package. The hosted service does not vendor that code; it installs the published wheel. The commit that added the new provider's two entries landed on <strong>2026-11-21 at 11:55</strong>. The package version at that moment was <code>0.3.26</code>, and I never published a <code>0.3.27</code>.</p>
 
-    <p>So the VPS was running a wheel built before the provider existed, and the source tree I was reading was three days ahead of it. Everything I inspected locally was correct. Everything that executed in production was older.</p>
+    <p>So the VPS was running a wheel built before the provider existed, and the source tree I was reading was a day ahead of it. Everything I inspected locally was correct. Everything that executed in production was older.</p>
 
     <p>The check that would have caught this takes four seconds and does not depend on trusting a version string:</p>
 
 <pre><code>$ ssh host "/opt/revhive/.venv/bin/python -c \
     'import revhive.config as c; print(sorted(c.MODEL_PRESETS))'"</code></pre>
 
-    <p>That prints what the interpreter actually loaded. Compare it to what you think you shipped. On the day of the incident, the list ended at <code>sensenova</code>.</p>
+    <p>That prints what the interpreter actually loaded. Compare it to what you think you shipped. On the day of the incident, the provider I had just configured in the dashboard was not in the list.</p>
 
     <h2>Mistake two: the default value</h2>
 
@@ -137,7 +137,7 @@ server/worker.py:655:  base_url = preset.get("base_url", "https://api.openai.com
         <tr><th>Change</th><th>Why it is first</th></tr>
       </thead>
       <tbody>
-        <tr><td>Log the destination, not just the failure</td><td>A URL in a log line ended a multi-hour investigation in one run. Hostnames belong in every outbound-error message.</td></tr>
+        <tr><td>Log the destination, not just the failure</td><td>A URL in a log line ended the investigation on the next run. Hostnames belong in every outbound-error message.</td></tr>
         <tr><td><code>%r</code> instead of <code>%s</code> for exceptions</td><td><code>ConnectTimeout('')</code> is not a message. If the exception has no text, print the repr, the type, and whatever context you have.</td></tr>
         <tr><td>Verify the loaded code, not the version number</td><td>One line, printable at any time, immune to my own belief about what I deployed.</td></tr>
         <tr><td>No defaults for required config</td><td>Missing config raises at parse time, including on the hosted side.</td></tr>
@@ -151,7 +151,7 @@ server/worker.py:655:  base_url = preset.get("base_url", "https://api.openai.com
 
     <p>That is also why the product withholds a score when coverage is partial instead of printing a number. A review that only three of nine agents completed is not a low-confidence review; it is a review that did not happen, and a number in that slot is the same mistake as a default endpoint — a plausible value standing in for a failure. We publish the withheld state, name the reason, and leave the gate neutral.</p>
 
-    <p>If you want to see what that looks like when it goes right, install the app on a repository and read the comment. If you want to see it go wrong, the raw logs from this incident are in the repository history, including the run where four agents each burned ninety seconds calling an endpoint nobody asked for.</p>
+    <p>If you want to see what that looks like when it goes right, install the app on a repository and read the comment. If you want to see how the mistake was made rather than how it was found, the commits from that afternoon are in the repository history: the preset table landed on 21 November, and the release that first shipped it went out on the 22nd, hours after the timeouts it caused.</p>
 
   </article>
 
