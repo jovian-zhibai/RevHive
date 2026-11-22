@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The code that ran was not the code I read | RevHive</title>
+<meta name="description" content="A provider switch produced four 90-second timeouts. Two of them were a version bump I forgot to make; the third was preset.get("base_url", "https://api.openai.com/v1"). A postmortem.">
+<meta name="keywords" content="LLM provider, postmortem, dict.get default, production debugging, python packaging, AI code review">
+<meta property="og:title" content="The code that ran was not the code I read">
+<meta property="og:description" content="Four agents timed out at 90 seconds each. The network was fine. The bug was a dict default that turned a version mismatch into a connect timeout.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/the-code-that-ran.html">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+  article p{margin-bottom:1.05rem;line-height:1.85;color:#b4b4bb}
+  article h2{margin-top:2.6rem;margin-bottom:.9rem;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+  article h3{margin-top:1.8rem;margin-bottom:.5rem;font-size:1.02rem;font-weight:600;color:#e5e7eb}
+  article ul,article ol{margin:1rem 0 1rem 1.3rem;line-height:1.85;color:#b4b4bb}
+  article li{margin-bottom:.45rem}
+  article li::marker{color:#10B981}
+  article strong{color:#f3f4f6;font-weight:600}
+  article code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:#1a1a1d;padding:.15em .38em;border-radius:4px;color:#10B981}
+  article pre{background:#111113;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem;overflow-x:auto;font-size:.8rem;line-height:1.6;color:#9ca3af;margin:1.4rem 0}
+  article pre code{background:none;padding:0;color:inherit}
+  article blockquote{border-left:3px solid #10B981;padding-left:1rem;margin:1.4rem 0;color:#9ca3af}
+  article table{width:100%;margin:1.4rem 0;font-size:.88rem;border-collapse:collapse}
+  article th{text-align:left;padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+  article td{padding:.6rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);color:#b4b4bb}
+  article a{color:#10B981;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body class="text-gray-300 font-sans antialiased">
+<nav class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+  <a href="/" class="text-white font-bold tracking-tight">RevHive</a>
+  <div class="flex items-center gap-5 text-sm">
+    <a href="/benchmark.html" class="text-gray-400 hover:text-white">Benchmark</a>
+    <a href="https://github.com/apps/revhive-review/installations/new" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg">Install free</a>
+  </div>
+</nav>
+
+<main class="max-w-3xl mx-auto px-6 pb-16">
+  <article class="pt-8">
+    <p class="text-xs uppercase tracking-widest text-emerald-400 mb-3">Postmortem &middot; 2026-11-22</p>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-4 tracking-tight">The code that ran was not the code I read</h1>
+    <p class="text-lg text-gray-400 mb-2">Four agents timed out at 90 seconds each. The network was fine.</p>
+    <p class="text-sm text-gray-500 mb-10">The cause was two separate mistakes, and only one of them was in the code I was staring at.</p>
+
+    <p>Yesterday I switched the hosted service from one LLM provider to another. The new provider was faster and free at the tier we needed, and I had already added its endpoint to the preset table. The switch should have taken one environment variable.</p>
+
+    <p>What happened instead: every review hung. Four specialist agents, each hitting its 90-second ceiling, six minutes to produce a report that said nothing useful. The pull request sat there with a comment that never got its result.</p>
+
+    <p>This is the account of what I checked, in the order I checked it, and why that order was wrong.</p>
+
+    <h2>What I ruled out</h2>
+
+    <p>I started from the outside, which felt methodical and was actually the expensive choice.</p>
+
+    <table>
+      <thead>
+        <tr><th>Hypothesis</th><th>Test</th><th>Result</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>The host lost outbound access</td><td><code>curl</code> the provider from the box</td><td>200 in 1–2s</td></tr>
+        <tr><td>The diff was too large</td><td>Replay with a tiny payload</td><td>200 in under 2s</td></tr>
+        <tr><td>Concurrency exhausted a pool</td><td>Single review, no queue</td><td>Still 90s timeouts</td></tr>
+        <tr><td>Wrong credentials</td><td>Same key, hand-written request</td><td>200, valid completion</td></tr>
+      </tbody>
+    </table>
+
+    <p>Four green rows. Every layer I could test from the shell said the provider was reachable, fast, and happy with our key. Inside the service process, the same provider timed out ten times out of ten.</p>
+
+    <blockquote>"It works when I curl it" is not evidence that the application is calling the same place.</blockquote>
+
+    <h2>The one line that mattered</h2>
+
+    <p>The service already had a pre-flight probe: before spending the review budget, it sends a cheap request at <code>{base_url}/models</code> to confirm the key is accepted. The probe was logging its failure with <code>%s</code>:</p>
+
+<pre><code>Key pre-flight probe failed after 15.0s: ConnectTimeout('')</code></pre>
+
+    <p>An empty pair of quotes. The <code>str()</code> of an <code>httpx.ConnectTimeout</code> with no message is the empty string, so the log line told me the exception type and nothing else. I changed two things at once — the format specifier to <code>%r</code>, and the log message to include the URL it had actually called and the elapsed time:</p>
+
+<pre><code>Key pre-flight probe to %s failed after %.1fs (continuing): %r</code></pre>
+
+    <p>The next run printed this:</p>
+
+<pre><code>Key pre-flight probe to https://api.openai.com/v1 failed after 15.0s: ConnectTimeout('')</code></pre>
+
+    <p>I had pointed the service at one provider. It was calling another one. Not a proxy, not DNS, not a firewall — a hardcoded string.</p>
+
+    <h2>Mistake one: the version bump I skipped</h2>
+
+    <p>The preset table lives in the CLI package. The hosted service does not vendor that code; it installs the published wheel. The commit that added the new provider's two entries landed on <strong>2026-11-21 at 11:55</strong>. The package version at that moment was <code>0.3.26</code>, and I never published a <code>0.3.27</code>.</p>
+
+    <p>So the VPS was running a wheel built before the provider existed, and the source tree I was reading was three days ahead of it. Everything I inspected locally was correct. Everything that executed in production was older.</p>
+
+    <p>The check that would have caught this takes four seconds and does not depend on trusting a version string:</p>
+
+<pre><code>$ ssh host "/opt/revhive/.venv/bin/python -c \
+    'import revhive.config as c; print(sorted(c.MODEL_PRESETS))'"</code></pre>
+
+    <p>That prints what the interpreter actually loaded. Compare it to what you think you shipped. On the day of the incident, the list ended at <code>sensenova</code>.</p>
+
+    <h2>Mistake two: the default value</h2>
+
+    <p>The missing preset should have raised. Instead, the resolution looked like this:</p>
+
+<pre><code>preset = _presets.get(provider, {})
+base_url = preset.get("base_url", "https://api.openai.com/v1")
+model    = config.get("llm_model", preset.get("model", "gpt-4o"))</code></pre>
+
+    <p>Read that as a failure-handling policy: <em>if you do not recognise the provider, quietly assume OpenAI.</em></p>
+
+    <p>Three things are wrong with it.</p>
+
+    <ol>
+      <li><strong>It moves the failure.</strong> A missing config entry becomes a network timeout thirty seconds later, in a different subsystem, attributed to the wrong layer. Configuration errors should fail at configuration time.</li>
+      <li><strong>It is plausible enough to believe.</strong> <code>https://api.openai.com/v1</code> is a real endpoint for a real provider we also support. Nothing in the logs looks malformed. If it had defaulted to <code>example.invalid</code> I would have found the bug in a minute.</li>
+      <li><strong>It is a data-handling decision disguised as a convenience.</strong> The customer's key — a real credential, for a provider they chose — was sent to a third party they did not choose. It failed on connect this time. On a machine with working egress it would have reached OpenAI and been rejected there, which is worse: now a secret has left the boundary and the error says "unauthorised", so the operator retries the key instead of the config.</li>
+    </ol>
+
+    <h2>Why I did not catch it earlier</h2>
+
+    <p>The same default was in two places. I fixed the one in the CLI's workflow resolution while chasing the timeout. I did not fix the one in the server's worker, because the server was working again once the wheel was correct, and "working" is the strongest sedative in software.</p>
+
+    <p>I found the second copy today, while writing this post, with a single <code>grep</code> for the hostname:</p>
+
+<pre><code>$ grep -rn "api.openai.com/v1" src/ server/ --include="*.py"
+server/worker.py:655:  base_url = preset.get("base_url", "https://api.openai.com/v1")</code></pre>
+
+    <p>It had survived the incident it caused. It is fixed now: an unknown provider raises, the error names the provider, the installed package version, and the set of providers this build does know, the review publishes a neutral gate instead of a score, and the pull request says plainly that nothing was sent anywhere. Fail closed, and say why.</p>
+
+    <h2>What actually changed, in order of how much it helps next time</h2>
+
+    <table>
+      <thead>
+        <tr><th>Change</th><th>Why it is first</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Log the destination, not just the failure</td><td>A URL in a log line ended a multi-hour investigation in one run. Hostnames belong in every outbound-error message.</td></tr>
+        <tr><td><code>%r</code> instead of <code>%s</code> for exceptions</td><td><code>ConnectTimeout('')</code> is not a message. If the exception has no text, print the repr, the type, and whatever context you have.</td></tr>
+        <tr><td>Verify the loaded code, not the version number</td><td>One line, printable at any time, immune to my own belief about what I deployed.</td></tr>
+        <tr><td>No defaults for required config</td><td>Missing config raises at parse time, including on the hosted side.</td></tr>
+        <tr><td>Pin the dependency floor to the feature</td><td>Our own CI installed an old wheel and passed locally because local runs use the source tree. The floor is now the exact version that introduced the table entry, with a comment saying so.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The uncomfortable part</h2>
+
+    <p>None of these bugs was subtle. The default value is one line, visible in a diff, and I wrote it. The missing version bump is a chore I knew about. What made them expensive was not their cleverness — it was that both of them point the investigation away from themselves, one toward the network and one toward a package I was sure I had updated.</p>
+
+    <p>That is also why the product withholds a score when coverage is partial instead of printing a number. A review that only three of nine agents completed is not a low-confidence review; it is a review that did not happen, and a number in that slot is the same mistake as a default endpoint — a plausible value standing in for a failure. We publish the withheld state, name the reason, and leave the gate neutral.</p>
+
+    <p>If you want to see what that looks like when it goes right, install the app on a repository and read the comment. If you want to see it go wrong, the raw logs from this incident are in the repository history, including the run where four agents each burned ninety seconds calling an endpoint nobody asked for.</p>
+
+  </article>
+
+  <hr class="border-white/10 my-10">
+  <p class="text-sm text-gray-500">
+    The full series: <a href="/benchmark.html" class="text-emerald-400 hover:underline">the original 10/10</a> &middot;
+    <a href="/blog/evaluating-ai-code-review.html" class="text-emerald-400 hover:underline">why that number is weak</a> &middot;
+    <a href="/blog/ordinary-prs-noise.html" class="text-emerald-400 hover:underline">20 ordinary PRs, 4 comments</a> &middot;
+    <a href="/blog/matched-control.html" class="text-emerald-400 hover:underline">the matched control</a> &middot;
+    <a href="/blog/model-choice-vs-sampling.html" class="text-emerald-400 hover:underline">three models, one pipeline</a>.
+    Source and harness: <a href="https://github.com/jovian-zhibai/RevHive" class="text-emerald-400 hover:underline">github.com/jovian-zhibai/RevHive</a>.
+  </p>
+</main>
+
+<footer class="border-t border-white/5 py-8">
+  <div class="max-w-4xl mx-auto px-6 text-xs text-gray-600 flex flex-wrap gap-4">
+    <span>RevHive</span>
+    <a href="/terms.html" class="hover:text-gray-400">Terms</a>
+    <a href="/privacy.html" class="hover:text-gray-400">Privacy</a>
+  </div>
+</footer>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>
