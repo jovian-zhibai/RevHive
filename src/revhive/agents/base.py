@@ -85,6 +85,17 @@ class AgentResult:
     # must not report "0 findings" as if the code were clean.
     failed: bool = False
     error: str = ""
+    # Which model actually produced this result, and how the response was
+    # parsed. A rate-limited agent silently switches to a fallback model, and
+    # an unparseable response falls back to regex; neither is the same
+    # measurement as the configured model emitting structured output. Recording
+    # both is what lets a published number be traced back to what ran.
+    model: str = ""
+    parse_mode: str = "structured"  # "structured" | "regex"
+    # Run-level audit trail attached by the workflow: configured model,
+    # per-agent model/parse mode, and every rate-limit switch. Empty for a
+    # single agent reviewed in isolation.
+    provenance: dict = field(default_factory=dict)
 
 
 class BaseReviewAgent(ABC):
@@ -207,6 +218,8 @@ class BaseReviewAgent(ABC):
                     findings=findings,
                     summary=result.summary or self._auto_summary(findings),
                     token_usage=estimated_tokens,
+                    model=self._model or "",
+                    parse_mode="structured",
                 )
             except Exception as exc:
                 # A rate-limited call must be retried, not downgraded: the
@@ -258,6 +271,8 @@ class BaseReviewAgent(ABC):
             findings=findings,
             summary=self._extract_summary(response.content, findings),
             token_usage=token_usage,
+            model=self._model or "",
+            parse_mode="regex",
         )
 
     def _build_human_prompt(self, code: str, file_path: str) -> str:

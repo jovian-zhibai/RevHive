@@ -1,9 +1,11 @@
 """Tests for the LangGraph review workflow."""
 
+from pathlib import Path
+
 import pytest
 
 from revhive.agents.base import AgentResult, ReviewFinding, Severity
-from revhive.graph.workflow import ReviewReport, ReviewState
+from revhive.graph.workflow import ReviewReport, ReviewState, build_provenance
 
 
 def test_review_state_defaults():
@@ -96,6 +98,67 @@ def test_report_json():
     assert parsed["total_findings"] == 1
     assert parsed["findings"][0]["agent"] == "StyleAgent"
     assert parsed["findings"][0]["severity"] == "low"
+
+
+def test_report_records_provenance_of_each_agent():
+    """A report must say which model ran and how its output was parsed.
+
+    A rate-limit switch or a regex downgrade is a different measurement, so
+    the report marks it instead of presenting it as an ordinary result.
+    """
+    import json
+
+    prov = build_provenance(
+        "deepseek-v4-flash",
+        {
+            "SecurityAgent": {"model": "deepseek-v4-flash", "parse_mode": "structured"},
+            "LogicAgent": {"model": "sensenova-6.8-flash-lite", "parse_mode": "regex"},
+        },
+        [{"agent": "LogicAgent", "from": "deepseek-v4-flash", "to": "sensenova-6.8-flash-lite"}],
+    )
+    report = ReviewReport(AgentResult(agent_name="Coordinator", summary="Done.", provenance=prov))
+
+    assert prov["regex_fallbacks"] == ["LogicAgent"]
+    assert prov["off_model_agents"] == ["LogicAgent"]
+    assert prov["clean"] is False
+
+    parsed = json.loads(report.to_json())
+    assert parsed["provenance"]["clean"] is False
+    assert parsed["provenance"]["agents"]["SecurityAgent"]["parse_mode"] == "structured"
+
+
+def test_provenance_clean_when_every_agent_matched():
+    prov = build_provenance(
+        "agnes-3.0-flash",
+        {"StyleAgent": {"model": "agnes-3.0-flash", "parse_mode": "structured"}},
+        [],
+    )
+    assert prov["clean"] is True
+
+
+def test_verify_run_flags_degraded_cells(tmp_path):
+    """The benchmark gate must not read a switched model as a clean cell."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "verify_run", Path(__file__).resolve().parents[1] / "scripts" / "verify_run.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    clean_log = tmp_path / "c01-agnes.log"
+    clean_log.write_text("Report saved to /tmp/out/c01-agnes.json\n")
+    assert module.classify(clean_log)["verdict"] == module.CLEAN
+
+    switched_log = tmp_path / "c02-ds.log"
+    switched_log.write_text(
+        "SecurityAgent rate-limited on sensenova-ds — switched to sensenova-6.8-flash and retrying\n"
+        "LogicAgent: structured output failed for diff:HEAD~1, falling back to regex: Request timed out.\n"
+    )
+    info = module.classify(switched_log)
+    assert info["verdict"] == module.DEGRADED
+    assert info["model_switches"] == [{"from": "sensenova-ds", "to": "sensenova-6.8-flash"}]
+    assert info["regex_fallbacks"] == 1
 
 
 # ---------------------------------------------------------------------------

@@ -141,6 +141,29 @@ class ReviewState:
 _STATE_ATTR_MAP: dict[str, str] = {name: f"{name}_result" for name in _AGENT_CLASSES}
 
 
+def build_provenance(configured_model: str, agents_seen: dict, model_switches: list) -> dict:
+    """Summarise what actually ran, so a number can be traced back to it.
+
+    A run is only comparable with another cell when every agent used the
+    configured model and returned structured output. Rate-limit switches and
+    regex downgrades are reported rather than hidden, so a benchmark table can
+    mark those cells degraded instead of averaging them in.
+    """
+    degraded = [n for n, i in agents_seen.items() if i.get("parse_mode") != "structured"]
+    off_model = [
+        n for n, i in agents_seen.items()
+        if configured_model and i.get("model") != configured_model
+    ]
+    return {
+        "configured_model": configured_model,
+        "agents": dict(agents_seen),
+        "model_switches": list(model_switches),
+        "regex_fallbacks": degraded,
+        "off_model_agents": off_model,
+        "clean": not degraded and not off_model and not model_switches,
+    }
+
+
 class CodeReviewWorkflow:
     """Orchestrates the multi-agent code review using LangGraph."""
 
@@ -166,6 +189,13 @@ class CodeReviewWorkflow:
         # free/low-tier plans limit *per model*, so rotating models keeps a
         # review moving instead of stalling for minutes.
         self._fallback_models = [m for m in (fallback_models or []) if m]
+        # Provenance trail: which model ran, and whether the response was
+        # parsed as structured output or downgraded to regex. Without it a
+        # rate-limit switch silently turns a measured cell into a different
+        # measurement that nobody can audit afterwards.
+        self._model_switches: list[dict] = []
+        self._agents_seen: dict[str, dict] = {}
+        self._configured_model = model or ""
         self._model_cursor = 0
 
         # Wall-clock budget. A rate-limited provider can retry for the better
@@ -297,6 +327,7 @@ class CodeReviewWorkflow:
                                          failed=True, error=str(exc))
                 else:
                     if not result.failed:
+                        self._record_provenance(agent.name, result)
                         return result
                     exc_str = (result.error or result.summary).lower()
 
@@ -311,6 +342,11 @@ class CodeReviewWorkflow:
                     current = getattr(agent, "_model", None)
                     if next_model != current and hasattr(agent, "switch_model"):
                         model_switches += 1
+                        self._model_switches.append({
+                            "agent": agent.name,
+                            "from": current or "",
+                            "to": next_model,
+                        })
                         agent.switch_model(next_model)
                         logger.warning(
                             "%s rate-limited on %s — switched to %s and retrying",
@@ -420,6 +456,22 @@ class CodeReviewWorkflow:
             )
         return {"final_result": final}
 
+    def _record_provenance(self, agent_name: str, result: AgentResult) -> None:
+        """Keep a per-agent record of what actually produced the findings."""
+        seen = self.__dict__.setdefault("_agents_seen", {})
+        seen[agent_name] = {
+            "model": getattr(result, "model", "") or getattr(self, "_configured_model", ""),
+            "parse_mode": getattr(result, "parse_mode", "structured"),
+        }
+
+    def provenance(self) -> dict:
+        """Whether this run measured what it claims to have measured."""
+        return build_provenance(
+            getattr(self, "_configured_model", ""),
+            getattr(self, "_agents_seen", {}),
+            getattr(self, "_model_switches", []),
+        )
+
     async def run(self, code: str, file_path: str = "", pr_description: str | None = None,
                   passes: int = 1) -> AgentResult:
         """Run the full review workflow.
@@ -451,9 +503,11 @@ class CodeReviewWorkflow:
             final_state = await self.graph.ainvoke(ReviewState(code=code, file_path=file_path))
             finals.append(final_state.get("final_result",
                                           AgentResult(agent_name="System", summary="No results")))
-        if passes == 1:
-            return finals[0]
-        return self._merge_passes(finals)
+        final = finals[0] if passes == 1 else self._merge_passes(finals)
+        # Attach the audit trail last, so it describes everything that ran —
+        # including any model switch or regex downgrade along the way.
+        final.provenance = self.provenance()
+        return final
 
     @staticmethod
     def _merge_passes(finals: list[AgentResult]) -> AgentResult:
@@ -712,6 +766,10 @@ class ReviewReport:
 
         return "\n".join(lines)
 
+    def provenance(self) -> dict:
+        """Return the run's audit trail (what actually ran)."""
+        return getattr(self.result, "provenance", {}) or {}
+
     def to_json(self) -> str:
         """Render the review result as a JSON string."""
         data = {
@@ -721,6 +779,7 @@ class ReviewReport:
             "risk_score": getattr(self.result, "risk_score", None),
             "risk_score_withheld": getattr(self.result, "risk_score", None) is None,
             "total_findings": len(self.result.findings),
+            "provenance": self.provenance(),
             "findings": [
                 {
                     "agent": f.agent,
