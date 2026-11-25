@@ -6,12 +6,12 @@
 [![License](https://img.shields.io/badge/license-BSL--1.1-blue)](LICENSE)
 [![CI](https://github.com/jovian-zhibai/RevHive/actions/workflows/ci.yml/badge.svg)](https://github.com/jovian-zhibai/RevHive/actions)
 
-> **10 AI reviewers. 30 seconds. One merge decision.**
+> **Nine AI reviewers. One merge decision.**
 >
 > RevHive scans every pull request with 10 specialized agents (9 reviewers + 1 coordinator) for security holes, logic bugs, performance traps and test gaps — then hands you **one risk score and a deduplicated list worth reading**. No 90-comment noise. No "LGTM" gambling.
 
 ```bash
-pip install revhive-ai && revhive demo   # 30-second taste — no API key, no setup
+pip install revhive-ai && revhive demo   # sample report from canned data — no key, no model call
 ```
 
 **Two ways to use it:**
@@ -31,7 +31,7 @@ pip install revhive-ai && revhive demo   # 30-second taste — no API key, no se
 | Security findings surface in prod, not in review | A dedicated Security agent hunts SQLi, XSS, secrets, weak crypto, auth flaws before merge |
 | Reviewer comments are noisy and ignored | Coordinator dedups findings across agents; you read one score, drill into what matters |
 | Team pays per-seat for review tools and still worries about data leaving the repo | BYOK: your code and keys go to the LLM *you* chose (DeepSeek, MiMo, Qwen, GLM, Kimi, OpenAI…), not to us |
-| Chinese models? Most tools assume OpenAI | 5 Chinese LLMs are first-class citizens — this is the only review tool with native DeepSeek/MiMo/Qwen/GLM/Kimi support |
+| Chinese models? Most tools assume OpenAI | Five Chinese providers are first-class presets (DeepSeek, MiMo, Qwen, GLM, Kimi) — pick one with `--model` and the endpoint comes with it |
 
 ## Who it's for — and who it isn't
 
@@ -39,14 +39,28 @@ pip install revhive-ai && revhive demo   # 30-second taste — no API key, no se
 
 **Not (yet) for:** replacing your senior engineers' judgment; org-scale governance dashboards (on the [roadmap](#roadmap)); non-GitHub Git hosts ([roadmap](#roadmap)).
 
-## See it work
+## What a report looks like
 
 ```bash
 pip install revhive-ai
 revhive demo
 ```
 
-The demo runs the full 10-agent pipeline locally with mock responses — same report structure as a real run, zero cost. You'll get a severity-ordered, deduplicated report ending in:
+Read that output as a layout preview, not as evidence about review quality: `revhive demo`
+prints a canned report and never calls a model. It costs nothing, needs no key, and proves
+only that the pipeline installs and renders.
+
+To run the real thing on a real diff, bring a key:
+
+```bash
+pip install revhive-ai
+export LLM_API_KEY=sk-...                    # your provider's key
+revhive review --model deepseek --diff HEAD~1   # or --file path/to/file.py
+```
+
+`--model` takes a preset name (`openai`, `deepseek`, `qwen`, `glm`, `kimi`, `ollama`, …) and
+the matching endpoint comes with it. A real run takes 1–3 minutes and ends in a
+severity-ordered, deduplicated report like the sample below:
 
 ```
 🚨 Risk Score: CRITICAL (91/100)
@@ -63,7 +77,7 @@ The demo runs the full 10-agent pipeline locally with mock responses — same re
 
 ## Get started in 3 ways
 
-**A. CLI — real review of a file or diff (30 seconds)**
+**A. CLI — real review of a file or diff (1–3 minutes)**
 
 ```bash
 pip install revhive-ai
