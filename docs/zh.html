@@ -144,16 +144,20 @@
 <section id="price" class="border-t border-white/5 py-16 px-6">
   <div class="max-w-5xl mx-auto">
     <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">三种买法</h2>
-    <p class="text-gray-500 mb-10 max-w-2xl">命令行自己用是免费的，永久免费。要付钱的是“团队用”和“我们帮你落地”。</p>
+    <p class="text-gray-500 mb-10 max-w-2xl">命令行自己用不要钱：评估、测试、个人项目、开源开发都免费。但按 BSL 1.1，审的是要上线或对外运营的生产代码时，需要买<a href="commercial-license.html" class="text-accent underline">商业授权</a>。要付钱的还有“团队用”和“我们帮你落地”。</p>
     <div class="grid md:grid-cols-3 gap-5">
       <div class="bg-surface-2 border border-white/5 rounded-xl p-6 flex flex-col">
         <div class="text-white font-bold mb-1">自己用</div>
         <div class="text-3xl font-extrabold text-white mb-1">¥0</div>
-        <div class="text-gray-500 text-sm mb-6">永久</div>
-        <a href="https://github.com/jovian-zhibai/RevHive#get-started-in-3-ways" class="text-center bg-surface-3 hover:bg-white/10 text-white font-medium py-2.5 rounded-lg border border-white/10 mb-6 transition-colors">看部署文档</a>
+        <div class="text-gray-500 text-sm mb-6">非生产用途</div>
+        <a href="https://github.com/jovian-zhibai/RevHive#get-started-in-3-ways" class="text-center bg-surface-3 hover:bg-white/10 text-white font-medium py-2.5 rounded-lg border border-white/10 mb-4 transition-colors">看部署文档</a>
+        <div class="mb-6">
+          <code class="text-xs text-accent bg-accent/10 px-3 py-1.5 rounded inline-block">pip install revhive-ai</code>
+          <div class="text-gray-600 text-xs mt-1.5">macOS 用 <code class="text-gray-500">pipx install revhive-ai</code>；装完 <code class="text-gray-500">revhive demo</code> 免 Key 就能跑，跑的是预置数据，不是真审查。</div>
+        </div>
         <ul class="space-y-2 text-sm text-gray-400">
-          <li>4 个核心 Agent</li>
-          <li>每月 50 次审查</li>
+          <li>全部 9 个 Agent + 协调器</li>
+          <li>审查次数不限，只付你自己的 token</li>
           <li>CLI / CI 模式</li>
           <li>自带模型 Key</li>
         </ul>
