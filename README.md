@@ -60,7 +60,12 @@ revhive review --model deepseek --diff HEAD~1   # or --file path/to/file.py
 
 `--model` takes a preset name (`openai`, `deepseek`, `qwen`, `glm`, `kimi`, `ollama`, …) and
 the matching endpoint comes with it. A real run takes 1–3 minutes and ends in a
-severity-ordered, deduplicated report like the sample below:
+severity-ordered, deduplicated report. [Here is a full sample report][sample] from one real run,
+including the three passes that produced its score.
+
+[sample]: https://revhive.souljian.cn/sample-report-en.html
+
+The headline line looks like this:
 
 ```
 🚨 Risk Score: CRITICAL (91/100)
