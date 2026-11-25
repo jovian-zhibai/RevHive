@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page not found — RevHive</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://revhive.souljian.cn/404.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            accent: '#10B981',
+            'accent-dark': '#059669',
+            surface: '#111113',
+            'surface-2': '#1a1a1e',
+            'surface-3': '#222228',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+  <nav class="border-b border-white/5 px-6 py-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 text-white font-semibold">
+        <span class="w-2 h-2 rounded-full bg-accent"></span> RevHive
+      </a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="/#pricing" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+        <a href="https://github.com/apps/revhive-review/installations/new" class="bg-accent hover:bg-accent-dark text-white font-medium px-4 py-1.5 rounded-lg transition-colors">Install</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-20 text-center">
+    <p class="text-accent text-sm font-medium mb-3">404</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white leading-tight mb-5">This page does not exist</h1>
+    <p class="text-gray-400 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+      The link may be out of date, or the page may have moved. Nothing is broken on your side.
+    </p>
+
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-14">
+      <a href="/" class="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+        Back to the homepage
+      </a>
+      <a href="/sample-report-en.html" class="inline-flex items-center gap-2 bg-surface-3 hover:bg-white/10 text-gray-300 font-medium px-6 py-3 rounded-lg transition-colors border border-white/10">
+        See a sample report
+      </a>
+    </div>
+
+    <div class="text-left bg-surface-2 border border-white/5 rounded-xl p-6">
+      <div class="text-white font-semibold text-sm mb-3">Looking for one of these?</div>
+      <ul class="space-y-2 text-sm text-gray-400">
+        <li><a href="/benchmark.html" class="text-accent hover:underline">Benchmark — 10 known vulnerabilities, re-introduced</a></li>
+        <li><a href="/vs/coderabbit.html" class="text-accent hover:underline">RevHive vs CodeRabbit</a></li>
+        <li><a href="/vs/github-copilot.html" class="text-accent hover:underline">RevHive vs GitHub Copilot code review</a></li>
+        <li><a href="/zh.html" class="text-accent hover:underline">中文页面 — 代码不出内网的 AI 代码审查</a></li>
+        <li><a href="/commercial-license.html" class="text-accent hover:underline">Commercial license (self-hosting)</a></li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="border-t border-white/5">
+    <div class="max-w-3xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <div>RevHive · <a href="https://github.com/jovian-zhibai/RevHive/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 hover:text-accent transition-colors">BSL 1.1</a></div>
+      <div class="flex items-center gap-5">
+        <a href="/privacy.html" class="text-gray-400 hover:text-accent transition-colors">Privacy</a>
+        <a href="/commercial-license.html" class="text-gray-400 hover:text-accent transition-colors">Commercial License</a>
+        <a href="/" class="text-gray-400 hover:text-accent transition-colors">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>

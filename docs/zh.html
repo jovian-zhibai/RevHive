@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RevHive — 代码不出内网的 AI 代码审查</title>
-  <meta name="description" content="自带国产模型 Key（DeepSeek / Qwen / GLM / Kimi），9 个专职 Agent 并行审 PR，一条门禁卡住高危合并。代码全程不经过我们的服务器，可完全内网离线运行。">
+  <link rel="canonical" href="https://revhive.souljian.cn/zh.html">
+  <meta name="description" content="自带国产模型 Key（DeepSeek / Qwen / GLM / Kimi），9 个专职 Agent 并行审 PR，一条门禁卡住高危合并。CLI 与私有化部署直连你配置的厂商、不经过我们，接本地或内网模型时可完全离线；GitHub App 模式下，diff 经我们服务器转给你配置的厂商，不入库。">
   <meta property="og:title" content="RevHive — 代码不出内网的 AI 代码审查">
-  <meta property="og:description" content="自带国产模型 Key，9 个 Agent 并行审 PR，代码不出域。">
+  <meta property="og:description" content="自带国产模型 Key，9 个 Agent 并行审 PR；CLI 与私有化部署可接本地模型完全离线。">
   <meta property="og:url" content="https://revhive.souljian.cn/zh.html">
   <meta property="og:type" content="website">
   <link rel="alternate" hreflang="en" href="https://revhive.souljian.cn/">
@@ -56,7 +57,7 @@
   </h1>
   <p class="fade-in fade-in-d2 text-lg text-gray-400 max-w-2xl leading-relaxed mb-8">
     9 个专职 Agent 并行审你的 Pull Request，用你自己的 DeepSeek / Qwen / GLM / Kimi Key，
-    <strong class="text-white">代码全程不经过我们的服务器</strong>。跑在你自己内网的一台机器上，或者直接跑在开发者的笔记本上。
+    走 CLI 或私有化部署，<strong class="text-white">代码直接发给你配置的模型厂商，不经过我们</strong>。接本地 Ollama（默认 127.0.0.1）或指向内网自建的 OpenAI 兼容服务时，代码连你的网络都不出。走 GitHub App，diff 经我们的服务器转给你配置的厂商，<strong class="text-white">不写入我们的数据库</strong>。
   </p>
   <div class="fade-in fade-in-d3 flex flex-wrap gap-3">
     <a href="sample-report.html" class="bg-accent hover:bg-accent-dark text-black font-semibold px-6 py-3 rounded-lg transition-colors">
@@ -195,12 +196,12 @@
     <h2 class="text-2xl md:text-3xl font-bold text-white mb-10">常见问题</h2>
     <div class="space-y-6">
       <div>
-        <h3 class="text-white font-semibold mb-2">代码会不会被传到你们服务器？</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">不会。RevHive 是自带 Key（BYOK）的架构：它把 diff 直接发给你配置的模型服务商，或者你内网自己的模型。我们没有任何中转服务器，也没有你的代码。你可以断网跑，只要模型在内网。</p>
+        <h3 class="text-white font-semibold mb-2">代码会不会被传到你们服务器？CLI 和 App 有区别吗？</h3>
+        <p class="text-sm text-gray-400 leading-relaxed">分两种接入方式。CLI 和私有化部署：不经过我们。diff 从你的机器直接发给你配置的模型服务商（DeepSeek、Qwen、GLM 这些），或者你内网自己的 Ollama——后者可以断网跑，代码连内网都不出。GitHub App：会经过我们的服务器（app.revhive.souljian.cn），我们把 diff 转给你配置的厂商，但不写入我们的数据库。库里留的只有审查摘要——仓库名、PR 号、风险分、发现数量和时间。</p>
       </div>
       <div>
         <h3 class="text-white font-semibold mb-2">必须要有 GPU 吗？</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">不需要。用 DeepSeek、Qwen、GLM 的 API 就不需要 GPU，只付 token 钱。完全离线才需要本地推理，一张 4090 48G 跑 32B 量化模型对代码审查场景已经够用。</p>
+        <p class="text-sm text-gray-400 leading-relaxed">不需要。用 DeepSeek、Qwen、GLM 的 API 就不需要 GPU，只付 token 钱。完全离线才需要本地推理，显存需求取决于模型大小和 diff 规模。CLI 的 <code class="font-mono text-xs">ollama</code> preset 默认是 <code class="font-mono text-xs">qwen2.5-coder:7b</code>（<code class="font-mono text-xs">src/revhive/config.py</code>），Docker 部署默认是 <code class="font-mono text-xs">qwen2.5-coder:14b</code>（<code class="font-mono text-xs">deploy/docker-compose.ollama.yml</code>），首次启动约下载 9 GB（仓库注释里的估算）。14B 级别在通用代码审查上能用，但对复杂业务逻辑的推断弱于云端大模型；70B 以上效果更好，需要 40G+ 显存。这一段在我们的<a href="blog/ai-code-review-private-deployment.html" class="text-accent underline underline-offset-2">私有化部署方案</a>里写过。</p>
       </div>
       <div>
         <h3 class="text-white font-semibold mb-2">能接我们自己的 GitLab / Gitea 吗？</h3>

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RevHive 审查报告样张 — shop-service</title>
+  <link rel="canonical" href="https://revhive.souljian.cn/sample-report.html">
   <meta name="description" content="一份真实的 RevHive 审查报告样张：9 个专职 Agent 对一个订单服务的审查结果，含风险评分、去重后的关键发现与修复建议。">
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -241,7 +242,7 @@ stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id
 
   <p class="text-xs text-gray-600 mt-8 leading-relaxed">
     样张说明：本报告基于一个真实的电商订单服务结构整理，代码片段已做脱敏处理，数字（耗时、成本、token）取自一次实际运行。
-    RevHive 不会将代码发送至我方服务器；模型调用由你提供的 Key 直连你选择的供应商。
+    本报告的样本由 CLI 跑出：代码留在你本机，模型调用由你提供的 Key 从本机直连你选择的供应商。GitHub App 模式不同——diff 会经 RevHive 的服务器转给供应商，但不写入我们的数据库。
   </p>
 
 </main>
