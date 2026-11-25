@@ -74,7 +74,7 @@
           <li><span class="text-gray-200 font-medium">Repository content in scope:</span> pull request diffs, changed-file contents, PR titles/descriptions — strictly for repos where you install the App, strictly to perform a review.</li>
           <li><span class="text-gray-200 font-medium">Account identifiers:</span> GitHub installation ID, repository names, and the GitHub user ID of the installer (for billing and support).</li>
           <li><span class="text-gray-200 font-medium">LLM provider data:</span> by default, review payloads are sent to the LLM backend configured for your account (BYOK — your key, your chosen provider: DeepSeek, MiMo, Qwen, GLM, Kimi, etc.). Provider handling is governed by that provider's policy. You can point RevHive at a provider you fully control.</li>
-          <li><span class="text-gray-200 font-medium">Operational logs:</span> request timestamps, repo name, review outcome. Logs retain diffs for <span class="text-gray-200 font-medium">30 days</span> (for debugging), then purge.</li>
+          <li><span class="text-gray-200 font-medium">Operational logs:</span> request timestamps, repository name and review outcome. Pull request diffs are read to perform the review and are <span class="text-gray-200 font-medium">never written to our database</span>.</li>
         </ul>
       </section>
 
@@ -103,7 +103,7 @@
 
       <section>
         <h2 class="text-lg font-bold text-white mb-3">5. Your rights</h2>
-        <p class="text-gray-400">Email <a href="mailto:souljian67@gmail.com" class="text-accent underline underline-offset-2">souljian67@gmail.com</a> to request export or deletion of your account data, or to uninstall the App (which immediately stops all new data flow; stored diffs purge within 30 days).</p>
+        <p class="text-gray-400">Email <a href="mailto:souljian67@gmail.com" class="text-accent underline underline-offset-2">souljian67@gmail.com</a> to request export or deletion of your account data, or to uninstall the App. Uninstalling stops all new data flow immediately; the review history already recorded for that installation (repository name, PR number, risk score, finding count, timestamp) stays until you ask us to delete it.</p>
       </section>
 
       <section>
