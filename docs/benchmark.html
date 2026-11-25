@@ -130,6 +130,12 @@
     <p class="text-gray-400 text-sm mb-3"><strong class="text-orange-300">Correction (2026-11-21):</strong> this box previously said the harness "strips docs and tests". It did not — the published runs reviewed the full revert diff, test hunks included. We reran all ten cases three ways (full diff / full diff + PR description / stripped diff, one pinned model, no fallback): the stripped condition matched or beat the leaky one, including catching the case the published runs missed. Details and raw runs: <a class="text-emerald-400 underline" href="/blog/answer-key-leakage.html">the answer-key audit</a>.</p>
     <p class="text-gray-400 text-sm">Source: <a class="text-emerald-400 underline" href="https://github.com/jovian-zhibai/RevHive">github.com/jovian-zhibai/RevHive</a>. Raw JSON for all ten runs on request. Longer writeup, including what real pull requests showed: <a class="text-emerald-400 underline" href="/blog/evaluating-ai-code-review.html">evaluation notes</a>.</p>
   </div>
+
+  <p class="text-gray-400 text-sm mt-8 pt-6 border-t border-white/5">
+    Want to see what a full report looks like? <a class="text-emerald-400 underline" href="/sample-report-en.html">Read a real sample report</a>.<br>
+    Want to run it without an account? <code class="text-gray-300">pip install revhive-ai &amp;&amp; revhive demo</code><br>
+    中文读者？<a class="text-emerald-400 underline" href="/zh.html">看中文版</a>
+  </p>
 </main>
 
 <footer class="border-t border-white/5 py-8 text-center text-sm text-gray-600">
