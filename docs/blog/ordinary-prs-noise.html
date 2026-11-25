@@ -70,15 +70,17 @@
 
     <h2>The result</h2>
 
-    <table>
-      <thead><tr><th>Commit</th><th>Change</th><th>Comments</th><th>Verdict</th></tr></thead>
-      <tbody>
-        <tr><td class="font-mono text-xs whitespace-nowrap">a044b02</td><td>DigestAuth hashes: add <code>usedforsecurity=False</code> (5 lines)</td><td>2 (high, medium)</td><td class="text-orange-400">noise</td></tr>
-        <tr><td class="font-mono text-xs whitespace-nowrap">fd62809</td><td>Preserve leading slashes in <code>path_url</code> (2 lines)</td><td>1 (high)</td><td class="text-orange-400">overstated</td></tr>
-        <tr><td class="font-mono text-xs whitespace-nowrap">a4f9a59</td><td>Port bpo-39057 (proxy bypass fix)</td><td>1 (low)</td><td class="text-gray-400">real but marginal</td></tr>
-        <tr><td class="font-mono text-xs whitespace-nowrap">17 others</td><td>small refactors, typing, parsing fixes</td><td class="text-emerald-400">0</td><td class="text-gray-500">silent</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead><tr><th>Commit</th><th>Change</th><th>Comments</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-xs whitespace-nowrap">a044b02</td><td>DigestAuth hashes: add <code>usedforsecurity=False</code> (5 lines)</td><td>2 (high, medium)</td><td class="text-orange-400">noise</td></tr>
+          <tr><td class="font-mono text-xs whitespace-nowrap">fd62809</td><td>Preserve leading slashes in <code>path_url</code> (2 lines)</td><td>1 (high)</td><td class="text-orange-400">overstated</td></tr>
+          <tr><td class="font-mono text-xs whitespace-nowrap">a4f9a59</td><td>Port bpo-39057 (proxy bypass fix)</td><td>1 (low)</td><td class="text-gray-400">real but marginal</td></tr>
+          <tr><td class="font-mono text-xs whitespace-nowrap">17 others</td><td>small refactors, typing, parsing fixes</td><td class="text-emerald-400">0</td><td class="text-gray-500">silent</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <p>Seventeen of twenty got complete silence. That is the part that matters most: on most real changes the reviewer has nothing to say, which is the correct answer.</p>
 

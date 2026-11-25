@@ -76,22 +76,24 @@
 
     <h2>Results</h2>
 
-    <table>
-      <thead><tr><th>Case</th><th>What was reverted</th><th>A: full diff</th><th>B: + PR description</th><th>C: stripped diff</th></tr></thead>
-      <tbody>
-        <tr><td>c01</td><td>GDAL file/network access restriction</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
-        <tr><td>c02</td><td>Password hash disclosure</td><td>✗ <strong>(0)</strong></td><td>✓ <strong>(3, critical)</strong></td><td>✓ <strong>(2, high)</strong></td></tr>
-        <tr><td>c03</td><td>Empty vs missing Vary header cache keys</td><td>✓ (1)</td><td>✓ (1)</td><td>✓ (3)</td></tr>
-        <tr><td>c04</td><td>Unescaped log messages</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (1)</td></tr>
-        <tr><td>c05</td><td>Unbounded multipart memory</td><td>✓ (4)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
-        <tr><td>c06</td><td>Forged formset actions</td><td>✓ (2)</td><td>✓ (1)</td><td>✓ (2)</td></tr>
-        <tr><td>c07</td><td>Language-variant parser memory exhaustion</td><td>〜 (3)</td><td>〜 (1)</td><td>〜 (1)</td></tr>
-        <tr><td>c08</td><td>Unvalidated URL rendering (XSS)</td><td>✓ (3)</td><td>✓ (2)</td><td>✓ (1)</td></tr>
-        <tr><td>c09</td><td>axios SSRF via redirects</td><td>✓ (5)</td><td>✓ (2)</td><td>✓ (3)</td></tr>
-        <tr><td>c10</td><td>lodash template command injection</td><td>✓ (2)</td><td>✓ (2)</td><td>✓ (2)</td></tr>
-        <tr><td><strong>Total</strong></td><td></td><td><strong>8 clear</strong> / 24 findings</td><td><strong>9 clear</strong> / 21 findings</td><td><strong>9 clear</strong> / 21 findings</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead><tr><th>Case</th><th>What was reverted</th><th>A: full diff</th><th>B: + PR description</th><th>C: stripped diff</th></tr></thead>
+        <tbody>
+          <tr><td>c01</td><td>GDAL file/network access restriction</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
+          <tr><td>c02</td><td>Password hash disclosure</td><td>✗ <strong>(0)</strong></td><td>✓ <strong>(3, critical)</strong></td><td>✓ <strong>(2, high)</strong></td></tr>
+          <tr><td>c03</td><td>Empty vs missing Vary header cache keys</td><td>✓ (1)</td><td>✓ (1)</td><td>✓ (3)</td></tr>
+          <tr><td>c04</td><td>Unescaped log messages</td><td>✓ (2)</td><td>✓ (3)</td><td>✓ (1)</td></tr>
+          <tr><td>c05</td><td>Unbounded multipart memory</td><td>✓ (4)</td><td>✓ (3)</td><td>✓ (3)</td></tr>
+          <tr><td>c06</td><td>Forged formset actions</td><td>✓ (2)</td><td>✓ (1)</td><td>✓ (2)</td></tr>
+          <tr><td>c07</td><td>Language-variant parser memory exhaustion</td><td>〜 (3)</td><td>〜 (1)</td><td>〜 (1)</td></tr>
+          <tr><td>c08</td><td>Unvalidated URL rendering (XSS)</td><td>✓ (3)</td><td>✓ (2)</td><td>✓ (1)</td></tr>
+          <tr><td>c09</td><td>axios SSRF via redirects</td><td>✓ (5)</td><td>✓ (2)</td><td>✓ (3)</td></tr>
+          <tr><td>c10</td><td>lodash template command injection</td><td>✓ (2)</td><td>✓ (2)</td><td>✓ (2)</td></tr>
+          <tr><td><strong>Total</strong></td><td></td><td><strong>8 clear</strong> / 24 findings</td><td><strong>9 clear</strong> / 21 findings</td><td><strong>9 clear</strong> / 21 findings</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <p>✓ = the core vulnerability of that case was reported. 〜 = the reviewer found a real bug in the same function or the surrounding logic, but not the DoS itself (c07: every arm found adjacent defects — an unvalidated language-code path, a <code>reset_cache</code> mis-call — none named the unbounded cache growth). Counts are total findings including noise, not hits.</p>
 

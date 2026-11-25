@@ -58,21 +58,23 @@
 
     <p>Ten control commits, one per original case, chosen to be as close as possible to the fix it replaces: same repository, and where the file had enough history the same source file; an already merged commit with a non-security subject; comparable diff size; and the same treatment as the original ten &mdash; check out the commit, <code>git revert --no-commit</code>, restore <code>docs</code>/<code>tests</code>, commit, then run only the security agent on <code>HEAD~1</code> with no PR description and no commit message.</p>
 
-    <table>
-      <thead><tr><th>Case</th><th>Fix (lines / date)</th><th>Control</th><th>Lines</th><th>Date</th><th>What it actually changed</th></tr></thead>
-      <tbody>
-        <tr><td>c01</td><td>264 / 2026-11-03</td><td><code>c709a748</code></td><td>42</td><td>2023-12-20</td><td>Dropped support for GDAL 2.4</td></tr>
-        <tr><td>c02</td><td>72 / 2026-11-03</td><td><code>77d0c9d5</code></td><td>37</td><td>2026-06-18</td><td>Admin displays database defaults as empty</td></tr>
-        <tr><td>c03</td><td>87 / 2026-11-03</td><td><code>a0f2e29e</code></td><td>50</td><td>2026-11-12</td><td>Deprecated passing table names to <code>createcachetable</code></td></tr>
-        <tr><td>c04</td><td>84 / 2026-11-03</td><td><code>d3954c98</code></td><td>52</td><td>2026-11-16</td><td>Re-raise <code>RecursionError</code> as <code>ValueError</code></td></tr>
-        <tr><td>c05</td><td>176 / 2026-11-03</td><td><code>7732f942</code></td><td>117</td><td>2026-02-10</td><td>Made the multipart parser class pluggable</td></tr>
-        <tr><td>c06</td><td>110 / 2026-10-06</td><td><code>be6a149d</code></td><td>62</td><td>2026-09-07</td><td><code>ModelFormSet</code> respects custom <code>Form.add_prefix()</code></td></tr>
-        <tr><td>c07</td><td>154 / 2026-10-06</td><td><code>9ea5f4fa</code></td><td>163</td><td>2026-07-24</td><td>Typos and grammar in docs and docstrings</td></tr>
-        <tr><td>c08</td><td>55 / 2026-08-04</td><td><code>4b2b4bf0</code></td><td>35</td><td>2026-03-18</td><td>Admin boolean icons for related fields</td></tr>
-        <tr><td>c09</td><td>97 / 2020-11-24</td><td><code>58b16c88</code></td><td>81</td><td>2026-07-15</td><td>Extract duplicated <code>setFormDataHeaders</code></td></tr>
-        <tr><td>c10</td><td>29 / 2021-02-20</td><td><code>0cec2257</code></td><td>38</td><td>2019-10-16</td><td><code>_.isEqual</code> and circular references</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead><tr><th>Case</th><th>Fix (lines / date)</th><th>Control</th><th>Lines</th><th>Date</th><th>What it actually changed</th></tr></thead>
+        <tbody>
+          <tr><td>c01</td><td>264 / 2026-11-03</td><td><code>c709a748</code></td><td>42</td><td>2023-12-20</td><td>Dropped support for GDAL 2.4</td></tr>
+          <tr><td>c02</td><td>72 / 2026-11-03</td><td><code>77d0c9d5</code></td><td>37</td><td>2026-06-18</td><td>Admin displays database defaults as empty</td></tr>
+          <tr><td>c03</td><td>87 / 2026-11-03</td><td><code>a0f2e29e</code></td><td>50</td><td>2026-11-12</td><td>Deprecated passing table names to <code>createcachetable</code></td></tr>
+          <tr><td>c04</td><td>84 / 2026-11-03</td><td><code>d3954c98</code></td><td>52</td><td>2026-11-16</td><td>Re-raise <code>RecursionError</code> as <code>ValueError</code></td></tr>
+          <tr><td>c05</td><td>176 / 2026-11-03</td><td><code>7732f942</code></td><td>117</td><td>2026-02-10</td><td>Made the multipart parser class pluggable</td></tr>
+          <tr><td>c06</td><td>110 / 2026-10-06</td><td><code>be6a149d</code></td><td>62</td><td>2026-09-07</td><td><code>ModelFormSet</code> respects custom <code>Form.add_prefix()</code></td></tr>
+          <tr><td>c07</td><td>154 / 2026-10-06</td><td><code>9ea5f4fa</code></td><td>163</td><td>2026-07-24</td><td>Typos and grammar in docs and docstrings</td></tr>
+          <tr><td>c08</td><td>55 / 2026-08-04</td><td><code>4b2b4bf0</code></td><td>35</td><td>2026-03-18</td><td>Admin boolean icons for related fields</td></tr>
+          <tr><td>c09</td><td>97 / 2020-11-24</td><td><code>58b16c88</code></td><td>81</td><td>2026-07-15</td><td>Extract duplicated <code>setFormDataHeaders</code></td></tr>
+          <tr><td>c10</td><td>29 / 2021-02-20</td><td><code>0cec2257</code></td><td>38</td><td>2019-10-16</td><td><code>_.isEqual</code> and circular references</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <p>This is not a clean matched experiment, and we would rather say so here than have someone find it later. Three controls are years away from their fix in repository time (c01 is 2023 code against a 2026 fix, c10 is 2019 against 2021, c09 is six years later). Two controls are mostly docs or docstrings, which are trivially quiet. c03 and c04 are dated <em>after</em> their fix. c01's control is a sixth of the size of its fix. For files with almost no history there was no same-file, same-size, same-year commit that was not itself a security fix, so "nearest available" was the honest ceiling.</p>
 

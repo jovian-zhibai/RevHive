@@ -66,21 +66,23 @@
 
     <p>Hit = the report names the core vulnerability the revert reintroduced (judged on finding title, description, and anchored file path; the three disagreement cases were verified manually). Raw JSON for all thirty runs is in the repository under <code>benchmark-runs/2026-11-21-3model/</code>.</p>
 
-    <table>
-      <tr><th>case</th><th>agnes-3.0-flash</th><th>agnes-2.5-pro</th><th>sensenova-ds</th></tr>
-      <tr><td>c01 SSRF / local file read</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c02 password hash disclosure</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c03 empty vs missing headers</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c04 unescaped log messages</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c05 unbounded multipart memory</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c06 forged formset actions</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c07 translation parser memory</td><td>hit</td><td>hit</td><td><strong>miss</strong></td></tr>
-      <tr><td>c08 unvalidated URL rendering</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c09 axios SSRF</td><td>hit</td><td><strong>miss</strong></td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td>c10 template command injection</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
-      <tr><td><strong>found it</strong></td><td><strong>10/10</strong></td><td><strong>9/10</strong></td><td><strong>9/10</strong></td></tr>
-      <tr><td><strong>of which clean</strong></td><td><strong>9</strong></td><td><strong>4</strong></td><td><strong>0</strong></td></tr>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <tr><th>case</th><th>agnes-3.0-flash</th><th>agnes-2.5-pro</th><th>sensenova-ds</th></tr>
+        <tr><td>c01 SSRF / local file read</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c02 password hash disclosure</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c03 empty vs missing headers</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c04 unescaped log messages</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c05 unbounded multipart memory</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c06 forged formset actions</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c07 translation parser memory</td><td>hit</td><td>hit</td><td><strong>miss</strong></td></tr>
+        <tr><td>c08 unvalidated URL rendering</td><td>hit</td><td>hit</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c09 axios SSRF</td><td>hit</td><td><strong>miss</strong></td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td>c10 template command injection</td><td>hit</td><td style="color:#fcd34d">hit*</td><td style="color:#fcd34d">hit*</td></tr>
+        <tr><td><strong>found it</strong></td><td><strong>10/10</strong></td><td><strong>9/10</strong></td><td><strong>9/10</strong></td></tr>
+        <tr><td><strong>of which clean</strong></td><td><strong>9</strong></td><td><strong>4</strong></td><td><strong>0</strong></td></tr>
+      </table>
+    </div>
 
     <p class="text-sm" style="font-size:.9rem"><code>hit</code> — the run finished cleanly and the finding is in a report the gate would have published. <code style="color:#fcd34d">hit*</code> — the finding is in the raw output, but the run that produced it did not complete cleanly: withheld score, fallback model, regex-parsed output, or an agent that never finished. <code>miss</code> — it ran and did not find it.</p>
 

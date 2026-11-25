@@ -65,14 +65,16 @@
 
     <p>这是绝大多数采购决策里最模糊的一环。同样是「AI 代码审查」，代码的去向可以完全不同：</p>
 
-    <table>
-      <thead><tr><th>形态</th><th>代码流向</th><th>能否签「不出境」</th><th>典型代价</th></tr></thead>
-      <tbody>
-        <tr><td>SaaS 审查（CodeRabbit 等）</td><td>上传到厂商服务器 → 再转发给模型厂商</td><td>不能</td><td>零运维，但合规过不去</td></tr>
-        <tr><td>自托管 + 外部模型 API</td><td>你的机器 → 你选的模型厂商</td><td>看厂商是否在境内</td><td>一台 4G 内存机器</td></tr>
-        <tr><td>自托管 + 本地模型</td><td>全程不出机器</td><td>能，物理断网也可用</td><td>需要 GPU 或接受较慢速度</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead><tr><th>形态</th><th>代码流向</th><th>能否签「不出境」</th><th>典型代价</th></tr></thead>
+        <tbody>
+          <tr><td>SaaS 审查（CodeRabbit 等）</td><td>上传到厂商服务器 → 再转发给模型厂商</td><td>不能</td><td>零运维，但合规过不去</td></tr>
+          <tr><td>自托管 + 外部模型 API</td><td>你的机器 → 你选的模型厂商</td><td>看厂商是否在境内</td><td>一台 4G 内存机器</td></tr>
+          <tr><td>自托管 + 本地模型</td><td>全程不出机器</td><td>能，物理断网也可用</td><td>需要 GPU 或接受较慢速度</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <p>关键区别在第二行：<strong>「自托管」不等于「不出网」</strong>。很多工具宣传私有化部署，实际部署完还是把代码发给厂商自己的云模型——那不叫私有化，只是换了个上传点。</p>
 
@@ -117,15 +119,17 @@ LLM_MODEL=deepseek-chat</pre>
 
     <p>换模型只改后两行。常用组合：</p>
 
-    <table>
-      <thead><tr><th>模型</th><th>BASE_URL</th><th>MODEL</th></tr></thead>
-      <tbody>
-        <tr><td>DeepSeek</td><td><code>https://api.deepseek.com/v1</code></td><td><code>deepseek-chat</code></td></tr>
-        <tr><td>通义千问</td><td><code>https://dashscope.aliyuncs.com/compatible-mode/v1</code></td><td><code>qwen-plus</code></td></tr>
-        <tr><td>智谱 GLM</td><td><code>https://open.bigmodel.cn/api/paas/v4</code></td><td><code>glm-4</code></td></tr>
-        <tr><td>Kimi</td><td><code>https://api.moonshot.cn/v1</code></td><td><code>kimi</code></td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead><tr><th>模型</th><th>BASE_URL</th><th>MODEL</th></tr></thead>
+        <tbody>
+          <tr><td>DeepSeek</td><td><code>https://api.deepseek.com/v1</code></td><td><code>deepseek-chat</code></td></tr>
+          <tr><td>通义千问</td><td><code>https://dashscope.aliyuncs.com/compatible-mode/v1</code></td><td><code>qwen-plus</code></td></tr>
+          <tr><td>智谱 GLM</td><td><code>https://open.bigmodel.cn/api/paas/v4</code></td><td><code>glm-4</code></td></tr>
+          <tr><td>Kimi</td><td><code>https://api.moonshot.cn/v1</code></td><td><code>kimi</code></td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>2. 完全离线</h3>
 

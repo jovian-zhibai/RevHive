@@ -56,17 +56,19 @@
 
     <p>I started from the outside, which felt methodical and was actually the expensive choice.</p>
 
-    <table>
-      <thead>
-        <tr><th>Hypothesis</th><th>Test</th><th>Result</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>The host lost outbound access</td><td><code>curl</code> the provider from the box</td><td>200 in 1–2s</td></tr>
-        <tr><td>The diff was too large</td><td>Replay with a tiny payload</td><td>200 in under 2s</td></tr>
-        <tr><td>Concurrency exhausted a pool</td><td>Single review, no queue</td><td>Still 90s timeouts</td></tr>
-        <tr><td>Wrong credentials</td><td>Same key, hand-written request</td><td>200, valid completion</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead>
+          <tr><th>Hypothesis</th><th>Test</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>The host lost outbound access</td><td><code>curl</code> the provider from the box</td><td>200 in 1–2s</td></tr>
+          <tr><td>The diff was too large</td><td>Replay with a tiny payload</td><td>200 in under 2s</td></tr>
+          <tr><td>Concurrency exhausted a pool</td><td>Single review, no queue</td><td>Still 90s timeouts</td></tr>
+          <tr><td>Wrong credentials</td><td>Same key, hand-written request</td><td>200, valid completion</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <p>Four green rows. Every layer I could test from the shell said the provider was reachable, fast, and happy with our key. Inside the service process, every attempt timed out.</p>
 
@@ -132,18 +134,20 @@ server/worker.py:655:  base_url = preset.get("base_url", "https://api.openai.com
 
     <h2>What actually changed, in order of how much it helps next time</h2>
 
-    <table>
-      <thead>
-        <tr><th>Change</th><th>Why it is first</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Log the destination, not just the failure</td><td>A URL in a log line ended the investigation on the next run. Hostnames belong in every outbound-error message.</td></tr>
-        <tr><td><code>%r</code> instead of <code>%s</code> for exceptions</td><td><code>ConnectTimeout('')</code> is not a message. If the exception has no text, print the repr, the type, and whatever context you have.</td></tr>
-        <tr><td>Verify the loaded code, not the version number</td><td>One line, printable at any time, immune to my own belief about what I deployed.</td></tr>
-        <tr><td>No defaults for required config</td><td>Missing config raises at parse time, including on the hosted side.</td></tr>
-        <tr><td>Pin the dependency floor to the feature</td><td>Our own CI installed an old wheel and passed locally because local runs use the source tree. The floor is now the exact version that introduced the table entry, with a comment saying so.</td></tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table>
+        <thead>
+          <tr><th>Change</th><th>Why it is first</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Log the destination, not just the failure</td><td>A URL in a log line ended the investigation on the next run. Hostnames belong in every outbound-error message.</td></tr>
+          <tr><td><code>%r</code> instead of <code>%s</code> for exceptions</td><td><code>ConnectTimeout('')</code> is not a message. If the exception has no text, print the repr, the type, and whatever context you have.</td></tr>
+          <tr><td>Verify the loaded code, not the version number</td><td>One line, printable at any time, immune to my own belief about what I deployed.</td></tr>
+          <tr><td>No defaults for required config</td><td>Missing config raises at parse time, including on the hosted side.</td></tr>
+          <tr><td>Pin the dependency floor to the feature</td><td>Our own CI installed an old wheel and passed locally because local runs use the source tree. The floor is now the exact version that introduced the table entry, with a comment saying so.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2>The uncomfortable part</h2>
 

@@ -45,73 +45,75 @@
   <p class="text-sm text-gray-500 mb-10">Ten cases, one pass each, security agent alone, small free model (SenseNova Flash). Run on 2026-11-20.</p>
 
   <h2 class="text-2xl font-bold text-white mb-4">Results</h2>
-  <table class="w-full mb-3">
-    <thead><tr class="text-left text-xs uppercase tracking-wide text-gray-500">
-      <th class="pb-2">Project</th><th class="pb-2">Vulnerability re-introduced</th><th class="pb-2">Severity reported</th><th class="pb-2 text-center">Caught</th>
-    </tr></thead>
-    <tbody>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Server-side request forgery through a GDAL spatial reference string<div class="text-xs text-gray-500 mt-1">GDAL file/network access restrictions removed</div></td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Password hash disclosure to view-only admin users<div class="text-xs text-gray-500 mt-1">Flagged the exposure but rated it low; the real fix rated it high</div></td>
-            <td class="py-3 pr-4 text-sm text-gray-400">low</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Cache key collision between absent and empty Vary headers</td>
-            <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Log injection through unescaped widget input</td>
-            <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion through unbounded multipart uploads</td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Forged actions in model formsets</td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion in language tag parsing</td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Stored XSS through an unvalidated URL scheme in admin</td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">axios/axios</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">SSRF and credential leak through a redirect</td>
-            <td class="py-3 pr-4 text-sm text-orange-400">high</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-          <tr class="border-t border-white/5 align-top">
-            <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">lodash/lodash</td>
-            <td class="py-3 pr-4 text-gray-200 text-sm">Command injection through the template variable option</td>
-            <td class="py-3 pr-4 text-sm text-red-400">critical</td>
-            <td class="py-3 text-center text-emerald-400">yes</td>
-          </tr>
-    </tbody>
-  </table>
+  <div class="overflow-x-auto">
+    <table class="w-full mb-3">
+      <thead><tr class="text-left text-xs uppercase tracking-wide text-gray-500">
+        <th class="pb-2">Project</th><th class="pb-2">Vulnerability re-introduced</th><th class="pb-2">Severity reported</th><th class="pb-2 text-center">Caught</th>
+      </tr></thead>
+      <tbody>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Server-side request forgery through a GDAL spatial reference string<div class="text-xs text-gray-500 mt-1">GDAL file/network access restrictions removed</div></td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Password hash disclosure to view-only admin users<div class="text-xs text-gray-500 mt-1">Flagged the exposure but rated it low; the real fix rated it high</div></td>
+              <td class="py-3 pr-4 text-sm text-gray-400">low</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Cache key collision between absent and empty Vary headers</td>
+              <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Log injection through unescaped widget input</td>
+              <td class="py-3 pr-4 text-sm text-yellow-400">medium</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion through unbounded multipart uploads</td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Forged actions in model formsets</td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Memory exhaustion in language tag parsing</td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">django/django</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Stored XSS through an unvalidated URL scheme in admin</td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">axios/axios</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">SSRF and credential leak through a redirect</td>
+              <td class="py-3 pr-4 text-sm text-orange-400">high</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+            <tr class="border-t border-white/5 align-top">
+              <td class="py-3 pr-4 text-gray-500 text-sm whitespace-nowrap">lodash/lodash</td>
+              <td class="py-3 pr-4 text-gray-200 text-sm">Command injection through the template variable option</td>
+              <td class="py-3 pr-4 text-sm text-red-400">critical</td>
+              <td class="py-3 text-center text-emerald-400">yes</td>
+            </tr>
+      </tbody>
+    </table>
+  </div>
   <p class="text-xs text-gray-600 mb-10">Two of the ten cases had to be re-run: the first attempt left the release notes in the patch, and the reviewer simply quoted the CVE from them. Those runs were discarded.</p>
 
   <h2 class="text-2xl font-bold text-white mb-4">What this does not prove</h2>
