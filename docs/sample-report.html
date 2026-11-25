@@ -56,7 +56,7 @@
     </div>
     <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
       <dt class="text-gray-500 text-xs mb-1">改动规模</dt>
-      <dd class="font-mono text-gray-300">14 文件 · +682 / −219</dd>
+      <dd class="font-mono text-gray-300">14 文件 · +682/−219</dd>
     </div>
     <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3">
       <dt class="text-gray-500 text-xs mb-1">模型</dt>
@@ -154,7 +154,7 @@
     <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
       <div class="flex items-center gap-3 mb-2">
         <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
-        <span class="text-xs text-gray-500 font-mono">ConcurrencyAgent</span>
+        <span class="text-xs text-gray-500 font-mono">LogicAgent</span>
       </div>
       <h2 class="text-lg font-bold text-white">库存扣减非原子操作，并发下单会超卖</h2>
     </div>
@@ -181,7 +181,7 @@ stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id
     <div class="px-6 py-4 border-b border-white/5 bg-orange-500/5">
       <div class="flex items-center gap-3 mb-2">
         <span class="text-xs font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 rounded px-2 py-0.5">HIGH</span>
-        <span class="text-xs text-gray-500 font-mono">SecurityAgent + ConfigAgent</span>
+        <span class="text-xs text-gray-500 font-mono">SecurityAgent + RepoAgent</span>
       </div>
       <h2 class="text-lg font-bold text-white">支付回调验签可被绕过</h2>
     </div>
@@ -190,7 +190,7 @@ stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id
         <div><span class="text-gray-500">位置：</span><span class="font-mono text-gray-300 text-xs">app/api/payment.py L120</span></div>
         <div><span class="text-gray-500">问题：</span><span class="text-gray-300">验签函数在密钥为空时直接 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">return True</code>，而新环境的 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">PAYMENT_SECRET</code> 默认为空字符串。一旦某环境漏配，伪造回调即可将订单置为已支付。</span></div>
         <div><span class="text-gray-500">修复：</span><span class="text-gray-300">密钥缺失时应 <code class="text-accent font-mono text-xs bg-white/5 px-1 rounded">raise</code> 而非放行；启动时做配置校验，缺失即拒绝启动。</span></div>
-        <div class="text-xs text-gray-500">说明：这条由两个 Agent 独立报出，Coordinator 合并为一条并保留 ConfigAgent 补充的“默认值”上下文。</div>
+        <div class="text-xs text-gray-500">说明：这条由两个 Agent 独立报出，Coordinator 合并为一条并保留 RepoAgent 补充的“默认值”上下文。</div>
       </div>
     </div>
   </article>
@@ -214,14 +214,14 @@ stock = db.<span class="f">query</span>(Item).<span class="f">get</span>(item_id
     <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">9 个 Agent 的分工与产出</h3>
     <div class="grid md:grid-cols-3 gap-3 text-sm">
       <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">SecurityAgent</span><span class="font-mono text-gray-500">9</span></div><div class="text-xs text-gray-500">注入、认证、密钥、越权</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ConcurrencyAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">竞态、锁粒度、事务边界</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">DataAgent</span><span class="font-mono text-gray-500">6</span></div><div class="text-xs text-gray-500">N+1、索引、迁移安全</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">TestAgent</span><span class="font-mono text-gray-500">5</span></div><div class="text-xs text-gray-500">覆盖缺口、断言有效性</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ConfigAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">默认值、环境差异</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">ApiAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">契约破坏、兼容性</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">PerfAgent</span><span class="font-mono text-gray-500">2</span></div><div class="text-xs text-gray-500">复杂度、热路径</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">LogicAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">业务逻辑、并发、状态机</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">PerformanceAgent</span><span class="font-mono text-gray-500">6</span></div><div class="text-xs text-gray-500">N+1、复杂度、热路径</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">TestAgent</span><span class="font-mono text-gray-500">5</span></div><div class="text-xs text-gray-500">测试生成、覆盖缺口</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RepoAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">设计、架构、SOLID</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RefactorAgent</span><span class="font-mono text-gray-500">4</span></div><div class="text-xs text-gray-500">重构方案、重复代码</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">FixAgent</span><span class="font-mono text-gray-500">2</span></div><div class="text-xs text-gray-500">修复代码生成</div></div>
       <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">StyleAgent</span><span class="font-mono text-gray-500">1</span></div><div class="text-xs text-gray-500">可读性、一致性</div></div>
-      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">RepoAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">跨文件重复、历史模式</div></div>
+      <div class="bg-surface-2 border border-white/5 rounded-lg px-4 py-3"><div class="flex justify-between mb-1"><span class="text-gray-300">DocAgent</span><span class="font-mono text-gray-500">3</span></div><div class="text-xs text-gray-500">文档生成</div></div>
     </div>
     <div class="text-xs text-gray-500 mt-3">合计 37 条原始发现 → 去重合并后 23 条。单 Agent 工具在这里的差别是：多个视角会独立命中同一个问题，这本身就是严重度的信号。</div>
   </section>
