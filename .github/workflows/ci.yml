@@ -21,6 +21,20 @@ jobs:
       - run: pytest -v --cov=revhive --cov-report=term-missing --cov-fail-under=50
       - run: ruff check src/ tests/
 
+  # tree-sitter is an optional extra, so the main matrix above never installs it
+  # and the tree-sitter parsing path stays untested. This job runs it on its own
+  # so a failure here is clearly attributable and does not redden the matrix.
+  tree-sitter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,tree-sitter]"
+      - name: Verify tree-sitter parsing path
+        run: pytest tests/test_parser.py -v
+
   security:
     runs-on: ubuntu-latest
     steps:

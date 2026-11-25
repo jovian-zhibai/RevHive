@@ -1,5 +1,7 @@
 """Tests for code parsing utilities."""
 
+import importlib.util
+
 import pytest
 
 from revhive.utils.parser import (
@@ -10,6 +12,14 @@ from revhive.utils.parser import (
     _parse_with_regex,
     _parse_with_tree_sitter,
     parse_code,
+)
+
+# tree-sitter is an optional dependency (extra "tree-sitter"). Detect it rather
+# than skipping unconditionally: a plain @pytest.mark.skip can never be turned
+# off, which left _parse_with_tree_sitter completely unverified.
+_HAS_TREE_SITTER = (
+    importlib.util.find_spec("tree_sitter") is not None
+    and importlib.util.find_spec("tree_sitter_python") is not None
 )
 
 
@@ -203,7 +213,10 @@ class TestParseCode:
 
 
 class TestTreeSitterPython:
-    @pytest.mark.skip(reason="tree-sitter is an optional dependency, not always installed")
+    @pytest.mark.skipif(
+        not _HAS_TREE_SITTER,
+        reason="tree-sitter is an optional dependency (pip install -e '.[tree-sitter]')",
+    )
     def test_tree_sitter_python(self):
         code = "def foo():\n    pass\n\nclass Bar:\n    pass\nimport os\n"
         result = _parse_with_tree_sitter(code, "python")
