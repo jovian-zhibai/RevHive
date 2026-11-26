@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes from building an honest code reviewer | RevHive</title>
+<meta name="description" content="Every experiment we ran on our own AI code reviewer, including the ones where the result was worse than the claim: a leaked answer key, a control group that failed, and a benchmark run on the wrong model.">
+<link rel="canonical" href="https://revhive.souljian.cn/blog/">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#0a0a0b}
+</style>
+</head>
+<body class="text-gray-300 antialiased">
+
+<header class="max-w-3xl mx-auto px-6 pt-14 pb-8">
+  <a href="../" class="text-sm text-gray-500 hover:text-white transition-colors">← RevHive</a>
+  <h1 class="mt-6 text-3xl md:text-4xl font-extrabold text-white leading-tight">Notes from building an honest code reviewer</h1>
+  <p class="mt-4 text-gray-400 leading-relaxed">
+    Every experiment we ran on our own reviewer, including the ones where the result was worse than the claim.
+    The leaked answer key, the control group that failed, the benchmark that turned out to have been run on the
+    wrong model — all of it is here, in the order it happened.
+  </p>
+  <p class="mt-3 text-sm text-gray-500">
+    中文读者：<a class="text-emerald-400 underline underline-offset-2" href="ai-code-review-private-deployment.html">代码不出内网：企业内网部署 AI 代码审查的完整方案</a>
+  </p>
+</header>
+
+<main class="max-w-3xl mx-auto px-6 pb-24">
+
+  <ol class="divide-y divide-white/5 border-t border-white/5">
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · experiment · EN</div>
+      <a href="evaluating-ai-code-review.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">Our AI reviewer caught 10 out of 10 known vulnerabilities. Ignore that number.</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">Ten reverted CVE fixes, no hints, ten hits — and four reasons why the score measures almost nothing about real pull requests.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · correction · EN</div>
+      <a href="answer-key-leakage.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">Does the PR description leak the answer key?</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">A reader asked whether the benchmark was measuring reading comprehension. We audited the prompt path, found the published runs had not stripped test hunks as claimed, then re-ran the suite three ways.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · control group · EN</div>
+      <a href="matched-control.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">We ran the control a reader asked for. It also turned out we had benchmarked the wrong model.</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">Ten ordinary commits reverted alongside the ten CVE fixes: seven stayed silent, three produced confident findings about real but non-security bugs. Re-reading the logs showed every original run had used a rate-limit fallback model.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · experiment · EN</div>
+      <a href="model-choice-vs-sampling.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">Same reviewer, three models: is the noise sampling or model choice?</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">With fallback disabled, every model missed a different case. Cross-model spread exceeded cross-pass spread on a single model — and the fail-closed gate withheld 6 of 10 verdicts on the free tier.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · noise measurement · EN</div>
+      <a href="ordinary-prs-noise.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">We ran our AI reviewer on 20 ordinary merged commits. It commented 4 times.</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">Nothing planted, real commits from psf/requests. We read all four comments and graded them by hand — including the one that was wrong.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · postmortem · EN</div>
+      <a href="the-code-that-ran.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">The code that ran was not the code I read</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">Four agents timed out at 90 seconds each. The network was fine. The bug was a <code class="text-emerald-400">dict.get</code> default that turned a version mismatch into a connect timeout.</p>
+      </a>
+    </li>
+
+    <li class="py-6">
+      <div class="text-xs text-gray-500 mb-2">2026-11 · 中文 · 实施指南</div>
+      <a href="ai-code-review-private-deployment.html" class="block group">
+        <h2 class="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">代码不出内网：企业内网部署 AI 代码审查的完整方案</h2>
+        <p class="mt-2 text-sm text-gray-400 leading-relaxed">三种数据流向的对比、四种部署形态的取舍，以及用 Docker 和 DeepSeek / Qwen / Ollama 在内网真正跑起来的配置。</p>
+      </a>
+    </li>
+
+  </ol>
+
+  <div class="mt-12 rounded-xl border border-white/10 bg-white/[0.03] p-6">
+    <p class="text-sm text-gray-400 leading-relaxed">
+      Want the same treatment applied to your own repository? Send a repo and a branch — the report is free,
+      and if it is not useful the conversation ends there.
+    </p>
+    <a href="../sample-report.html" class="inline-block mt-4 text-sm font-medium text-emerald-400 hover:text-emerald-300 underline underline-offset-2">See a real report →</a>
+  </div>
+
+</main>
+
+<footer class="border-t border-white/5 py-8 text-center text-xs text-gray-600">
+  RevHive · <a class="hover:text-gray-400" href="../">Home</a> · <a class="hover:text-gray-400" href="../zh.html">中文</a> · <a class="hover:text-gray-400" href="https://github.com/jovian-zhibai/RevHive">GitHub</a>
+</footer>
+
+</body>
+</html>
