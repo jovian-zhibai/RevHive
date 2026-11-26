@@ -3,7 +3,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    image: revhive:0.4.0
+    # 与 pyproject.toml 的 version 保持一致；发版时一起改，别让它比实际版本超前。
+    image: revhive:${REVHIVE_TAG:-0.3.27}
     container_name: revhive
     env_file:
       - .env

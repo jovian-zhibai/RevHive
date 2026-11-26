@@ -13,6 +13,29 @@
 
 不需要 Python，不需要 GPU（用 API 模式时）。
 
+> 已在 `linux/amd64` 与 `linux/arm64` 两个平台各构建一次并跑过真实审查（2026-11-26）。下面的 Docker 路线是**可选项之一**，不是唯一路线。
+
+## 零、不用 Docker 的装法（甲方不让装容器时用这个）
+
+RevHive 的 CLI 不需要数据库、不需要常驻服务、不开端口，跑完就退出。所以最轻的私有化其实是：
+
+```bash
+python3 -m venv /opt/revhive && . /opt/revhive/bin/activate
+pip install revhive-ai
+
+export LLM_API_KEY=sk-xxxxxxxx
+export LLM_BASE_URL=https://api.deepseek.com/v1
+export LLM_MODEL=deepseek-chat
+
+revhive --version
+revhive review -d HEAD~1 --format markdown -o report.md
+```
+
+- **定时跑**：`cron` 或 `systemd timer` 里调上面那行 `review`，和普通脚本没区别
+- **CI 里跑**：直接当命令执行，不需要 compose（见第四节）
+- **完全离线安装**：先在一台能上网的机器 `pip download --only-binary=:all: -d wheels revhive-ai`（实测 49 个包、14 MB，全部是 wheel），把 `wheels/` 拷进内网，再 `pip install --no-index --find-links=wheels revhive-ai`。**下载机要和目标机同架构、同 Python 小版本**（macOS 上下载的包装不到 Linux 上）
+- **隔离性**：这条路没有容器边界，靠的是"代码只发往 `LLM_BASE_URL`"这一条。要更强隔离再用下面的 Docker 路线
+
 ## 一、配置
 
 ```bash
