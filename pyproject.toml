@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "revhive-ai"
-version = "0.3.27"
+version = "0.3.28"
 description = "9 specialist AI reviewers plus a coordinator review your code in minutes, not hours. Security, performance, logic, and more. Supports MiMo, OpenAI, DeepSeek, Qwen, GLM, Kimi, Anthropic. Try `revhive demo` — no API key needed."
 readme = "README.md"
 license = {text = "BSL-1.1"}
@@ -63,8 +63,9 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jovian-zhibai/RevHive"
-Documentation = "https://github.com/jovian-zhibai/RevHive"
+Homepage = "https://revhive.souljian.cn/"
+Documentation = "https://revhive.souljian.cn/zh.html"
+Changelog = "https://revhive.souljian.cn/blog/"
 Repository = "https://github.com/jovian-zhibai/RevHive"
 Issues = "https://github.com/jovian-zhibai/RevHive/issues"
 

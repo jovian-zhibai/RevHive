@@ -33,7 +33,10 @@ MODEL_PRESETS: dict[str, dict[str, str]] = {
     "kimi": {"base_url": "https://api.moonshot.cn/v1", "model": "kimi"},
     # SenseNova (商汤日日新) — OpenAI-compatible gateway, free token-plan quota.
     # Note: the base URL is token.sensenova.cn, NOT api.sensenova.cn.
-    "sensenova": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-v4-flash"},
+    # deepseek-v4-flash now answers 400 "matched user group has no available
+    # model instance" on this endpoint, so the provider default points at the
+    # model that actually serves requests.
+    "sensenova": {"base_url": "https://token.sensenova.cn/v1", "model": "sensenova-6.8-flash"},
     "sensenova-ds": {"base_url": "https://token.sensenova.cn/v1", "model": "deepseek-flash"},
     "sensenova-flash": {"base_url": "https://token.sensenova.cn/v1", "model": "sensenova-6.8-flash"},
     "sensenova-glm": {"base_url": "https://token.sensenova.cn/v1", "model": "glm-5.3"},
